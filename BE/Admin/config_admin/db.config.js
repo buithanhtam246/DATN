@@ -5,7 +5,7 @@ module.exports = {
   HOST: process.env.DB_HOST || "localhost",
   USER: process.env.DB_USER || "root",
   PASSWORD: process.env.DB_PASSWORD || "", // Mật khẩu mặc định của XAMPP thường là rỗng
-  DB: process.env.DB_NAME || "duan", // Tên database mình đã chốt
+  DB: process.env.DB_NAME || "DATN", // Tên database mình đã chốt
   dialect: "mysql",
   pool: {
     max: 5,     // Số lượng kết nối tối đa
