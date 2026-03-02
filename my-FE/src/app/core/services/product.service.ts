@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from '../../../../node_modules/rxjs/dist/types';
+import { Observable, of } from 'rxjs';
 import { Product } from '../models';
 import { FEATURED_PRODUCT } from '../constants';
 import { IProductOperations } from '../interfaces/service.interface';
