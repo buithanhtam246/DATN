@@ -1,0 +1,163 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.banner {
+  width: 100%;
+  background: linear-gradient(135deg, $color-background-gradient-start 0%, $color-background-gradient-end 100%);
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.banner-container {
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  @include flex-center;
+  padding: 0;
+  margin: 0;
+}
+
+/* Banner Full Image */
+.banner-full-image {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Explore More Button - Top Right */
+.explore-more-btn {
+  position: absolute;
+  top: 25%;
+  transform: translateY(-50%);
+  right: 20%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-primary;
+  transition: $transition-normal;
+  z-index: $z-index-dropdown;
+
+  .arrow-icon {
+    font-size: $font-size-xl;
+    transition: transform $transition-normal;
+  }
+
+  .explore-text {
+    text-align: left;
+    line-height: 1.3;
+  }
+
+  &:hover {
+    transform: translateY(-50%) translateX(5px);
+    
+    .arrow-icon {
+      transform: translateX(5px);
+    }
+  }
+
+  @include desktop {
+    top: 25%;
+    right: 30%;
+    font-size: $font-size-sm;
+  }
+
+  @include tablet {
+    top: 20%;
+    right: 25%;
+    font-size: 0.85rem;
+    
+    .arrow-icon {
+      font-size: $font-size-lg;
+    }
+  }
+
+  @include mobile {
+    top: 15%;
+    right: $spacing-md;
+    font-size: $font-size-xs + 0.05rem;
+    gap: 0.3rem;
+    
+    .arrow-icon {
+      font-size: $font-size-md;
+    }
+  }
+}
+
+/* Scroll Down Button - Bottom Center */
+.scroll-down-btn {
+  position: absolute;
+  bottom: $spacing-xl;
+  left: 50%;
+  transform: translateX(-50%);
+  @include circle-button(60px);
+  background-color: $color-primary;
+  color: $color-white;
+  @include button-base {
+    background-color: $color-secondary;
+    transform: translateX(-50%) scale(1.1);
+  }
+  z-index: $z-index-dropdown;
+  @include bounce-animation;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  @include desktop {
+    width: 55px;
+    height: 55px;
+    bottom: $spacing-lg;
+  }
+
+  @include tablet {
+    width: 50px;
+    height: 50px;
+    bottom: $spacing-md;
+  }
+
+  @include mobile {
+    width: 45px;
+    height: 45px;
+    bottom: $spacing-sm + 0.25rem;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+/* Right Product Info Container */
+.banner-product {
+  position: absolute;
+  bottom: $spacing-xxl;
+  right: $spacing-xxl;
+  z-index: $z-index-dropdown;
+
+  @include desktop {
+    bottom: $spacing-xl;
+    right: $spacing-xl;
+  }
+
+  @include tablet {
+    bottom: $spacing-lg;
+    right: $spacing-lg;
+    left: $spacing-lg;
+  }
+
+  @include mobile {
+    bottom: $spacing-md;
+    right: $spacing-md;
+    left: $spacing-md;
+  }
+}

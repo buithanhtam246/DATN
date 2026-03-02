@@ -1,0 +1,21 @@
+<section class="news-section">
+  <div class="section-header">
+    <h2 class="section-title">TIN TỨC</h2>
+    <button class="view-more-btn">Xem Thêm</button>
+  </div>
+
+  <div class="news-grid">
+    @for (article of articles; track article.id) {
+      <div class="news-card">
+        <div class="news-image">
+          <img [src]="article.imageUrl" [alt]="article.title" />
+        </div>
+        <div class="news-content">
+          <p class="news-date">{{ article.date }}</p>
+          <h3 class="news-title">{{ article.title }}</h3>
+          <button class="read-more-btn">Đọc thêm</button>
+        </div>
+      </div>
+    }
+  </div>
+</section>
