@@ -2,11 +2,10 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "Users/server.js",
-"scripts": {
-  "start": "node Users/server.js",
-  "dev": "nodemon Users/server.js"
-},
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -21,9 +20,7 @@
     "multer": "^2.0.2",
     "mysql2": "^3.16.0",
     "nodemailer": "^7.0.12",
+    "nodemon": "^3.1.14",
     "sequelize": "^6.37.7"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
   }
 }
