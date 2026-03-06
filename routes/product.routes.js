@@ -5,12 +5,18 @@ const productController = require("../controllers/product.controller");
 
 router.get("/", productController.getAllProducts);
 
-router.get("/:id", productController.getProductDetail);
+router.get("/new", productController.getNewProducts);
 
-router.get("/:id/reviews", productController.getProductReviews);
+router.get("/best-sell", productController.getBestSellingProducts);
 
 router.get("/brand/:brandId", productController.getProductsByBrand);
 
 router.get("/category/:categoryId", productController.getProductsByCategory);
+
+router.get("/:id/reviews", productController.getProductReviews);
+
+router.get("/:id/related", productController.getRelatedProducts);   
+
+router.get("/:id", productController.getProductDetail);             
 
 module.exports = router;

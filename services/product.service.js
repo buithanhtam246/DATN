@@ -4,7 +4,7 @@ exports.getAllProducts = async () => {
 
   const [rows] = await db.query(`
     
-    SELECT 
+SELECT 
     p.id,
     p.name,
     p.image,
@@ -12,7 +12,9 @@ exports.getAllProducts = async () => {
     v.price,
     v.price_sale,
 
-    r.avg_rating
+    r.avg_rating,
+
+    IFNULL(s.total_sold,0) AS total_sold
 
 FROM products p
 
@@ -38,12 +40,25 @@ LEFT JOIN (
         ON orv.order_detail_id = od.id
     GROUP BY v.product_id
 ) r 
-ON r.product_id = p.id;
+ON r.product_id = p.id
+
+/* tổng số lượt bán */
+LEFT JOIN (
+    SELECT 
+        v.product_id,
+        SUM(od.quantity) AS total_sold
+    FROM variant v
+    JOIN order_details od
+        ON od.variant_id = v.id
+    GROUP BY v.product_id
+) s
+ON s.product_id = p.id
 
   `);
 
   return rows;
 };
+
 exports.getProductDetail = async (productId) => {
   const [rows] = await db.query(
     `
@@ -120,6 +135,119 @@ exports.getProductReviews = async (productId) => {
   return rows;
 };
 
+exports.getRelatedProducts = async (productId) => {
+
+  const [product] = await db.query(
+    `
+    SELECT id, brand_id, category_id
+    FROM products
+    WHERE id = ?
+    `,
+    [productId]
+  );
+
+  if (product.length === 0) return [];
+
+  const brandId = product[0].brand_id;
+  const categoryId = product[0].category_id;
+
+  let result = [];
+  let ids = [];
+
+  const addProducts = (rows) => {
+    rows.forEach(p => {
+      if (!ids.includes(p.id) && result.length < 10) {
+        ids.push(p.id);
+        result.push(p);
+      }
+    });
+  };
+
+  // 1️⃣ cùng brand + category
+  const [brandCate] = await db.query(
+    `
+    SELECT p.id, p.name, p.image
+    FROM products p
+    WHERE p.brand_id = ?
+    AND p.category_id = ?
+    AND p.id != ?
+    LIMIT 10
+    `,
+    [brandId, categoryId, productId]
+  );
+
+  addProducts(brandCate);
+
+  if (result.length >= 10) return result;
+
+  // 2️⃣ cùng category
+  const [cate] = await db.query(
+    `
+    SELECT p.id, p.name, p.image
+    FROM products p
+    WHERE p.category_id = ?
+    AND p.id != ?
+    LIMIT 10
+    `,
+    [categoryId, productId]
+  );
+
+  addProducts(cate);
+
+  if (result.length >= 10) return result;
+
+  // 3️⃣ cùng brand
+  const [brand] = await db.query(
+    `
+    SELECT p.id, p.name, p.image
+    FROM products p
+    WHERE p.brand_id = ?
+    AND p.id != ?
+    LIMIT 10
+    `,
+    [brandId, productId]
+  );
+
+  addProducts(brand);
+
+  if (result.length >= 10) return result;
+
+  // 4️⃣ bán chạy
+  const [bestSeller] = await db.query(
+    `
+    SELECT p.id, p.name, p.image, SUM(od.quantity) as sold
+    FROM products p
+    JOIN variant v ON v.product_id = p.id
+    JOIN order_details od ON od.variant_id = v.id
+    WHERE p.id != ?
+    GROUP BY p.id
+    ORDER BY sold DESC
+    LIMIT 10
+    `,
+    [productId]
+  );
+
+  addProducts(bestSeller);
+
+  if (result.length >= 10) return result;
+
+  // 5️⃣ sản phẩm mới
+  const [newest] = await db.query(
+    `
+    SELECT p.id, p.name, p.image
+    FROM products p
+    WHERE p.id != ?
+    ORDER BY p.id DESC
+    LIMIT 10
+    `,
+    [productId]
+  );
+
+  addProducts(newest);
+
+  return result.slice(0, 10);
+};
+
 exports.getProductsByBrand = async (brandId) => {
 
   const sql = `
@@ -131,7 +259,9 @@ exports.getProductsByBrand = async (brandId) => {
         MIN(v.price) AS price,
         MIN(v.price_sale) AS price_sale,
 
-        ROUND(AVG(orv.rating),1) AS avg_rating
+        ROUND(AVG(orv.rating),1) AS avg_rating,
+
+        IFNULL(SUM(od.quantity),0) AS total_sold
 
     FROM products p
 
@@ -147,7 +277,7 @@ exports.getProductsByBrand = async (brandId) => {
     WHERE p.brand_id = ?
 
     GROUP BY p.id
-    ORDER BY p.id DESC
+    ORDER BY total_sold DESC
   `;
 
   const [rows] = await db.query(sql, [brandId]);
@@ -165,7 +295,9 @@ exports.getProductsByCategory = async (categoryId) => {
         MIN(v.price) AS price,
         MIN(v.price_sale) AS price_sale,
 
-        ROUND(AVG(orv.rating),1) AS avg_rating
+        ROUND(AVG(orv.rating),1) AS avg_rating,
+
+        IFNULL(SUM(od.quantity),0) AS total_sold
 
     FROM products p
 
@@ -181,9 +313,132 @@ exports.getProductsByCategory = async (categoryId) => {
     WHERE p.category_id = ?
 
     GROUP BY p.id
-    ORDER BY p.id DESC
+    ORDER BY total_sold DESC
   `;
 
   const [rows] = await db.query(sql, [categoryId]);
+  return rows;
+};
+
+exports.getNewProducts = async () => {
+
+  const sql = `
+    SELECT 
+        p.id,
+        p.name,
+        p.image,
+
+        v.price,
+        v.price_sale,
+
+        r.avg_rating,
+
+        IFNULL(s.total_sold,0) AS total_sold
+
+    FROM products p
+
+    /* variant sale thấp nhất */
+    JOIN variant v 
+        ON v.id = (
+            SELECT v2.id
+            FROM variant v2
+            WHERE v2.product_id = p.id
+            ORDER BY v2.price_sale ASC
+            LIMIT 1
+        )
+
+    /* rating */
+    LEFT JOIN (
+        SELECT 
+            v.product_id,
+            AVG(orv.rating) AS avg_rating
+        FROM variant v
+        JOIN order_details od 
+            ON od.variant_id = v.id
+        JOIN order_review orv 
+            ON orv.order_detail_id = od.id
+        GROUP BY v.product_id
+    ) r 
+    ON r.product_id = p.id
+
+    /* lượt bán */
+    LEFT JOIN (
+        SELECT 
+            v.product_id,
+            SUM(od.quantity) AS total_sold
+        FROM variant v
+        JOIN order_details od
+            ON od.variant_id = v.id
+        GROUP BY v.product_id
+    ) s
+    ON s.product_id = p.id
+
+    ORDER BY p.id DESC
+    LIMIT 10
+  `;
+
+  const [rows] = await db.query(sql);
+
+  return rows;
+};
+
+exports.getBestSellingProducts = async () => {
+
+  const sql = `
+    SELECT 
+        p.id,
+        p.name,
+        p.image,
+
+        v.price,
+        v.price_sale,
+
+        r.avg_rating,
+
+        IFNULL(s.total_sold,0) AS total_sold
+
+    FROM products p
+
+    JOIN variant v 
+        ON v.id = (
+            SELECT v2.id
+            FROM variant v2
+            WHERE v2.product_id = p.id
+            ORDER BY v2.price_sale ASC
+            LIMIT 1
+        )
+
+    /* rating */
+    LEFT JOIN (
+        SELECT 
+            v.product_id,
+            AVG(orv.rating) AS avg_rating
+        FROM variant v
+        JOIN order_details od 
+            ON od.variant_id = v.id
+        JOIN order_review orv 
+            ON orv.order_detail_id = od.id
+        GROUP BY v.product_id
+    ) r 
+    ON r.product_id = p.id
+
+    /* lượt bán */
+    LEFT JOIN (
+        SELECT 
+            v.product_id,
+            SUM(od.quantity) AS total_sold
+        FROM variant v
+        JOIN order_details od
+            ON od.variant_id = v.id
+        GROUP BY v.product_id
+    ) s
+    ON s.product_id = p.id
+
+    ORDER BY total_sold DESC
+    LIMIT 10
+  `;
+
+  const [rows] = await db.query(sql);
+
   return rows;
 };

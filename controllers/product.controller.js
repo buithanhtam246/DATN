@@ -101,6 +101,29 @@ exports.getProductReviews = async (req, res) => {
 };
 
 
+exports.getRelatedProducts = async (req, res) => {
+
+  try {
+
+    const productId = req.params.id;
+
+    const products = await productService.getRelatedProducts(productId);
+
+    res.json({
+      success: true,
+      data: products
+    });
+
+  } catch (error) {
+
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+
+  }
+
+};
+
+
 exports.getProductsByBrand = async (req, res) => {
 
   try {
@@ -136,6 +159,58 @@ exports.getProductsByCategory = async (req, res) => {
     const categoryId = req.params.categoryId;
 
     const products = await productService.getProductsByCategory(categoryId);
+
+    const data = products.map(p => ({
+      ...p,
+      image: PRODUCT_IMAGE_PATH + p.image
+    }));
+
+    res.json({
+      success: true,
+      data
+    });
+
+  } catch (error) {
+
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+
+  }
+
+};
+
+
+exports.getNewProducts = async (req, res) => {
+
+  try {
+
+    const products = await productService.getNewProducts();
+
+    const data = products.map(p => ({
+      ...p,
+      image: PRODUCT_IMAGE_PATH + p.image
+    }));
+
+    res.json({
+      success: true,
+      data
+    });
+
+  } catch (error) {
+
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+
+  }
+
+};
+
+
+exports.getBestSellingProducts = async (req, res) => {
+
+  try {
+
+    const products = await productService.getBestSellingProducts();
 
     const data = products.map(p => ({
       ...p,
