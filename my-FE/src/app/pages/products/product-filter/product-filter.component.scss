@@ -1,0 +1,234 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.product-filter {
+    .clear-all-btn {
+        width: 100%;
+        padding: 10px;
+        background: none;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        color: $color-text;
+        font-size: $font-size-sm;
+        cursor: pointer;
+        margin-bottom: $spacing-lg;
+        transition: all $transition-normal;
+
+        &:hover {
+            background-color: $color-primary;
+            color: $color-white;
+            border-color: $color-primary;
+        }
+    }
+
+    .filter-section {
+        border-bottom: 1px solid #e8e8e8;
+        padding-bottom: $spacing-md;
+        margin-bottom: $spacing-md;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            background: none;
+            border: none;
+            padding: $spacing-sm 0;
+            cursor: pointer;
+            font-size: $font-size-md;
+            font-weight: $font-weight-semibold;
+            color: $color-text;
+
+            svg {
+                transition: transform $transition-normal;
+
+                &.rotated {
+                    transform: rotate(-90deg);
+                }
+            }
+        }
+
+        .section-content {
+            padding-top: $spacing-sm;
+
+            // Checkbox filters
+            .filter-checkbox {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 6px 0;
+                cursor: pointer;
+                font-size: $font-size-sm;
+                color: $color-text;
+                transition: color $transition-normal;
+
+                input[type='checkbox'] {
+                    display: none;
+                }
+
+                .checkmark {
+                    width: 18px;
+                    height: 18px;
+                    border: 2px solid #ccc;
+                    border-radius: 4px;
+                    flex-shrink: 0;
+                    position: relative;
+                    transition: all $transition-normal;
+                }
+
+                input:checked+.checkmark {
+                    background-color: $color-primary;
+                    border-color: $color-primary;
+
+                    &::after {
+                        content: '';
+                        position: absolute;
+                        top: 2px;
+                        left: 5px;
+                        width: 5px;
+                        height: 9px;
+                        border: solid $color-white;
+                        border-width: 0 2px 2px 0;
+                        transform: rotate(45deg);
+                    }
+                }
+
+                &:hover {
+                    color: $color-primary;
+
+                    .checkmark {
+                        border-color: $color-primary;
+                    }
+                }
+            }
+
+            // Color circles
+            &.color-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+
+                .color-circle {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: $border-radius-circle;
+                    border: 2px solid transparent;
+                    cursor: pointer;
+                    transition: all $transition-normal;
+                    @include flex-center;
+                    padding: 0;
+
+                    &.white-color {
+                        border: 2px solid #e0e0e0;
+                    }
+
+                    &.selected {
+                        border-color: $color-primary;
+                        box-shadow: 0 0 0 2px $color-white, 0 0 0 4px $color-primary;
+
+                        svg {
+                            stroke: $color-white;
+                        }
+                    }
+
+                    &.selected.white-color svg {
+                        stroke: $color-primary;
+                    }
+
+                    &:hover {
+                        transform: scale(1.1);
+                    }
+                }
+            }
+
+            // Size buttons
+            &.size-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+
+                .size-btn {
+                    padding: 8px;
+                    border: 1.5px solid #e0e0e0;
+                    border-radius: 6px;
+                    background: $color-white;
+                    font-size: $font-size-sm;
+                    font-weight: $font-weight-medium;
+                    cursor: pointer;
+                    transition: all $transition-normal;
+                    color: $color-text;
+
+                    &.selected {
+                        background-color: $color-primary;
+                        color: $color-white;
+                        border-color: $color-primary;
+                    }
+
+                    &:hover:not(.selected) {
+                        border-color: $color-primary;
+                    }
+                }
+            }
+
+            // Price range
+            &.price-range {
+                .price-inputs {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+
+                    input {
+                        flex: 1;
+                        padding: 8px 12px;
+                        border: 1.5px solid #e0e0e0;
+                        border-radius: 6px;
+                        font-size: $font-size-sm;
+                        outline: none;
+                        transition: border-color $transition-normal;
+                        width: 100%;
+
+                        &:focus {
+                            border-color: $color-primary;
+                        }
+
+                        // Hide number spinners
+                        &::-webkit-outer-spin-button,
+                        &::-webkit-inner-spin-button {
+                            -webkit-appearance: none;
+                            margin: 0;
+                        }
+
+                        -moz-appearance: textfield;
+                    }
+
+                    .separator {
+                        color: $color-text-light;
+                        flex-shrink: 0;
+                    }
+                }
+
+                .apply-price-btn {
+                    width: 100%;
+                    margin-top: $spacing-sm;
+                    padding: 8px;
+                    background-color: $color-primary;
+                    color: $color-white;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: $font-size-sm;
+                    font-weight: $font-weight-medium;
+                    cursor: pointer;
+                    transition: background-color $transition-normal;
+
+                    &:hover {
+                        background-color: $color-secondary;
+                    }
+                }
+            }
+        }
+    }
+}

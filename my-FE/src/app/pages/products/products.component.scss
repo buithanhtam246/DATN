@@ -1,0 +1,308 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.products-page {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: $spacing-xl 40px;
+
+    // ========== PAGE HEADER ==========
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: $spacing-xl;
+        padding-bottom: $spacing-md;
+        border-bottom: 1px solid #e8e8e8;
+
+        .header-left {
+            .page-title {
+                font-size: $font-size-xxl;
+                font-weight: $font-weight-bold;
+                color: $color-text;
+                margin: 0;
+
+                .product-count {
+                    font-weight: $font-weight-normal;
+                    color: $color-text-light;
+                }
+            }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: $spacing-lg;
+
+            .filter-toggle-btn {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 20px;
+                background: none;
+                border: 1.5px solid #e0e0e0;
+                border-radius: 8px;
+                font-size: $font-size-sm;
+                font-weight: $font-weight-medium;
+                color: $color-text;
+                cursor: pointer;
+                transition: all $transition-normal;
+
+                &:hover {
+                    border-color: $color-primary;
+                    background-color: $color-primary;
+                    color: $color-white;
+
+                    svg {
+                        stroke: $color-white;
+                    }
+                }
+            }
+
+            .sort-wrapper {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                label {
+                    font-size: $font-size-sm;
+                    font-weight: $font-weight-medium;
+                    color: $color-text-light;
+                    white-space: nowrap;
+                }
+
+                select {
+                    padding: 10px 32px 10px 14px;
+                    border: 1.5px solid #e0e0e0;
+                    border-radius: 8px;
+                    font-size: $font-size-sm;
+                    color: $color-text;
+                    background-color: $color-white;
+                    cursor: pointer;
+                    outline: none;
+                    appearance: none;
+                    background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+                    background-repeat: no-repeat;
+                    background-position: right 12px center;
+                    transition: border-color $transition-normal;
+
+                    &:focus {
+                        border-color: $color-primary;
+                    }
+                }
+            }
+        }
+    }
+
+    // ========== MAIN CONTENT ==========
+    .page-content {
+        display: flex;
+        gap: 40px;
+
+        &.filter-visible {
+            .filter-sidebar {
+                width: 260px;
+                flex-shrink: 0;
+            }
+
+            .products-main {
+                flex: 1;
+                min-width: 0;
+            }
+        }
+
+        .filter-sidebar {
+            position: sticky;
+            top: 100px;
+            align-self: flex-start;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            padding-right: 16px;
+
+            // Custom scrollbar
+            &::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: #ddd;
+                border-radius: 4px;
+            }
+        }
+
+        .products-main {
+            flex: 1;
+        }
+    }
+
+    // ========== PRODUCT GRID ==========
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+
+        &.full-width {
+            grid-template-columns: repeat(5, 1fr);
+        }
+    }
+
+    // ========== PAGINATION ==========
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 48px;
+        padding-top: 32px;
+        border-top: 1px solid #e8e8e8;
+
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            @include flex-center;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 8px;
+            background: $color-white;
+            font-size: $font-size-sm;
+            font-weight: $font-weight-medium;
+            color: $color-text;
+            cursor: pointer;
+            transition: all $transition-normal;
+
+            &:hover:not(:disabled):not(.active) {
+                border-color: $color-primary;
+                color: $color-primary;
+            }
+
+            &.active {
+                background-color: $color-primary;
+                border-color: $color-primary;
+                color: $color-white;
+            }
+
+            &:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+        }
+
+        .ellipsis {
+            width: 40px;
+            text-align: center;
+            color: $color-text-light;
+        }
+    }
+
+    // ========== EMPTY STATE ==========
+    .no-products {
+        @include flex-center;
+        flex-direction: column;
+        padding: 80px 20px;
+        text-align: center;
+
+        p {
+            font-size: $font-size-lg;
+            color: $color-text-light;
+            margin: $spacing-lg 0;
+        }
+
+        .reset-btn {
+            padding: 12px 32px;
+            background-color: $color-primary;
+            color: $color-white;
+            border: none;
+            border-radius: 8px;
+            font-size: $font-size-md;
+            font-weight: $font-weight-medium;
+            cursor: pointer;
+            transition: background-color $transition-normal;
+
+            &:hover {
+                background-color: $color-secondary;
+            }
+        }
+    }
+
+    // ========== RESPONSIVE ==========
+    @include desktop {
+        padding: $spacing-xl 24px;
+
+        .product-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+
+            &.full-width {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .page-content .filter-sidebar {
+            width: 220px;
+        }
+    }
+
+    @include tablet {
+        padding: $spacing-lg 16px;
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: $spacing-md;
+
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        .page-content {
+            flex-direction: column;
+
+            &.filter-visible .filter-sidebar {
+                width: 100%;
+                position: static;
+                max-height: none;
+                padding-right: 0;
+                padding-bottom: $spacing-lg;
+                border-bottom: 1px solid #e8e8e8;
+                margin-bottom: $spacing-lg;
+            }
+        }
+
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+
+            &.full-width {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    }
+
+    @include mobile {
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+
+            &.full-width {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .page-header .header-right {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: $spacing-sm;
+        }
+
+        .pagination .page-btn {
+            width: 36px;
+            height: 36px;
+            font-size: $font-size-xs;
+        }
+    }
+}

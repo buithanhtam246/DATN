@@ -1,0 +1,49 @@
+// Colors
+$color-primary: #000000;
+$color-secondary: #333333;
+$color-accent: #E91E63;
+$color-white: #ffffff;
+$color-text: #000000;
+$color-text-light: #666666;
+$color-background: #f5f7fa;
+$color-background-gradient-start: #f5f7fa;
+$color-background-gradient-end: #e8eef5;
+
+// Spacing
+$spacing-xs: 0.5rem;
+$spacing-sm: 0.75rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-xxl: 3rem;
+
+// Font Sizes
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.875rem;
+$font-size-md: 1rem;
+$font-size-lg: 1.25rem;
+$font-size-xl: 1.5rem;
+$font-size-xxl: 2rem;
+
+// Font Weights
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Border Radius
+$border-radius-sm: 10px;
+$border-radius-md: 20px;
+$border-radius-lg: 30px;
+$border-radius-circle: 50%;
+
+// Transitions
+$transition-fast: 0.2s ease;
+$transition-normal: 0.3s ease;
+$transition-slow: 0.5s ease;
+
+// Z-index
+$z-index-dropdown: 10;
+$z-index-sticky: 50;
+$z-index-fixed: 100;
+$z-index-modal: 1000;

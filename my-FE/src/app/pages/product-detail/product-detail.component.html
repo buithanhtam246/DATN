@@ -1,0 +1,152 @@
+<div class="product-detail-page">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="breadcrumb">
+        <a routerLink="/" class="breadcrumb-link">Trang chủ</a>
+        <span class="separator">/</span>
+        <a routerLink="/products" class="breadcrumb-link">Sản phẩm</a>
+        @if (product(); as currentProduct) {
+        <span class="separator">/</span>
+        <span class="breadcrumb-current">{{ currentProduct.name }}</span>
+        }
+    </nav>
+
+    @if (isLoading()) {
+    <div class="loading-state">Đang tải thông tin sản phẩm...</div>
+    } @else if (product(); as currentProduct) {
+    <div class="product-main-container">
+
+        <!-- Cột Trái: Trình Diễn Ảnh (Gallery) -->
+        <div class="product-gallery">
+            <div class="thumbnails">
+                @if (currentProduct.images && currentProduct.images.length > 0) {
+                @for (img of currentProduct.images; track $index) {
+                <button class="thumbnail-btn" [class.active]="currentImageIndex() === $index"
+                    (click)="selectImage($index)">
+                    <img [src]="img" [alt]="currentProduct.name + ' thumbnail ' + ($index + 1)">
+                </button>
+                }
+                } @else {
+                <button class="thumbnail-btn active">
+                    <img [src]="currentProduct.image" [alt]="currentProduct.name">
+                </button>
+                }
+            </div>
+            <div class="main-image">
+                <img [src]="currentProduct.images ? currentProduct.images[currentImageIndex()] : currentProduct.image"
+                    [alt]="currentProduct.name">
+            </div>
+        </div>
+
+        <!-- Cột Phải: Thông Tin Sản Phẩm -->
+        <div class="product-info">
+            <div class="product-header">
+                <p class="product-category">{{ currentProduct.brand?.name || 'Thương hiệu' }} / {{
+                    currentProduct.category?.name || 'Danh mục' }}</p>
+                <h1 class="product-title">{{ currentProduct.name }}</h1>
+
+                <div class="price-container">
+                    @if (currentVariantPrice().salePrice) {
+                    <p class="price sale-price">{{ currentVariantPrice().salePrice?.toLocaleString('vi-VN') }} VNĐ</p>
+                    <p class="price original-price">{{ currentVariantPrice().price.toLocaleString('vi-VN') }} VNĐ</p>
+                    } @else {
+                    <p class="price">{{ currentVariantPrice().price.toLocaleString('vi-VN') }} VNĐ</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Lựa chọn Màu Sắc -->
+            <div class="selector-section color-selector">
+                <h3 class="selector-title">Màu sắc <span class="selected-value">{{ activeColorObj()?.name || ''
+                        }}</span></h3>
+                <div class="color-options">
+                    <!-- Lọc danh sách màu sắc duy nhất có trong variants -->
+                    @for (color of getUniqueColors(currentProduct.variants); track color.id) {
+                    <button class="color-btn" [class.active]="selectedColorId() === color.id"
+                        [style.background-color]="color.tableColor" [attr.aria-label]="'Chọn màu ' + color.name"
+                        [title]="color.name" (click)="selectColor(color.id)">
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Lựa chọn Kích Cỡ -->
+            <div class="selector-section size-selector">
+                <div class="size-header">
+                    <h3 class="selector-title">Kích cỡ</h3>
+                    <button class="size-guide-btn">Hướng dẫn chọn size</button>
+                </div>
+
+                <div class="size-options">
+                    @if (availableSizesForColor().length > 0) {
+                    @for (size of availableSizesForColor(); track size.id) {
+                    <button class="size-btn" [class.active]="selectedSizeId() === size.id"
+                        (click)="selectSize(size.id)">
+                        {{ size.bangSize }}
+                    </button>
+                    }
+                    } @else {
+                    <p class="no-size-msg">Vui lòng chọn màu sắc trước, hoặc màu này tạm hết cỡ.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Tùy chỉnh Số lượng & Actions -->
+            <div class="product-actions-form">
+                <div class="quantity-selector">
+                    <button class="qty-btn" (click)="decrementQuantity()" [disabled]="quantity() <= 1">-</button>
+                    <input type="number" class="qty-input" [value]="quantity()" readonly>
+                    <button class="qty-btn" (click)="incrementQuantity()">+</button>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="add-to-cart-btn" (click)="addToCart()"
+                        [disabled]="!selectedColorId() || !selectedSizeId()">
+                        THÊM VÀO GIỎ
+                    </button>
+                    <button class="wishlist-btn" aria-label="Thêm vào yêu thích">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Accordion Mô tả / Chi tiết (Thực hiện giao diện tĩnh mockup trước) -->
+            <div class="product-description-accordion">
+                <details class="accordion-item" open>
+                    <summary class="accordion-header">Mô tả sản phẩm</summary>
+                    <div class="accordion-content">
+                        <p>{{ currentProduct.description || 'Chưa có mô tả cho sản phẩm này.' }}</p>
+                        @if (currentProduct.material) {
+                        <p><strong>Chất liệu:</strong> {{ currentProduct.material }}</p>
+                        }
+                    </div>
+                </details>
+                <details class="accordion-item">
+                    <summary class="accordion-header">Thông tin giao hàng & Đổi trả</summary>
+                    <div class="accordion-content">
+                        <p>Giao hàng miễn phí cho đơn hàng trên 2.000.000 VNĐ.</p>
+                        <p>Hỗ trợ đổi trả trong vòng 30 ngày với điều kiện sản phẩm còn nguyên tem mác và chưa qua sử
+                            dụng.</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sản phẩm liên quan -->
+    @if (relatedProducts().length > 0) {
+    <div class="related-products-section">
+        <h2 class="section-title">Sản phẩm tương tự</h2>
+        <div class="related-products-grid">
+            @for (relProduct of relatedProducts(); track relProduct.id) {
+            <app-product-card [product]="relProduct"></app-product-card>
+            }
+        </div>
+    </div>
+    }
+    }
+</div>

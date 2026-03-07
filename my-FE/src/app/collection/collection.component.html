@@ -1,0 +1,97 @@
+<section class="collection">
+  <div class="collection-container">
+    <!-- Left Content -->
+    <div class="collection-left">
+      <div class="collection-header">
+        <div class="badges">
+          <span class="badge">NEW COLLECTION</span>
+          <span class="badge badge-light">BESTSELLER</span>
+        </div>
+
+        <h2 class="collection-title">
+          KHÁM PHÁ SẢN PHẨM MỚI<br>
+          <em>COLLECTION</em>
+        </h2>
+
+        <p class="collection-description">
+          Với những thiết kế giày đẹp mới nhất và thời thượng nhất, bộ sưu tập của chúng tôi là cách hoàn hảo để bạn
+          luôn dẫn đầu xu hướng thời trang và thể hiện phong cách độc đáo của riêng mình.
+        </p>
+
+        <div class="collection-images">
+          <img src="/assets/images/collection1.png" alt="Collection preview 1" class="preview-img">
+          <img src="/assets/images/collection2.png" alt="Collection preview 2" class="preview-img">
+        </div>
+
+        <button class="more-collection-btn">
+          MORE
+          <span class="arrow">↗</span>
+          COLLECTION
+        </button>
+      </div>
+
+      <!-- Navigation -->
+      <div class="slider-navigation">
+        <button class="nav-btn nav-prev" (click)="previousSlide()" aria-label="Previous">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+
+        <button class="nav-btn nav-next" (click)="nextSlide()" aria-label="Next">
+          NEXT
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Dots Indicator -->
+      <div class="dots-indicator">
+        @for (item of [0, 1, 2]; track item) {
+        <button class="dot" [class.active]="currentSlide() === item" (click)="goToSlide(item)"
+          [attr.aria-label]="'Go to slide ' + (item + 1)">
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Right Product Grid -->
+    <div class="collection-right">
+      <div class="product-grid" [style.transform]="'translateX(-' + (currentSlide() * 100) + '%)'">
+        @for (product of products(); track product.id) {
+        <div class="product-item">
+          <div class="product-header">
+            <span class="product-brand">{{ product.brand?.name }}</span>
+            <span class="product-price">{{ product.minPrice?.toLocaleString('vi-VN') }} VNĐ</span>
+          </div>
+
+          <h3 class="product-name">{{ product.name }}</h3>
+
+          <div class="product-image-container">
+            <img [src]="product.image" [alt]="product.name" class="product-image">
+          </div>
+
+          <div class="product-colors">
+            @for (variant of product.variants; track variant.id) {
+            @if (variant.color?.tableColor) {
+            <span class="color-dot" [style.background-color]="variant.color!.tableColor"></span>
+            }
+            }
+          </div>
+
+          <div class="product-sizes">
+            @for (variant of product.variants; track variant.id) {
+            @if (variant.size?.bangSize) {
+            <button class="size-btn">{{ variant.size!.bangSize }}</button>
+            }
+            }
+          </div>
+
+          <button class="add-to-cart-btn">Thêm vào Giỏ</button>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,42 @@
+<a [routerLink]="['/products', product.id]" class="product-card">
+  <!-- Product Image -->
+  <div class="product-image-wrapper">
+    <img [src]="productImage" [alt]="product.name" class="product-image" loading="lazy" />
+    <!-- Wishlist button on hover -->
+    <button class="wishlist-btn" aria-label="Thêm vào yêu thích" (click)="onWishlistClick($event)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path
+          d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+        </path>
+      </svg>
+    </button>
+    @if (product.minPriceSale) {
+    <span class="sale-badge">SALE</span>
+    }
+  </div>
+
+  <!-- Product Info -->
+  <div class="product-info">
+    <h3 class="product-name">{{ product.name }}</h3>
+    <p class="product-category">{{ categoryLabel }}</p>
+
+    <!-- Color dots -->
+    @if (uniqueColors.length > 0) {
+    <div class="color-dots">
+      @for (color of uniqueColors; track color) {
+      <span class="color-dot" [style.background-color]="color"
+        [class.white-dot]="color === '#FFFFFF' || color === '#fff'"></span>
+      }
+    </div>
+    }
+
+    <div class="price-wrapper">
+      <span class="product-price" [class.has-sale]="originalPrice">
+        {{ displayPrice }}
+      </span>
+      @if (originalPrice) {
+      <span class="original-price">{{ originalPrice }}</span>
+      }
+    </div>
+  </div>
+</a>

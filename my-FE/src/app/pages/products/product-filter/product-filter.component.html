@@ -1,0 +1,125 @@
+<div class="product-filter">
+    <!-- Clear All -->
+    @if (hasActiveFilters) {
+    <button class="clear-all-btn" (click)="clearAllFilters()">
+        Xóa tất cả bộ lọc
+    </button>
+    }
+
+    <!-- Categories -->
+    <div class="filter-section">
+        <button class="section-header" (click)="toggleSection('categories')">
+            <span>Danh mục</span>
+            <svg [class.rotated]="!categoriesOpen" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </button>
+        @if (categoriesOpen) {
+        <div class="section-content">
+            @for (cat of filterOptions.categories; track cat.id) {
+            <label class="filter-checkbox">
+                <input type="checkbox" [checked]="isSelected('category', cat.id)"
+                    (change)="toggleFilter('category', cat.id)" />
+                <span class="checkmark"></span>
+                <span class="label-text">{{ cat.name }}</span>
+            </label>
+            }
+        </div>
+        }
+    </div>
+
+    <!-- Brands -->
+    <div class="filter-section">
+        <button class="section-header" (click)="toggleSection('brands')">
+            <span>Thương hiệu</span>
+            <svg [class.rotated]="!brandsOpen" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </button>
+        @if (brandsOpen) {
+        <div class="section-content">
+            @for (brand of filterOptions.brands; track brand.id) {
+            <label class="filter-checkbox">
+                <input type="checkbox" [checked]="isSelected('brand', brand.id)"
+                    (change)="toggleFilter('brand', brand.id)" />
+                <span class="checkmark"></span>
+                <span class="label-text">{{ brand.name }}</span>
+            </label>
+            }
+        </div>
+        }
+    </div>
+
+    <!-- Colors -->
+    <div class="filter-section">
+        <button class="section-header" (click)="toggleSection('colors')">
+            <span>Màu sắc</span>
+            <svg [class.rotated]="!colorsOpen" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </button>
+        @if (colorsOpen) {
+        <div class="section-content color-grid">
+            @for (color of filterOptions.colors; track color.id) {
+            <button class="color-circle" [class.selected]="isSelected('color', color.id)"
+                [style.background-color]="color.tableColor"
+                [class.white-color]="color.tableColor === '#FFFFFF' || color.tableColor === '#fff'"
+                [title]="color.name || ''" (click)="toggleFilter('color', color.id)">
+                @if (isSelected('color', color.id)) {
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                }
+            </button>
+            }
+        </div>
+        }
+    </div>
+
+    <!-- Sizes -->
+    <div class="filter-section">
+        <button class="section-header" (click)="toggleSection('sizes')">
+            <span>Kích cỡ</span>
+            <svg [class.rotated]="!sizesOpen" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </button>
+        @if (sizesOpen) {
+        <div class="section-content size-grid">
+            @for (size of filterOptions.sizes; track size.id) {
+            <button class="size-btn" [class.selected]="isSelected('size', size.id)"
+                (click)="toggleFilter('size', size.id)">
+                {{ size.bangSize }}
+            </button>
+            }
+        </div>
+        }
+    </div>
+
+    <!-- Price Range -->
+    <div class="filter-section">
+        <button class="section-header" (click)="toggleSection('price')">
+            <span>Khoảng giá</span>
+            <svg [class.rotated]="!priceOpen" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </button>
+        @if (priceOpen) {
+        <div class="section-content price-range">
+            <div class="price-inputs">
+                <input type="number" placeholder="Từ" [(ngModel)]="priceMin" (blur)="applyPriceFilter()" />
+                <span class="separator">—</span>
+                <input type="number" placeholder="Đến" [(ngModel)]="priceMax" (blur)="applyPriceFilter()" />
+            </div>
+            <button class="apply-price-btn" (click)="applyPriceFilter()">
+                Áp dụng
+            </button>
+        </div>
+        }
+    </div>
+</div>
