@@ -1,0 +1,170 @@
+<div class="vouchers-page">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý voucher</h1>
+      <p>Tạo và quản lý mã giảm giá</p>
+    </div>
+    <button class="btn-primary" (click)="openAddModal()">
+      ➕ Tạo voucher
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="search" 
+        placeholder="Tìm kiếm voucher..."
+        [(ngModel)]="searchQuery"
+      >
+    </div>
+    <select [(ngModel)]="selectedStatus" class="filter-select">
+      <option value="all">Tất cả trạng thái</option>
+      <option value="active">Đang hoạt động</option>
+      <option value="inactive">Tạm dừng</option>
+      <option value="expired">Hết hạn</option>
+    </select>
+  </div>
+
+  <!-- Vouchers Grid -->
+  <div class="vouchers-grid">
+    @for (voucher of filteredVouchers; track voucher.id) {
+      <div class="voucher-card" [class]="'status-' + voucher.status">
+        <div class="voucher-header">
+          <div class="voucher-code">
+            <span class="code">{{ voucher.code }}</span>
+            <span class="type">{{ voucher.type === 'percent' ? 'Phần trăm' : 'Cố định' }}</span>
+          </div>
+          <div class="voucher-discount">
+            {{ getDiscountText(voucher) }}
+          </div>
+        </div>
+        
+        <div class="voucher-body">
+          <p class="description">{{ voucher.description }}</p>
+          
+          <div class="voucher-details">
+            <div class="detail-item">
+              <span class="label">Đơn tối thiểu:</span>
+              <strong>{{ voucher.minOrder | number }}₫</strong>
+            </div>
+            @if (voucher.maxDiscount) {
+              <div class="detail-item">
+                <span class="label">Giảm tối đa:</span>
+                <strong>{{ voucher.maxDiscount | number }}₫</strong>
+              </div>
+            }
+            <div class="detail-item">
+              <span class="label">Thời gian:</span>
+              <strong>{{ voucher.startDate }} → {{ voucher.endDate }}</strong>
+            </div>
+          </div>
+          
+          <div class="usage-stats">
+            <div class="usage-header">
+              <span>Đã sử dụng: {{ voucher.usageCount }}/{{ voucher.usageLimit }}</span>
+              <span>{{ getUsagePercent(voucher).toFixed(0) }}%</span>
+            </div>
+            <div class="usage-bar">
+              <div class="usage-fill" [style.width.%]="getUsagePercent(voucher)"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="voucher-footer">
+          <span class="status-badge" [ngClass]="'status-' + voucher.status">
+            @switch (voucher.status) {
+              @case ('active') { Đang hoạt động }
+              @case ('inactive') { Tạm dừng }
+              @case ('expired') { Hết hạn }
+            }
+          </span>
+          
+          <div class="voucher-actions">
+            @if (voucher.status !== 'expired') {
+              <button class="btn-toggle" (click)="toggleStatus(voucher)">
+                {{ voucher.status === 'active' ? '⏸ Tạm dừng' : '▶️ Kích hoạt' }}
+              </button>
+            }
+            <button class="btn-edit">✏️</button>
+            <button class="btn-delete" (click)="deleteVoucher(voucher.id)">🗑️</button>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state">
+        Không tìm thấy voucher nào
+      </div>
+    }
+  </div>
+
+  <!-- Add Voucher Modal -->
+  @if (showAddModal()) {
+    <div class="modal-overlay" (click)="closeAddModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Tạo voucher mới</h2>
+          <button class="close-btn" (click)="closeAddModal()">✕</button>
+        </div>
+        <form class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Mã voucher</label>
+              <input type="text" placeholder="VD: SUMMER2024">
+            </div>
+            <div class="form-group">
+              <label>Loại giảm giá</label>
+              <select>
+                <option value="percent">Phần trăm (%)</option>
+                <option value="fixed">Cố định (₫)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Mô tả</label>
+            <input type="text" placeholder="Nhập mô tả voucher">
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Giá trị giảm</label>
+              <input type="number" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label>Giảm tối đa (₫)</label>
+              <input type="number" placeholder="0">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Đơn tối thiểu (₫)</label>
+              <input type="number" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label>Giới hạn sử dụng</label>
+              <input type="number" placeholder="100">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ngày bắt đầu</label>
+              <input type="date">
+            </div>
+            <div class="form-group">
+              <label>Ngày kết thúc</label>
+              <input type="date">
+            </div>
+          </div>
+          
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" (click)="closeAddModal()">Hủy</button>
+            <button type="submit" class="btn-primary">Tạo voucher</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,127 @@
+<div class="orders-page">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý đơn hàng</h1>
+      <p>Theo dõi và xử lý đơn hàng</p>
+    </div>
+    <div class="stats-quick">
+      <div class="stat">
+        <span class="label">Tổng đơn hàng</span>
+        <strong>{{ orders.length }}</strong>
+      </div>
+      <div class="stat">
+        <span class="label">Chờ xử lý</span>
+        <strong class="pending">{{ pendingOrdersCount }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="search" 
+        placeholder="Tìm kiếm đơn hàng..."
+        [(ngModel)]="searchQuery"
+      >
+    </div>
+    <select [(ngModel)]="selectedStatus" class="filter-select">
+      <option value="all">Tất cả trạng thái</option>
+      <option value="pending">Chờ xử lý</option>
+      <option value="processing">Đang xử lý</option>
+      <option value="shipping">Đang giao</option>
+      <option value="completed">Hoàn thành</option>
+      <option value="cancelled">Đã hủy</option>
+    </select>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="orders-table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Mã đơn</th>
+          <th>Khách hàng</th>
+          <th>Email</th>
+          <th>Số sản phẩm</th>
+          <th>Tổng tiền</th>
+          <th>Trạng thái</th>
+          <th>Ngày đặt</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (order of filteredOrders; track order.id) {
+          <tr>
+            <td><strong>{{ order.id }}</strong></td>
+            <td>{{ order.customer }}</td>
+            <td class="email">{{ order.email }}</td>
+            <td>{{ order.items }}</td>
+            <td><strong class="price">{{ order.total | number }}₫</strong></td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+                {{ getStatusLabel(order.status) }}
+              </span>
+            </td>
+            <td>{{ order.date }}</td>
+            <td>
+              <button class="btn-view" (click)="viewOrderDetail(order)">
+                👁 Chi tiết
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="empty-state">
+              Không tìm thấy đơn hàng nào
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Order Detail Modal -->
+  @if (showDetailModal() && selectedOrder()) {
+    <div class="modal-overlay" (click)="closeDetailModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Chi tiết đơn hàng {{ selectedOrder()!.id }}</h2>
+          <button class="close-btn" (click)="closeDetailModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="order-info">
+            <div class="info-group">
+              <label>Khách hàng:</label>
+              <span>{{ selectedOrder()!.customer }}</span>
+            </div>
+            <div class="info-group">
+              <label>Email:</label>
+              <span>{{ selectedOrder()!.email }}</span>
+            </div>
+            <div class="info-group">
+              <label>Ngày đặt:</label>
+              <span>{{ selectedOrder()!.date }}</span>
+            </div>
+            <div class="info-group">
+              <label>Trạng thái:</label>
+              <span class="status-badge" [ngClass]="getStatusClass(selectedOrder()!.status)">
+                {{ getStatusLabel(selectedOrder()!.status) }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="status-actions">
+            <h3>Cập nhật trạng thái</h3>
+            <div class="status-buttons">
+              <button (click)="updateOrderStatus(selectedOrder()!.id, 'processing')">Xử lý</button>
+              <button (click)="updateOrderStatus(selectedOrder()!.id, 'shipping')">Giao hàng</button>
+              <button (click)="updateOrderStatus(selectedOrder()!.id, 'completed')">Hoàn thành</button>
+              <button class="cancel" (click)="updateOrderStatus(selectedOrder()!.id, 'cancelled')">Hủy đơn</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

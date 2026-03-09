@@ -58,42 +58,42 @@ export class ShopBySportComponent implements OnInit {
       {
         id: 'running',
         name: 'Running',
-        imageUrl: '/assets/images/sports/running.jpg'
+        imageUrl: '/assets/images/running.jpg'
       },
       {
         id: 'football',
         name: 'Football',
-        imageUrl: '/assets/images/sports/football.jpg'
+        imageUrl: '/assets/images/football.jpg'
       },
       {
         id: 'basketball',
         name: 'Basketball',
-        imageUrl: '/assets/images/sports/basketball.jpg'
+        imageUrl: '/assets/images/basketball.jpg'
       },
       {
         id: 'tennis',
         name: 'Tennis',
-        imageUrl: '/assets/images/sports/tennis.jpg'
+        imageUrl: '/assets/images/tennis.jpg'
       },
       {
         id: 'golf',
         name: 'Golf',
-        imageUrl: '/assets/images/sports/golf.jpg'
+        imageUrl: '/assets/images/golf.jpg'
       },
       {
-        id: 'training',
-        name: 'Training',
-        imageUrl: '/assets/images/sports/training.jpg'
+        id: 'gym',
+        name: 'Gym',
+        imageUrl: '/assets/images/gym.jpg'
       },
       {
         id: 'skateboarding',
         name: 'Skateboarding',
-        imageUrl: '/assets/images/sports/skateboarding.jpg'
+        imageUrl: '/assets/images/skateboarding.jpg'
       },
       {
-        id: 'swimming',
-        name: 'Swimming',
-        imageUrl: '/assets/images/sports/swimming.jpg'
+        id: 'yoga',
+        name: 'Yoga',
+        imageUrl: '/assets/images/yoga.jpg'
       }
     ];
   }

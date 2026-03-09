@@ -1,0 +1,109 @@
+<div class="dashboard">
+  <div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Tổng quan hoạt động kinh doanh</p>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    @for (stat of stats; track stat.title) {
+      <div class="stat-card" [style.border-left-color]="stat.color">
+        <div class="stat-icon" [style.background-color]="stat.color + '20'">
+          {{ stat.icon }}
+        </div>
+        <div class="stat-content">
+          <h3>{{ stat.title }}</h3>
+          <div class="stat-value">{{ stat.value }}</div>
+          <div class="stat-change positive">
+            <span>{{ stat.change }}</span> so với tháng trước
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Charts Row -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="card-header">
+        <h2>Doanh thu theo tháng</h2>
+        <select class="year-select">
+          <option>2024</option>
+          <option>2023</option>
+        </select>
+      </div>
+      <div class="chart-placeholder">
+        <div class="chart-bars">
+          @for (month of [65, 78, 85, 72, 90, 95, 88, 92, 87, 94, 89, 96]; track $index) {
+            <div class="bar" [style.height.%]="month">
+              <span class="bar-value">{{ month }}%</span>
+            </div>
+          }
+        </div>
+        <div class="chart-labels">
+          <span>T1</span><span>T2</span><span>T3</span><span>T4</span>
+          <span>T5</span><span>T6</span><span>T7</span><span>T8</span>
+          <span>T9</span><span>T10</span><span>T11</span><span>T12</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-header">
+        <h2>Sản phẩm bán chạy nhất</h2>
+      </div>
+      <div class="top-products-list">
+        @for (product of topProducts; track product.name) {
+          <div class="product-item">
+            <div class="product-placeholder">📦</div>
+            <div class="product-info">
+              <h4>{{ product.name }}</h4>
+              <p>Đã bán: {{ product.sold }}</p>
+            </div>
+            <div class="product-revenue">{{ product.revenue }}</div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Orders -->
+  <div class="recent-orders-card">
+    <div class="card-header">
+      <h2>Đơn hàng gần đây</h2>
+      <a href="/admin/orders" class="view-all">Xem tất cả →</a>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Mã đơn</th>
+            <th>Khách hàng</th>
+            <th>Tổng tiền</th>
+            <th>Trạng thái</th>
+            <th>Ngày đặt</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of recentOrders; track order.id) {
+            <tr>
+              <td><strong>{{ order.id }}</strong></td>
+              <td>{{ order.customer }}</td>
+              <td><strong>{{ order.total }}</strong></td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+                  {{ order.status }}
+                </span>
+              </td>
+              <td>{{ order.date }}</td>
+              <td>
+                <button class="action-btn">Chi tiết</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

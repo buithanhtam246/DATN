@@ -1,15 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { Product } from '../models';
+import { Product, CartItem, Cart } from '../models';
 import { ICartOperations, IStatefulService } from '../interfaces/service.interface';
-
-/**
- * Interface cho cart item
- */
-export interface CartItem {
-  product: Product;
-  quantity: number;
-  selectedColor?: string;
-}
 
 /**
  * Service quản lý giỏ hàng
@@ -23,88 +14,89 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
   // Sử dụng signal cho reactive state management
   private cartItems = signal<CartItem[]>([]);
   
+  constructor() {
+    // Demo: Thêm sản phẩm mẫu vào giỏ hàng
+    this.initDemoData();
+  }
+  
   // Computed values
   public readonly items = computed(() => this.cartItems());
   public readonly itemCount = computed(() => 
     this.cartItems().reduce((total, item) => total + item.quantity, 0)
   );
 
+  public readonly cart = computed<Cart>(() => {
+    const items = this.cartItems();
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = 100000; // Phí ship cố định
+    const discount = items.reduce((sum, item) => {
+      if (item.originalPrice) {
+        return sum + ((item.originalPrice - item.price) * item.quantity);
+      }
+      return sum;
+    }, 0);
+    const total = subtotal + shipping;
+
+    return {
+      items,
+      subtotal,
+      shipping,
+      discount,
+      total
+    };
+  });
+
   /**
    * Thêm sản phẩm vào giỏ hàng
-   * Implementation of ICartOperations
    */
   addToCart(productId: string, quantity: number = 1): void {
-    // This is a simplified version for interface compliance
-    // The full method with Product object is provided below
-    console.log(`Adding product ${productId} to cart`);
+    // Interface implementation - use addItem() instead
   }
 
   /**
-   * Thêm sản phẩm vào giỏ hàng (extended version)
+   * Thêm item vào giỏ hàng
    */
-  addProductToCart(product: Product, quantity: number = 1, selectedColor?: string): void {
+  addItem(item: CartItem): void {
     const currentItems = this.cartItems();
     const existingItemIndex = currentItems.findIndex(
-      item => item.product.title === product.title && item.selectedColor === selectedColor
+      i => i.product.id === item.product.id && 
+           i.selectedColor === item.selectedColor && 
+           i.selectedSize === item.selectedSize
     );
 
     if (existingItemIndex > -1) {
-      // Cập nhật quantity nếu sản phẩm đã tồn tại
       const updatedItems = [...currentItems];
-      updatedItems[existingItemIndex] = {
-        ...updatedItems[existingItemIndex],
-        quantity: updatedItems[existingItemIndex].quantity + quantity
-      };
+      updatedItems[existingItemIndex].quantity += item.quantity;
       this.cartItems.set(updatedItems);
     } else {
-      // Thêm sản phẩm mới
-      this.cartItems.set([...currentItems, { product, quantity, selectedColor }]);
+      this.cartItems.set([...currentItems, item]);
     }
   }
 
   /**
    * Xóa sản phẩm khỏi giỏ hàng
-   * Implementation of ICartOperations
    */
-  removeFromCart(productId: string): void {
+  removeFromCart(itemId: string): void {
     const currentItems = this.cartItems();
-    const filteredItems = currentItems.filter(
-      item => item.product.id !== productId
-    );
+    const filteredItems = currentItems.filter(item => item.id !== itemId);
     this.cartItems.set(filteredItems);
   }
 
   /**
-   * Xóa sản phẩm khỏi giỏ hàng (extended version)
+   * Cập nhật số lượng
    */
-  removeProductFromCart(product: Product, selectedColor?: string): void {
-    const currentItems = this.cartItems();
-    const filteredItems = currentItems.filter(
-      item => !(item.product.title === product.title && item.selectedColor === selectedColor)
-    );
-    this.cartItems.set(filteredItems);
-  }
-
-  /**
-   * Cập nhật số lượng sản phẩm
-   */
-  updateQuantity(product: Product, quantity: number, selectedColor?: string): void {
+  updateQuantity(itemId: string, quantity: number): void {
     if (quantity <= 0) {
-      this.removeProductFromCart(product, selectedColor);
+      this.removeFromCart(itemId);
       return;
     }
 
     const currentItems = this.cartItems();
-    const itemIndex = currentItems.findIndex(
-      item => item.product.title === product.title && item.selectedColor === selectedColor
-    );
+    const itemIndex = currentItems.findIndex(item => item.id === itemId);
 
     if (itemIndex > -1) {
       const updatedItems = [...currentItems];
-      updatedItems[itemIndex] = {
-        ...updatedItems[itemIndex],
-        quantity
-      };
+      updatedItems[itemIndex].quantity = quantity;
       this.cartItems.set(updatedItems);
     }
   }
@@ -138,8 +130,30 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
    */
   getTotalPrice(): number {
     return this.cartItems().reduce((total, item) => {
-      const price = parseFloat(item.product.price.replace(/[^\d]/g, ''));
-      return total + (price * item.quantity);
+      return total + (item.price * item.quantity);
     }, 0);
+  }
+
+  /**
+   * Khởi tạo dữ liệu demo
+   */
+  private initDemoData(): void {
+    const demoItems: CartItem[] = [
+      {
+        id: '1',
+        product: {
+          id: '1',
+          title: 'Nike Air Force 1 \'07 Mini Jewel',
+          imageUrl: '/assets/images/products/nikeaf1.jpg',
+          brand: 'NIKE'
+        },
+        selectedColor: 'Trắng/Xanh lam/Đen',
+        selectedSize: 40,
+        quantity: 1,
+        price: 2695000,
+        originalPrice: 2990000
+      }
+    ];
+    this.cartItems.set(demoItems);
   }
 }

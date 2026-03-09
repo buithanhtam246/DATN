@@ -1,5 +1,6 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { NavigationService, CartService } from '../core/services';
 import { MenuItem } from '../core/models';
 
@@ -14,12 +15,19 @@ import { MenuItem } from '../core/models';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.scss'
+  styleUrl: './header.component.scss',
+  host: {
+    '[class.scrolled]': 'isScrolled'
+  }
 })
 export class HeaderComponent {
   // Dependency Injection - Inversion of Control
   private readonly navigationService = inject(NavigationService);
   private readonly cartService = inject(CartService);
+  private readonly router = inject(Router);
+
+  // Scroll state
+  public isScrolled = false;
 
   // Public properties for template
   public readonly menuItems: MenuItem[] = this.navigationService.getMenuItems();
@@ -30,7 +38,6 @@ export class HeaderComponent {
    */
   onSearch(): void {
     // TODO: Implement search functionality
-    console.log('Search clicked');
   }
 
   /**
@@ -38,7 +45,6 @@ export class HeaderComponent {
    */
   onUserProfile(): void {
     // TODO: Implement user profile functionality
-    console.log('User profile clicked');
   }
 
   /**
@@ -46,14 +52,20 @@ export class HeaderComponent {
    */
   onFavorites(): void {
     // TODO: Implement favorites functionality
-    console.log('Favorites clicked');
   }
 
   /**
    * Handle cart action
    */
   onCart(): void {
-    // TODO: Implement cart functionality
-    console.log('Cart clicked');
+    this.router.navigate(['/cart']);
+  }
+
+  /**
+   * Detect scroll to add/remove scrolled class
+   */
+  @HostListener('window:scroll', [])
+  onWindowScroll(): void {
+    this.isScrolled = window.scrollY > 50;
   }
 }

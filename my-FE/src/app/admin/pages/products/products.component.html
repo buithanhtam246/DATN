@@ -1,0 +1,148 @@
+<div class="products-page">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý sản phẩm</h1>
+      <p>Quản lý danh sách sản phẩm và biến thể</p>
+    </div>
+    <button class="btn-primary" (click)="openAddModal()">
+      ➕ Thêm sản phẩm
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="search" 
+        placeholder="Tìm kiếm sản phẩm..."
+        [(ngModel)]="searchQuery"
+      >
+    </div>
+    <select [(ngModel)]="selectedCategory" class="filter-select">
+      <option value="all">Tất cả danh mục</option>
+      @for (cat of categories; track cat) {
+        <option [value]="cat">{{ cat }}</option>
+      }
+    </select>
+    <select [(ngModel)]="selectedStatus" class="filter-select">
+      <option value="all">Tất cả trạng thái</option>
+      <option value="active">Đang bán</option>
+      <option value="inactive">Ngừng bán</option>
+    </select>
+  </div>
+
+  <!-- Products Table -->
+  <div class="products-table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Sản phẩm</th>
+          <th>Thương hiệu</th>
+          <th>Danh mục</th>
+          <th>Giá</th>
+          <th>Tồn kho</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (product of filteredProducts; track product.id) {
+          <tr>
+            <td>
+              <div class="product-info">
+                <div class="product-placeholder">📦</div>
+                <div>
+                  <strong>{{ product.name }}</strong>
+                  <span>ID: #{{ product.id }}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ product.brand }}</td>
+            <td>{{ product.category }}</td>
+            <td><strong>{{ product.price | number }}₫</strong></td>
+            <td>
+              <span [class.low-stock]="product.stock < 10">
+                {{ product.stock }}
+              </span>
+            </td>
+            <td>
+              <button 
+                class="status-toggle"
+                [class.active]="product.status === 'active'"
+                (click)="toggleStatus(product)"
+              >
+                {{ product.status === 'active' ? 'Đang bán' : 'Ngừng bán' }}
+              </button>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-edit" title="Chỉnh sửa">✏️</button>
+                <button class="btn-delete" title="Xóa" (click)="deleteProduct(product.id)">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty-state">
+              Không tìm thấy sản phẩm nào
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add Product Modal -->
+  @if (showAddModal()) {
+    <div class="modal-overlay" (click)="closeAddModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Thêm sản phẩm mới</h2>
+          <button class="close-btn" (click)="closeAddModal()">✕</button>
+        </div>
+        <form class="modal-body">
+          <div class="form-group">
+            <label>Tên sản phẩm</label>
+            <input type="text" placeholder="Nhập tên sản phẩm">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Thương hiệu</label>
+              <select>
+                <option>Nike</option>
+                <option>Adidas</option>
+                <option>Puma</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Danh mục</label>
+              <select>
+                @for (cat of categories; track cat) {
+                  <option>{{ cat }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Giá</label>
+              <input type="number" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label>Tồn kho</label>
+              <input type="number" placeholder="0">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Mô tả</label>
+            <textarea rows="4" placeholder="Nhập mô tả sản phẩm"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" (click)="closeAddModal()">Hủy</button>
+            <button type="submit" class="btn-primary">Thêm sản phẩm</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

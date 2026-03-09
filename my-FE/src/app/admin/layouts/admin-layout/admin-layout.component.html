@@ -1,0 +1,60 @@
+<div class="admin-container" [class.sidebar-collapsed]="sidebarCollapsed()">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2 class="logo">{{ sidebarCollapsed() ? 'GS' : 'GoodShoes' }}</h2>
+      <button class="toggle-btn" (click)="toggleSidebar()">
+        {{ sidebarCollapsed() ? '☰' : '✕' }}
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (item of navItems; track item.route) {
+        <a 
+          [routerLink]="item.route" 
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="icon">
+            @if (item.icon.startsWith('fa-')) {
+              <i [class]="item.icon"></i>
+            } @else {
+              {{ item.icon }}
+            }
+          </span>
+          <span class="label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="logout()">
+        <span class="icon"><i class="fa-solid fa-right-from-bracket"></i></span>
+        <span class="label">Đăng xuất</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <header class="top-bar">
+      <div class="search-bar">
+        <input type="search" placeholder="Tìm kiếm...">
+      </div>
+      <div class="user-actions">
+        <button class="notification-btn">
+          🔔
+          <span class="badge">3</span>
+        </button>
+        <div class="user-profile">
+          <div class="avatar">👤</div>
+          <span>Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

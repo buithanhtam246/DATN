@@ -1,0 +1,85 @@
+<div class="brands-page">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý thương hiệu</h1>
+      <p>Quản lý các thương hiệu sản phẩm</p>
+    </div>
+    <button class="btn-primary" (click)="openAddModal()">
+      ➕ Thêm thương hiệu
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="search-section">
+    <input 
+      type="search" 
+      placeholder="Tìm kiếm thương hiệu..."
+      [(ngModel)]="searchQuery"
+      class="search-input"
+    >
+  </div>
+
+  <!-- Brands Grid -->
+  <div class="brands-grid">
+    @for (brand of filteredBrands; track brand.id) {
+      <div class="brand-card">
+        <div class="brand-logo">
+          <div class="brand-placeholder">{{ brand.name.charAt(0) }}</div>
+        </div>
+        <div class="brand-info">
+          <h3>{{ brand.name }}</h3>
+          <p>{{ brand.description }}</p>
+          <div class="brand-stats">
+            <span class="stat">
+              <strong>{{ brand.productCount }}</strong> sản phẩm
+            </span>
+            <span class="status" [class.active]="brand.status === 'active'">
+              {{ brand.status === 'active' ? 'Hoạt động' : 'Ngưng hoạt động' }}
+            </span>
+          </div>
+        </div>
+        <div class="brand-actions">
+          <button class="btn-toggle" (click)="toggleStatus(brand)">
+            {{ brand.status === 'active' ? '🔴 Tắt' : '🟢 Bật' }}
+          </button>
+          <button class="btn-edit">✏️ Sửa</button>
+          <button class="btn-delete" (click)="deleteBrand(brand.id)">🗑️ Xóa</button>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state">
+        Không tìm thấy thương hiệu nào
+      </div>
+    }
+  </div>
+
+  <!-- Add Brand Modal -->
+  @if (showAddModal()) {
+    <div class="modal-overlay" (click)="closeAddModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Thêm thương hiệu mới</h2>
+          <button class="close-btn" (click)="closeAddModal()">✕</button>
+        </div>
+        <form class="modal-body">
+          <div class="form-group">
+            <label>Tên thương hiệu</label>
+            <input type="text" placeholder="Nhập tên thương hiệu">
+          </div>
+          <div class="form-group">
+            <label>Mô tả</label>
+            <textarea rows="3" placeholder="Nhập mô tả thương hiệu"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Logo</label>
+            <input type="file" accept="image/*">
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" (click)="closeAddModal()">Hủy</button>
+            <button type="submit" class="btn-primary">Thêm thương hiệu</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -31,63 +31,63 @@ export class ProductsSectionComponent implements OnInit {
   }
 
   private loadProducts(): void {
-    // Mock data - replace with API call
+    // Updated with correct image paths from public/assets/images/products/
     this.products = [
       {
         id: '1',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
+        title: 'Nike Air Force 1 \'07',
         category: 'AIR FORCE / Giày Nam',
         price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-af1-white.jpg'
+        imageUrl: '/assets/images/products/nikeaf1.jpg'
       },
       {
         id: '2',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-af1-blue.jpg'
+        title: 'Nike Air Jordan 1 Retro High',
+        category: 'JORDAN / Giày Nam',
+        price: '4.290.000 VND',
+        imageUrl: '/assets/images/products/nikejd.jpg'
       },
       {
         id: '3',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-jordan-black.jpg'
+        title: 'Adidas Superstar Classic',
+        category: 'ORIGINALS / Giày Unisex',
+        price: '2.390.000 VND',
+        imageUrl: '/assets/images/products/superstar.jpg'
       },
       {
         id: '4',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-jordan-white.jpg'
+        title: 'Nike Air Max 270',
+        category: 'AIR MAX / Giày Nam',
+        price: '3.890.000 VND',
+        imageUrl: '/assets/images/products/nikeamax.jpg'
       },
       {
         id: '5',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/adidas-classic.jpg'
+        title: 'Nike Vomero 18',
+        category: 'VOMERO / Giày Nam',
+        price: '2.190.000 VND',
+        imageUrl: '/assets/images/products/vomero.jpg'
       },
       {
         id: '6',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-vapormax.jpg'
+        title: 'Nike Dunk Low Retro',
+        category: 'DUNK / Giày Nam',
+        price: '2.990.000 VND',
+        imageUrl: '/assets/images/products/nikeduck.jpg'
       },
       {
         id: '7',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-beige.jpg'
+        title: 'Nike Vapormax 2024',
+        category: 'VAPORMAX / Giày Nam',
+        price: '4.590.000 VND',
+        imageUrl: '/assets/images/products/vapomax.jpg'
       },
       {
         id: '8',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-pink.jpg'
+        title: 'Adidas Ultraboost 5',
+        category: 'RUNNING / Giày Nữ',
+        price: '4.590.000 VND',
+        imageUrl: '/assets/images/products/ultraboost.jpg'
       }
     ];
   }
