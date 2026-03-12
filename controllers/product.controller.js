@@ -230,3 +230,70 @@ exports.getBestSellingProducts = async (req, res) => {
   }
 
 };
+
+
+exports.createProduct = async (req, res) => {
+
+  try {
+
+    const productId = await productService.createProduct(req.body);
+
+    res.json({
+      success: true,
+      productId
+    });
+
+  } catch (error) {
+
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+
+  }
+
+};
+
+
+exports.generateVariants = async (req, res) => {
+
+  try {
+
+    const { productId, colors, sizes } = req.body;
+
+    await productService.generateVariants(productId, colors, sizes);
+
+    res.json({
+      success: true,
+      message: "Variants created"
+    });
+
+  } catch (error) {
+
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+
+  }
+
+};
+
+
+exports.updateVariant = async (req, res) => {
+
+  try {
+
+    const variantId = req.params.id;
+
+    await productService.updateVariant(variantId, req.body);
+
+    res.json({
+      success: true,
+      message: "Variant updated"
+    });
+
+  } catch (error) {
+
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+
+  }
+
+};

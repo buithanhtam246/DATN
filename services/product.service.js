@@ -442,3 +442,76 @@ exports.getBestSellingProducts = async () => {
 
   return rows;
 };
+
+exports.createProduct = async (data) => {
+
+  const [result] = await db.query(
+    `
+    INSERT INTO products
+    (name, describ, brand_id, category_id, image)
+    VALUES (?, ?, ?, ?, ?)
+    `,
+    [
+      data.name,
+      data.describ,
+      data.brand_id,
+      data.category_id,
+      data.image
+    ]
+  );
+
+  return result.insertId;
+};
+
+exports.generateVariants = async (productId, colors, sizes) => {
+
+  const variants = [];
+
+  colors.forEach(color => {
+    sizes.forEach(size => {
+
+      variants.push([
+        productId,
+        color,
+        size,
+        0,
+        0,
+        0,
+        null
+      ]);
+
+    });
+  });
+
+  await db.query(
+    `
+    INSERT INTO variant
+    (product_id, color_id, size_id, price, price_sale, quantity, image)
+    VALUES ?
+    `,
+    [variants]
+  );
+
+};
+
+exports.updateVariant = async (variantId, data) => {
+
+  await db.query(
+    `
+    UPDATE variant
+    SET price = ?,
+        price_sale = ?,
+        quantity = ?,
+        image = ?
+    WHERE id = ?
+    `,
+    [
+      data.price,
+      data.price_sale,
+      data.quantity,
+      data.image,
+      variantId
+    ]
+  );
+
+};

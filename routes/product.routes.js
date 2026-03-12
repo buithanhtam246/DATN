@@ -17,6 +17,12 @@ router.get("/:id/reviews", productController.getProductReviews);
 
 router.get("/:id/related", productController.getRelatedProducts);   
 
+router.post("/", productController.createProduct);
+
+router.post("/generate-variants", productController.generateVariants);
+
+router.put("/variants/:id", productController.updateVariant);
+
 router.get("/:id", productController.getProductDetail);             
 
 module.exports = router;
