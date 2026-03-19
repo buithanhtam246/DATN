@@ -6,6 +6,7 @@ const cors = require('cors');
 const { sequelize, testConnection } = require('./config/database');
 const authRouter = require('./Users/router/auth.router');
 const addressRouter = require('./Users/router/address.router');
+const userRouter = require('./Users/router/user.router');
 const voucherRouter = require('./Users/router/voucher.router');
 const orderRouter = require('./Users/router/order.routes');
 const orderHistoryRouter = require('./Users/router/orderHistory.router');
@@ -93,6 +94,9 @@ app.get('/api/health', (req, res) => {
 
 // Auth routes
 app.use('/api/auth', authRouter);
+
+// User routes
+app.use('/api/users', userRouter);
 
 // Address book routes (require authentication internally)
 app.use('/api/addresses', addressRouter);

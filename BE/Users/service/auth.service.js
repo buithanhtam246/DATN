@@ -71,12 +71,17 @@ class AuthService {
     // address as convenience.
     const { password: _, ...userWithoutPassword } = user.toJSON();
     const defaultAddr = await addressService.getDefault(user.id);
-    if (defaultAddr) {
-      userWithoutPassword.default_address = defaultAddr;
-    }
+    
     return {
       token,
-      user: userWithoutPassword
+      user: {
+        id: userWithoutPassword.id,
+        name: userWithoutPassword.name,
+        email: userWithoutPassword.email,
+        phone: userWithoutPassword.phone,
+        role: userWithoutPassword.role,
+        default_address: defaultAddr || null
+      }
     };
   }
 

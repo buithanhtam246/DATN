@@ -5,6 +5,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { AccountComponent } from './pages/account/account.component';
+import { AddressesComponent } from './pages/addresses/addresses.component';
 import { ChangePasswordComponent } from './pages/change-password/change-password.component';
 import { OrdersComponent } from './pages/orders/orders.component';
 import { CartComponent } from './pages/cart/cart.component';
@@ -33,6 +34,7 @@ export const routes: Routes = [
           { path: 'register',component: RegisterComponent },
           {path: 'forgot-password',component: ForgotPasswordComponent},
           {  path: 'account',  component: AccountComponent},
+          {  path: 'addresses',  component: AddressesComponent},
           {path: 'change-password',component: ChangePasswordComponent},
           { path: 'orders',component: OrdersComponent},
           { path: 'cart', component: CartComponent },

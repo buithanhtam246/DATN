@@ -10,6 +10,10 @@ class AddressService {
     return addressRepo.findDefaultByUser(userId);
   }
 
+  async getDefaultAddress(userId) {
+    return addressRepo.findDefaultByUser(userId);
+  }
+
   async create(userId, data) {
     return sequelize.transaction(async (t) => {
       if (data.is_default) {

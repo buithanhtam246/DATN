@@ -67,56 +67,88 @@
             
             <!-- Review Section for Delivered Orders -->
             <div *ngIf="order.canReview" class="item-reviews">
-              <h4 class="reviews-title">Đánh giá sản phẩm</h4>
+              <div class="reviews-section-header">
+                <h4 class="reviews-title">📝 Đánh giá sản phẩm</h4>
+                <span class="reviews-subtitle">Chia sẻ trải nghiệm của bạn để giúp những khách hàng khác</span>
+              </div>
+              
               <div *ngFor="let item of order.items; trackBy: trackByItemId" class="review-item">
                 <div class="review-header">
-                  <span class="review-product">{{item.product_name}}</span>
-                  <button 
-                    *ngIf="!item.reviewed && reviewingItemId !== item.id"
-                    class="btn-review"
-                    (click)="openReviewForm(item.id)"
-                  >
-                    ⭐ Đánh giá
-                  </button>
-                  <span *ngIf="item.reviewed" class="badge-reviewed">✓ Đã đánh giá</span>
+                  <div class="review-product-info">
+                    <img *ngIf="item.image" [src]="item.image" [alt]="item.product_name" class="review-product-img">
+                    <div *ngIf="!item.image" class="review-product-placeholder">📦</div>
+                    <span class="review-product">{{item.product_name}}</span>
+                  </div>
+                  <div class="review-actions">
+                    <button 
+                      *ngIf="!item.reviewed && reviewingItemId !== item.id"
+                      class="btn-review"
+                      (click)="openReviewForm(item.id)"
+                    >
+                      ⭐ Đánh giá
+                    </button>
+                    <span *ngIf="item.reviewed" class="badge-reviewed">✓ Đã đánh giá</span>
+                  </div>
                 </div>
                 
                 <!-- Review Form -->
-                <div *ngIf="reviewingItemId === item.id" class="review-form">
-                  <div class="form-group">
-                    <label>Đánh giá (1-5 sao):</label>
-                    <div class="rating-wrapper">
-                      <input 
-                        type="range" 
-                        min="1" 
-                        max="5" 
-                        [(ngModel)]="reviewForm.rating"
-                        class="rating-input"
-                      >
-                      <span class="rating-value">{{reviewForm.rating}} ⭐</span>
+                <div *ngIf="reviewingItemId === item.id" class="review-form-wrapper">
+                  <div class="review-form">
+                    <!-- Rating Section -->
+                    <div class="form-group rating-group">
+                      <label class="form-label">Đánh giá sản phẩm (1-5 sao):</label>
+                      <div class="rating-wrapper">
+                        <div class="rating-stars">
+                          <button 
+                            *ngFor="let i of [1,2,3,4,5]"
+                            class="star"
+                            [class.active]="i <= reviewForm.rating"
+                            (click)="reviewForm.rating = i"
+                            type="button"
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <span class="rating-display">{{reviewForm.rating}} / 5 sao</span>
+                      </div>
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <label>Nhận xét (tối đa 1000 ký tự):</label>
-                    <textarea 
-                      [(ngModel)]="reviewForm.comment"
-                      placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
-                      class="comment-input"
-                      rows="4"
-                    ></textarea>
-                    <span class="char-count">{{reviewForm.comment.length}}/1000</span>
-                  </div>
-                  <div class="form-actions">
-                    <button 
-                      class="btn-submit"
-                      (click)="submitReview(item)"
-                      [disabled]="isSubmittingReview"
-                    >
-                      {{isSubmittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}}
-                    </button>
-                    <button class="btn-cancel" (click)="closeReviewForm()" [disabled]="isSubmittingReview">
-                      Hủy
-                    </button>
+
+                    <!-- Comment Section -->
+                    <div class="form-group comment-group">
+                      <label class="form-label">Nhận xét chi tiết:</label>
+                      <textarea 
+                        [(ngModel)]="reviewForm.comment"
+                        placeholder="Sản phẩm có chất lượng tốt không? Kích thước như mô tả? Chia sẻ ý kiến của bạn..."
+                        class="comment-input"
+                        rows="4"
+                        maxlength="1000"
+                      ></textarea>
+                      <div class="char-count-wrapper">
+                        <span class="char-count" [class.limit-reached]="reviewForm.comment.length >= 1000">
+                          {{reviewForm.comment.length}}/1000 ký tự
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="form-actions">
+                      <button 
+                        class="btn-submit"
+                        (click)="submitReview(item)"
+                        [disabled]="isSubmittingReview || !reviewForm.comment.trim()"
+                      >
+                        <span *ngIf="!isSubmittingReview">✓ Gửi đánh giá</span>
+                        <span *ngIf="isSubmittingReview">⏳ Đang gửi...</span>
+                      </button>
+                      <button 
+                        class="btn-cancel" 
+                        (click)="closeReviewForm()" 
+                        [disabled]="isSubmittingReview"
+                        type="button"
+                      >
+                        Hủy
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

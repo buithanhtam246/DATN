@@ -1,0 +1,106 @@
+<div class="addresses-container">
+  <!-- LEFT MENU -->
+  <div class="addresses-left">
+    <h2>TRANG TÀI KHOẢN</h2>
+    <ul>
+      <li><a routerLink="/account">Thông tin tài khoản</a></li>
+      <li class="active"><a routerLink="/addresses">Quản lý địa chỉ</a></li>
+      <li><a routerLink="/orders">Lịch sử đơn hàng</a></li>
+      <li><a routerLink="/change-password">Đổi mật khẩu</a></li>
+    </ul>
+  </div>
+
+  <!-- RIGHT CONTENT -->
+  <div class="addresses-right">
+    <h2>QUẢN LÝ ĐỊA CHỈ</h2>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="loading">
+      <p>Đang tải dữ liệu...</p>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div *ngIf="showForm" class="address-form-section">
+      <h3>{{ isEditing ? 'Sửa địa chỉ' : 'Thêm địa chỉ mới' }}</h3>
+      <form (ngSubmit)="saveAddress()">
+        <div class="form-group">
+          <label>Người nhận:</label>
+          <input 
+            type="text" 
+            [(ngModel)]="formData.receiver_name" 
+            name="receiver_name"
+            placeholder="Nhập tên người nhận"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label>Số điện thoại:</label>
+          <input 
+            type="text" 
+            [(ngModel)]="formData.receiver_phone" 
+            name="receiver_phone"
+            placeholder="Nhập số điện thoại"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label>Địa chỉ:</label>
+          <textarea 
+            [(ngModel)]="formData.full_address" 
+            name="full_address"
+            placeholder="Nhập đầy đủ địa chỉ"
+            rows="3"
+            required></textarea>
+        </div>
+
+        <div class="form-group checkbox">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="formData.is_default" 
+            name="is_default"
+            id="is_default">
+          <label for="is_default">Đặt làm địa chỉ mặc định</label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-save">{{ isEditing ? 'Cập nhật' : 'Thêm' }}</button>
+          <button type="button" class="btn-cancel" (click)="toggleForm()">Hủy</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Add Address Button -->
+    <button *ngIf="!showForm" class="btn-add-new" (click)="toggleForm()">
+      + Thêm địa chỉ mới
+    </button>
+
+    <!-- Addresses List -->
+    <div *ngIf="!isLoading && addresses.length > 0" class="addresses-list">
+      <div *ngFor="let address of addresses" class="address-item">
+        <div class="address-header">
+          <h3>{{ address.receiver_name }}</h3>
+          <span *ngIf="address.is_default" class="badge-default">Mặc định</span>
+        </div>
+
+        <div class="address-details">
+          <p><strong>Số điện thoại:</strong> {{ address.receiver_phone }}</p>
+          <p><strong>Địa chỉ:</strong> {{ address.full_address }}</p>
+        </div>
+
+        <div class="address-actions">
+          <button class="btn-edit" (click)="editAddress(address)">✏️ Sửa</button>
+          <button class="btn-delete" (click)="deleteAddress(address.id)">🗑️ Xóa</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!isLoading && addresses.length === 0" class="empty-state">
+      <p>Bạn chưa có địa chỉ nào</p>
+      <button class="btn-add-address-empty" (click)="toggleForm()">Thêm địa chỉ</button>
+    </div>
+
+    <!-- Back button -->
+    <button class="btn-back" (click)="goBack()">← Quay lại</button>
+  </div>
+</div>

@@ -332,21 +332,341 @@
   }
 }
 
-.total{
-font-weight:bold;
-margin-top:10px;
+.item-reviews {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #007bff;
 }
 
-.order-item {
+.reviews-section-header {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e9ecef;
+
+  .reviews-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .reviews-subtitle {
+    display: none;
+  }
+}
+
+.review-item {
+  margin-bottom: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    border-color: #007bff;
+  }
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.review-product-info {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  gap: 8px;
+  flex: 1;
+  min-width: 180px;
+
+  .review-product-img {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 3px;
+    background: #f5f5f5;
+  }
+
+  .review-product-placeholder {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    border-radius: 3px;
+    font-size: 16px;
+  }
+
+  .review-product {
+    font-weight: 600;
+    color: #333;
+    font-size: 13px;
+  }
 }
 
-.product-image {
-  width: 50px;
-  height: 50px;
-  object-fit: cover;
-  margin-right: 10px;
-  border-radius: 4px;
+.review-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+
+  .btn-review {
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .badge-reviewed {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
+
+.review-form-wrapper {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e9ecef;
+}
+
+.review-form {
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-group {
+  margin-bottom: 18px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.rating-group {
+  .rating-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .rating-stars {
+      display: flex;
+      gap: 6px;
+
+      .star {
+        width: 32px;
+        height: 32px;
+        background: none;
+        border: 1.5px solid #ddd;
+        border-radius: 3px;
+        font-size: 18px;
+        cursor: pointer;
+        color: #ddd;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+
+        &:hover {
+          border-color: #ffc107;
+          color: #ffc107;
+          transform: scale(1.08);
+        }
+
+        &.active {
+          background: #ffc107;
+          border-color: #ffc107;
+          color: white;
+        }
+      }
+    }
+
+    .rating-display {
+      font-size: 13px;
+      font-weight: 600;
+      color: #007bff;
+      min-width: 60px;
+    }
+  }
+}
+
+.comment-group {
+  .comment-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1.5px solid #e9ecef;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    transition: all 0.3s ease;
+    min-height: 70px;
+
+    &:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      background: #f8fafb;
+    }
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  .char-count-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+
+    .char-count {
+      font-size: 11px;
+      color: #999;
+      transition: color 0.3s ease;
+
+      &.limit-reached {
+        color: #dc3545;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e9ecef;
+
+  .btn-submit,
+  .btn-cancel {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-submit {
+    flex: 1;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+
+  .btn-cancel {
+    background: #f8f9fa;
+    color: #666;
+    border: 1px solid #ddd;
+
+    &:hover:not(:disabled) {
+      background: #e9ecef;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .item-reviews {
+    padding: 16px;
+    margin: 16px 0;
+  }
+
+  .review-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .review-product-info {
+    width: 100%;
+  }
+
+  .review-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .rating-wrapper {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .form-actions {
+    flex-direction: column;
+
+    .btn-submit,
+    .btn-cancel {
+      width: 100%;
+    }
+  }
 }
