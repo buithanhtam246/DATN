@@ -1,0 +1,153 @@
+﻿<div class="account-container">
+
+  <!-- LEFT MENU -->
+  <div class="account-left">
+    <h2>TRANG TÀI KHOẢN</h2>
+    <p>Xin chào, {{user?.name}} !</p>
+
+    <ul>
+      <li><a routerLink="/account">Thông tin tài khoản</a></li>
+      <li class="active"><a routerLink="/orders">Lịch sử đơn hàng</a></li>
+      <li><a routerLink="/change-password">Đổi mật khẩu</a></li>
+    </ul>
+  </div>
+
+  <!-- RIGHT CONTENT -->
+  <div class="account-right">
+    <h2>LỊCH SỬ ĐƠN HÀNG</h2>
+    <p>Đây là danh sách các đơn hàng bạn đã đặt.</p>
+
+    <div *ngIf="isLoading" class="orders-loading">
+      <span class="spinner"></span> Đang tải lịch sử đơn hàng...
+    </div>
+
+    <div *ngIf="!isLoading && orders.length === 0" class="orders-empty">
+      <p>Bạn chưa có đơn hàng nào.</p>
+      <a routerLink="/products" class="shop-link">Đi mua sắm ngay!</a>
+    </div>
+
+    <!-- ORDERS LIST -->
+    <div class="orders-container">
+      <div *ngFor="let order of orders; trackBy: trackByOrderId" class="order-card">
+        
+        <!-- Order Header -->
+        <div class="order-header">
+          <div class="order-info">
+            <h3 class="order-id">Đơn hàng #{{order.id}}</h3>
+            <span class="order-date">{{order.create_at | date:'dd/MM/yyyy HH:mm'}}</span>
+          </div>
+          <span class="order-status" [ngClass]="'status-' + order.status">
+            {{getStatusText(order.status)}}
+          </span>
+        </div>
+
+        <!-- Order Items -->
+        <div class="order-items">
+          <div *ngIf="order.items && order.items.length > 0">
+            <div class="items-header">
+              <span class="col-product">Sản phẩm</span>
+              <span class="col-quantity">Số lượng</span>
+              <span class="col-price">Giá</span>
+              <span class="col-total">Thành tiền</span>
+            </div>
+            
+            <div *ngFor="let item of order.items; trackBy: trackByItemId" class="item-row">
+              <div class="col-product">
+                <!-- Placeholder cho hình ảnh sản phẩm (khi products module ready) -->
+                <div class="product-placeholder">
+                  <img *ngIf="item.image" [src]="item.image" [alt]="item.product_name" class="product-image">
+                  <div *ngIf="!item.image" class="no-image-icon">📦</div>
+                </div>
+                <span class="product-name">{{item.product_name}}</span>
+              </div>
+              <span class="col-quantity">x{{item.quantity}}</span>
+              <span class="col-price">{{item.price | currency:'VND':'symbol':'1.0-0'}}</span>
+              <span class="col-total">{{(item.price * item.quantity) | currency:'VND':'symbol':'1.0-0'}}</span>
+            </div>
+            
+            <!-- Review Section for Delivered Orders -->
+            <div *ngIf="order.canReview" class="item-reviews">
+              <h4 class="reviews-title">Đánh giá sản phẩm</h4>
+              <div *ngFor="let item of order.items; trackBy: trackByItemId" class="review-item">
+                <div class="review-header">
+                  <span class="review-product">{{item.product_name}}</span>
+                  <button 
+                    *ngIf="!item.reviewed && reviewingItemId !== item.id"
+                    class="btn-review"
+                    (click)="openReviewForm(item.id)"
+                  >
+                    ⭐ Đánh giá
+                  </button>
+                  <span *ngIf="item.reviewed" class="badge-reviewed">✓ Đã đánh giá</span>
+                </div>
+                
+                <!-- Review Form -->
+                <div *ngIf="reviewingItemId === item.id" class="review-form">
+                  <div class="form-group">
+                    <label>Đánh giá (1-5 sao):</label>
+                    <div class="rating-wrapper">
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="5" 
+                        [(ngModel)]="reviewForm.rating"
+                        class="rating-input"
+                      >
+                      <span class="rating-value">{{reviewForm.rating}} ⭐</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Nhận xét (tối đa 1000 ký tự):</label>
+                    <textarea 
+                      [(ngModel)]="reviewForm.comment"
+                      placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
+                      class="comment-input"
+                      rows="4"
+                    ></textarea>
+                    <span class="char-count">{{reviewForm.comment.length}}/1000</span>
+                  </div>
+                  <div class="form-actions">
+                    <button 
+                      class="btn-submit"
+                      (click)="submitReview(item)"
+                      [disabled]="isSubmittingReview"
+                    >
+                      {{isSubmittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}}
+                    </button>
+                    <button class="btn-cancel" (click)="closeReviewForm()" [disabled]="isSubmittingReview">
+                      Hủy
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!order.items || order.items.length === 0" class="no-items">
+            <p>Không có sản phẩm trong đơn hàng này</p>
+          </div>
+        </div>
+
+        <!-- Order Footer -->
+        <div class="order-footer">
+          <div class="order-summary">
+            <div class="summary-row">
+              <span>Phí vận chuyển:</span>
+              <span>{{order.delivery_cost | currency:'VND':'symbol':'1.0-0'}}</span>
+            </div>
+            <div class="summary-row total">
+              <span><strong>Tổng cộng:</strong></span>
+              <span><strong>{{calculateOrderTotal(order) | currency:'VND':'symbol':'1.0-0'}}</strong></span>
+            </div>
+          </div>
+          <div class="order-actions">
+            <button class="btn-detail">Xem chi tiết</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+  </div>
+
+</div>

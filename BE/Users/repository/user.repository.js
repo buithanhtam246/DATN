@@ -6,7 +6,15 @@ class UserRepository {
   }
 
   findById(id) {
-    return User.findByPk(id);
+    // include addresses when fetching individual user (useful for
+    // returning profile info with address book)
+    return User.findByPk(id, {
+      include: [
+        {
+          association: 'addresses'
+        }
+      ]
+    });
   }
 
   create(data) {

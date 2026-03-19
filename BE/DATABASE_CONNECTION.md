@@ -114,9 +114,21 @@ Bảng `users` sẽ có các cột:
 - `name` (VARCHAR(100))
 - `email` (VARCHAR(100), UNIQUE)
 - `password` (VARCHAR(255))
-- `phone` (VARCHAR(20))
-- `address` (TEXT)
 - `role` (ENUM: 'admin', 'user')
+
+Hệ thống hiện nay tách `address` ra thành bảng riêng để mỗi người dùng
+có thể lưu nhiều địa chỉ cùng với số điện thoại liên hệ. Bảng mới
+`addresses` có cấu trúc như sau:
+
+| Cột | Loại dữ liệu | Ghi chú |
+|-----|--------------|---------|
+| `id` | INTEGER PK AI | |
+| `user_id` | INTEGER | key ngoại tham chiếu `users.id` |
+| `receiver_name` | VARCHAR(100) | tên người nhận/khách hàng |
+| `receiver_phone` | VARCHAR(20) | số điện thoại liên hệ |
+| `full_address` | TEXT | nội dung địa chỉ |
+| `is_default` | BOOLEAN | đánh dấu địa chỉ mặc định |
+| `created_at`, `updated_at` | TIMESTAMP | tự động bởi Sequelize |
 
 ### ✨ Features Bao Gồm
 - ✅ Validation input trước khi lưu

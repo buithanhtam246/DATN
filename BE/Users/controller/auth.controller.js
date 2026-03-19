@@ -100,6 +100,21 @@ class AuthController {
     }
   }
 
+  async verifyResetCode(req, res) {
+    try {
+      const { email, code } = req.body;
+      if (!email || !code) return res.status(400).json({ success: false, message: 'Vui lòng cung cấp email và code' });
+      const isValid = await authService.verifyResetCode(email, code);
+      if (isValid) {
+        return res.json({ success: true, message: 'Code hợp lệ' });
+      } else {
+        return res.status(400).json({ success: false, message: 'Code không hợp lệ' });
+      }
+    } catch (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
   // tiện ích: gửi mail thử nghiệm
   async testEmail(req, res) {
     try {
@@ -114,7 +129,27 @@ class AuthController {
       });
       return res.json({ success: true, message: 'Mail đã gửi', info });
     } catch (err) {
-      return res.status(500).json({ success: false, message: err.message });
+      return res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  async changePassword(req, res) {
+    try {
+      const { currentPassword, newPassword, confirmPassword } = req.body;
+      const userId = req.user.id; // từ auth middleware
+
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        return res.status(400).json({ success: false, message: 'Vui lòng nhập đầy đủ thông tin' });
+      }
+
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ success: false, message: 'Mật khẩu xác nhận không trùng' });
+      }
+
+      await authService.changePassword(userId, currentPassword, newPassword);
+      return res.json({ success: true, message: 'Đổi mật khẩu thành công' });
+    } catch (err) {
+      return res.status(400).json({ success: false, message: err.message });
     }
   }
 }

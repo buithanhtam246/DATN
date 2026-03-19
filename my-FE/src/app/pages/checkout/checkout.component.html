@@ -1,0 +1,46 @@
+<div class="checkout-container">
+  <h2>THANH TOÁN</h2>
+
+  <div *ngIf="cart.length === 0" class="empty-cart">
+    <p>Giỏ hàng trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán.</p>
+    <button routerLink="/cart">Quay lại giỏ hàng</button>
+  </div>
+
+  <div *ngIf="cart.length > 0">
+    <h3>Thông tin giao hàng</h3>
+
+    <div class="form-group">
+      <label>Họ tên:</label>
+      <input type="text" placeholder="Nhập họ tên" [(ngModel)]="fullName" required>
+    </div>
+
+    <div class="form-group">
+      <label>Số điện thoại:</label>
+      <input type="tel" placeholder="Nhập số điện thoại" [(ngModel)]="phone" required>
+    </div>
+
+    <div class="form-group">
+      <label>Địa chỉ:</label>
+      <input type="text" placeholder="Nhập địa chỉ giao hàng" [(ngModel)]="address" required>
+    </div>
+
+    <h3>Tóm tắt đơn hàng</h3>
+    <div class="order-summary">
+      <div *ngFor="let item of cart" class="cart-item">
+        <span>{{item.name}} x {{item.quantity}}</span>
+        <span>{{item.price * item.quantity | number}} đ</span>
+      </div>
+      <div class="total">
+        <strong>Tổng cộng: {{totalAmount | number}} đ</strong>
+      </div>
+    </div>
+
+    <button
+      (click)="checkout()"
+      [disabled]="isLoading || !fullName || !phone || !address"
+      class="checkout-btn">
+      <span *ngIf="isLoading">Đang xử lý...</span>
+      <span *ngIf="!isLoading">Đặt hàng</span>
+    </button>
+  </div>
+</div>

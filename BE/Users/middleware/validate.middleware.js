@@ -4,6 +4,7 @@ const validateRegister = (req, res, next) => {
   // Kiểm tra các trường bắt buộc
   if (!fullname || !email || !password || !confirmPassword) {
     return res.status(400).json({ 
+      success: false,
       message: 'Vui lòng điền đầy đủ thông tin' 
     });
   }
@@ -11,6 +12,7 @@ const validateRegister = (req, res, next) => {
   // Kiểm tra tên không trống
   if (fullname.trim().length < 3) {
     return res.status(400).json({ 
+      success: false,
       message: 'Tên phải có ít nhất 3 ký tự' 
     });
   }
@@ -19,6 +21,7 @@ const validateRegister = (req, res, next) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ 
+      success: false,
       message: 'Email không hợp lệ' 
     });
   }
@@ -26,6 +29,7 @@ const validateRegister = (req, res, next) => {
   // Kiểm tra độ dài mật khẩu
   if (password.length < 6) {
     return res.status(400).json({ 
+      success: false,
       message: 'Mật khẩu phải có ít nhất 6 ký tự' 
     });
   }
@@ -33,6 +37,7 @@ const validateRegister = (req, res, next) => {
   // Kiểm tra xác nhận mật khẩu
   if (password !== confirmPassword) {
     return res.status(400).json({ 
+      success: false,
       message: 'Mật khẩu xác nhận không trùng khớp' 
     });
   }
@@ -107,4 +112,27 @@ const validateResetWithCode = (req, res, next) => {
   next();
 };
 
-module.exports = { validateRegister, validateLogin, validateForgot, validateResetWithCode, validateReset };
+// validate address payload for create/update
+const validateAddress = (req, res, next) => {
+  const { receiver_name, receiver_phone, full_address } = req.body;
+  if (!receiver_name || !receiver_phone || !full_address) {
+    return res.status(400).json({ message: 'Vui lòng cung cấp tên, số điện thoại và địa chỉ' });
+  }
+  // simple length checks
+  if (receiver_name.trim().length < 2) {
+    return res.status(400).json({ message: 'Tên người nhận không hợp lệ' });
+  }
+  if (receiver_phone.trim().length < 8) {
+    return res.status(400).json({ message: 'Số điện thoại không hợp lệ' });
+  }
+  next();
+};
+
+module.exports = {
+  validateRegister,
+  validateLogin,
+  validateForgot,
+  validateResetWithCode,
+  validateReset,
+  validateAddress
+};

@@ -1,0 +1,10 @@
+<div class="notifications">
+  <div *ngIf="errorMessage" class="notification error">
+    <span>{{ errorMessage }}</span>
+    <button (click)="closeError()" class="close-btn">&times;</button>
+  </div>
+  <div *ngIf="successMessage" class="notification success">
+    <span>{{ successMessage }}</span>
+    <button (click)="closeSuccess()" class="close-btn">&times;</button>
+  </div>
+</div>

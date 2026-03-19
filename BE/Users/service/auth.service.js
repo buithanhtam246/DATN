@@ -1,13 +1,27 @@
 const userRepository = require('../repository/user.repository');
 const bcryptUtil = require('../utils/bcrypt.util');
 const jwtUtil = require('../utils/jwt.util');
-const passwordResetRepo = require('../repository/passwordReset.repository');
 const emailUtil = require('../utils/email.util');
-const { Op } = require('sequelize');
+const addressService = require('./address.service');
 
 class AuthService {
   async register(data) {
-    const { fullname, email, password } = data;
+    const { fullname, email, password, confirmPassword } = data;
+
+    // Validation
+    if (!fullname || !email || !password || !confirmPassword) {
+      throw new Error('Vui lòng nhập đầy đủ thông tin');
+    }
+
+    if (password !== confirmPassword) {
+      throw new Error('Mật khẩu xác nhận không trùng');
+    }
+
+    // Validation mật khẩu mạnh
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      throw new Error('Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt');
+    }
 
     // Kiểm tra email đã tồn tại
     const existing = await userRepository.findByEmail(email);
@@ -24,14 +38,14 @@ class AuthService {
       role: 'user'
     });
 
-    // Trả về dữ liệu user (không bao gồm password)
+    // Trả về dữ liệu user (không bao gồm password).  Address/phone
+    // information is now handled via the address book endpoints so we
+    // only return the core user fields here.
     return {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,
-      phone: user.phone || null,
-      address: user.address || null
+      role: user.role
     };
   }
 
@@ -40,11 +54,11 @@ class AuthService {
 
     // Kiểm tra email tồn tại
     const user = await userRepository.findByEmail(email);
-    if (!user) throw new Error('Email hoặc mật khẩu không chính xác');
+    if (!user) throw new Error('Email không tồn tại');
 
     // Kiểm tra mật khẩu
     const isMatch = await bcryptUtil.compare(password, user.password);
-    if (!isMatch) throw new Error('Email hoặc mật khẩu không chính xác');
+    if (!isMatch) throw new Error('Sai mật khẩu');
 
     // Tạo JWT token
     const token = jwtUtil.generateToken({
@@ -53,17 +67,21 @@ class AuthService {
       role: user.role
     });
 
-    // Trả về user response mà không có password
+    // Trả về user response mà không có password.  Include default
+    // address as convenience.
     const { password: _, ...userWithoutPassword } = user.toJSON();
-    
-    return { 
+    const defaultAddr = await addressService.getDefault(user.id);
+    if (defaultAddr) {
+      userWithoutPassword.default_address = defaultAddr;
+    }
+    return {
       token,
-      user: userWithoutPassword 
+      user: userWithoutPassword
     };
   }
 
   /**
-   * Gửi email quên mật khẩu. Nếu email tồn tại, tạo token giúp đổi mật khẩu.
+   * Gửi email quên mật khẩu. Nếu email tồn tại, tạo mã 6 chữ số và lưu vào user.
    * Vì lý do bảo mật, response luôn trả success dù email không tồn tại.
    */
   async forgotPassword(email) {
@@ -74,11 +92,8 @@ class AuthService {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-    // xóa mã hết hạn cũ
-    await passwordResetRepo.deleteExpired();
-
-    // lưu mã mới
-    await passwordResetRepo.create({ user_id: user.id, code, expires_at: expiresAt });
+    // lưu mã vào user
+    await userRepository.update(user.id, { otp: code, otp_expires: expiresAt });
 
     // gửi mail chứa code
     const subject = 'Mã đặt lại mật khẩu của bạn';
@@ -118,16 +133,25 @@ class AuthService {
     const user = await userRepository.findByEmail(email);
     if (!user) throw new Error('Email hoặc code không hợp lệ');
 
-    // tìm mã hợp lệ
-    const reset = await passwordResetRepo.findValidByCode(user.id, code);
-    if (!reset) throw new Error('Code không hợp lệ hoặc đã hết hạn');
+    // kiểm tra mã và thời hạn
+    if (user.otp !== code || user.otp_expires <= new Date()) {
+      throw new Error('Code không hợp lệ hoặc đã hết hạn');
+    }
 
-    // đổi mật khẩu
+    // đổi mật khẩu và xóa OTP
     const hashed = await bcryptUtil.hash(newPassword);
-    await userRepository.update(user.id, { password: hashed });
+    await userRepository.update(user.id, { password: hashed, otp: null, otp_expires: null });
+  }
 
-    // đánh dấu đã dùng
-    await passwordResetRepo.markUsed(reset.id);
+  async verifyResetCode(email, code) {
+    const user = await userRepository.findByEmail(email);
+    if (!user) return false;
+
+    // kiểm tra mã và thời hạn
+    if (user.otp === code && user.otp_expires > new Date()) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -146,6 +170,23 @@ class AuthService {
     } catch (err) {
       throw new Error('Token không hợp lệ hoặc đã hết hạn');
     }
+  }
+
+  async changePassword(userId, currentPassword, newPassword) {
+    const user = await userRepository.findById(userId);
+    if (!user) throw new Error('User không tồn tại');
+
+    // Kiểm tra mật khẩu hiện tại
+    const isMatch = await bcryptUtil.compare(currentPassword, user.password);
+    if (!isMatch) throw new Error('Mật khẩu hiện tại không đúng');
+
+    // Kiểm tra mật khẩu mới không trùng với cũ
+    const isSame = await bcryptUtil.compare(newPassword, user.password);
+    if (isSame) throw new Error('Mật khẩu mới không được trùng với mật khẩu cũ');
+
+    // Mã hóa mật khẩu mới
+    const hashed = await bcryptUtil.hash(newPassword);
+    await userRepository.update(userId, { password: hashed });
   }
 }
 

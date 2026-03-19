@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const authController = require('../controller/auth.controller');
+const authMiddleware = require('../middleware/auth.middleware');
 const { validateRegister, validateLogin, validateResetWithCode, validateForgot, validateReset } = require('../middleware/validate.middleware');
 
 // Đăng ký
@@ -22,7 +23,12 @@ router.post('/reset-password', validateReset, authController.resetPassword);
 
 // Đặt lại mật khẩu bằng mã (OTP)
 router.post('/reset-password-with-code', validateResetWithCode, authController.resetWithCode);
+// Xác nhận mã OTP
+router.post('/verify-reset-code', authController.verifyResetCode);
 // Gửi mail thử nghiệm (body: { to: 'email@example.com' })
 router.post('/test-email', authController.testEmail);
+
+// Đổi mật khẩu (yêu cầu đăng nhập)
+router.post('/change-password', authMiddleware, authController.changePassword);
 
 module.exports = router;

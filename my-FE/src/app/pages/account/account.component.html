@@ -1,0 +1,25 @@
+<div class="account-container">
+
+  <!-- LEFT MENU -->
+  <div class="account-left">
+    <h2>TRANG TÀI KHOẢN</h2>
+    <p>Xin chào, {{user?.name}} !</p>
+
+    <ul>
+      <li class="active"><a routerLink="/account">Thông tin tài khoản</a></li>
+      <li><a routerLink="/orders">Lịch sử đơn hàng</a></li>
+      <li><a routerLink="/change-password">Đổi mật khẩu</a></li>
+    </ul>
+  </div>
+
+  <!-- RIGHT CONTENT -->
+  <div class="account-right">
+    <h2>THÔNG TIN TÀI KHOẢN</h2>
+
+    <p><b>Họ tên:</b> {{user?.name}}</p>
+    <p><b>Email:</b> {{user?.email}}</p>
+
+    <button (click)="logout()">Đăng xuất</button>
+  </div>
+
+</div>
