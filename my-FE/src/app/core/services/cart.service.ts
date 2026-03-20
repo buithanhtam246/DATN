@@ -14,11 +14,6 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
   // Sử dụng signal cho reactive state management
   private cartItems = signal<CartItem[]>([]);
   
-  constructor() {
-    // Demo: Thêm sản phẩm mẫu vào giỏ hàng
-    this.initDemoData();
-  }
-  
   // Computed values
   public readonly items = computed(() => this.cartItems());
   public readonly itemCount = computed(() => 
@@ -134,26 +129,4 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
     }, 0);
   }
 
-  /**
-   * Khởi tạo dữ liệu demo
-   */
-  private initDemoData(): void {
-    const demoItems: CartItem[] = [
-      {
-        id: '1',
-        product: {
-          id: '1',
-          title: 'Nike Air Force 1 \'07 Mini Jewel',
-          imageUrl: '/assets/images/products/nikeaf1.jpg',
-          brand: 'NIKE'
-        },
-        selectedColor: 'Trắng/Xanh lam/Đen',
-        selectedSize: 40,
-        quantity: 1,
-        price: 2695000,
-        originalPrice: 2990000
-      }
-    ];
-    this.cartItems.set(demoItems);
-  }
 }

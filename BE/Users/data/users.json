@@ -1,0 +1,16 @@
+[
+  {
+    "id": "user_1773887756403",
+    "name": "Test User",
+    "email": "testuser@example.com",
+    "passwordHash": "efc8fba9489b1d63fb2efe99f2695aa40a8e3ee9c00738145ddd632f8c4c39d2",
+    "createdAt": "2026-03-19T02:35:56.404Z"
+  },
+  {
+    "id": "user_1773899417763",
+    "name": "Nguyễn Hoàng Hải",
+    "email": "marshmello.kk@gmail.com",
+    "passwordHash": "3627c5895388e78068dfca6e0763e183e2f13b05e195fce89114691dc6236bcd",
+    "createdAt": "2026-03-19T05:50:17.765Z"
+  }
+]

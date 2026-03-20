@@ -90,7 +90,6 @@
   align-items: center;
   text-align: center;
   transition: all $transition-normal;
-  cursor: pointer;
   overflow: hidden;
 
   &:hover {
@@ -129,6 +128,8 @@
   margin-bottom: $spacing-lg;
   overflow: hidden;
   border-radius: $border-radius-sm;
+  text-decoration: none;
+  cursor: pointer;
 
   img {
     width: 100%;
@@ -150,12 +151,23 @@
   gap: $spacing-sm;
 }
 
+.product-name-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color $transition-normal;
+
+  &:hover {
+    color: $color-primary;
+  }
+}
+
 .product-name {
   font-size: $font-size-md;
   font-weight: $font-weight-bold;
   color: $color-text;
   margin: 0;
   line-height: 1.4;
+  transition: color $transition-normal;
 
   @include mobile {
     font-size: $font-size-sm;
@@ -222,6 +234,8 @@
   left: 50%;
   transform: translateX(-50%) translateX(150px);
   opacity: 0;
+  text-decoration: none;
+  display: inline-block;
 
   &:hover {
     background-color: $color-white;

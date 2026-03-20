@@ -1,0 +1,64 @@
+<div class="auth-container">
+
+  <div class="auth-left">
+
+    <h2>Welcome to GS</h2>
+    <p>Vui lòng đăng kí để tiếp tục sử dụng.</p>
+
+    <form (ngSubmit)="register()">
+
+      <input 
+        type="text" 
+        placeholder="Tên người dùng" 
+        [(ngModel)]="fullname" 
+        name="fullname"
+        [disabled]="isLoading">
+
+      <input 
+        type="email" 
+        placeholder="Email" 
+        [(ngModel)]="email" 
+        name="email"
+        [disabled]="isLoading">
+
+      <input 
+        type="password" 
+        placeholder="Mật khẩu" 
+        [(ngModel)]="password" 
+        name="password"
+        [disabled]="isLoading">
+
+      <input 
+        type="password" 
+        placeholder="Nhập lại mật khẩu"
+        [(ngModel)]="confirmPassword"
+        name="confirmPassword"
+        [disabled]="isLoading">
+
+      <button 
+        type="submit" 
+        class="btn-register"
+        [disabled]="isLoading || !isFormValid">
+        {{ isLoading ? 'Đang xử lý...' : 'Đăng Kí' }}
+      </button>
+
+    </form>
+
+    <div class="divider">or</div>
+
+    <button class="google-btn" [disabled]="isLoading">
+      Đăng nhập với Google
+      <img src="assets/images/google.jpg" class="google-icon">
+    </button>
+
+    <p class="login-link">
+      Đã có tài khoản? <a routerLink="/login">Đăng nhập tại đây</a>
+    </p>
+
+  </div>
+
+  <div class="auth-right">
+    <img src="assets/images/login-banner.jpg" alt="Login Banner">
+  </div>
+
+</div>

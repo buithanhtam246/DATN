@@ -44,7 +44,8 @@ export class HeaderComponent {
    * Handle user profile action
    */
   onUserProfile(): void {
-    // TODO: Implement user profile functionality
+    const token = localStorage.getItem('authToken');
+    this.router.navigate([token ? '/account' : '/login']);
   }
 
   /**

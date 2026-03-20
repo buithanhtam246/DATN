@@ -1,0 +1,254 @@
+<div class="product-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Đang tải sản phẩm...</p>
+  </div>
+
+  <!-- Product Detail -->
+  <div *ngIf="!isLoading() && product()" class="product-detail">
+    <!-- Product Gallery -->
+    <div class="product-gallery">
+      <!-- Thumbnails -->
+      <div class="thumbnails">
+        <button
+          *ngFor="let image of product()?.images; let i = index"
+          class="thumbnail"
+          [class.active]="currentImageIndex() === i"
+          (mouseenter)="selectImage(i)"
+          (focus)="selectImage(i)"
+          (click)="selectImage(i)"
+        >
+          <img [src]="image" [alt]="product()?.title + ' - Ảnh ' + (i + 1)" />
+        </button>
+      </div>
+
+      <!-- Main Image -->
+      <div class="main-image"
+           [class.zoom-active]="isImageHovering()"
+           (mouseenter)="onImageEnter()"
+           (mouseleave)="onImageLeave()"
+           (mousemove)="onImageHover($event)">
+        <img
+          [src]="currentImage()"
+          [alt]="product()?.title"
+          class="main-img"
+          [style.transform-origin]="zoomOrigin()"
+          [style.transform]="isImageHovering() ? 'scale(' + zoomScale + ')' : 'scale(1)'"
+        />
+      </div>
+    </div>
+
+    <!-- Product Info -->
+    <div class="product-info">
+      <!-- Product Title -->
+      <h1 class="product-title">{{ product()?.title }}</h1>
+
+      <!-- Price -->
+      <div class="product-price">
+        <span class="current-price">
+          {{ (currentVariantPrice().salePrice || currentVariantPrice().price) | number:'1.0-0' }} VND
+        </span>
+        <span *ngIf="currentVariantPrice().salePrice" class="original-price">
+          {{ currentVariantPrice().price | number:'1.0-0' }} VND
+        </span>
+      </div>
+
+      <!-- Color Selector -->
+      <div class="color-selector">
+        <label>Màu sắc</label>
+        <div class="colors-grid">
+          <button
+            *ngFor="let color of displayColors()"
+            class="color-option"
+            [class.active]="selectedColorId() === color.id"
+            [class.light-color]="isLightColor(color.tableColor)"
+            [style.background-color]="color.tableColor"
+            (click)="selectColor(color.id)"
+            [title]="color.name"
+          >
+            <span class="color-check" *ngIf="selectedColorId() === color.id">✓</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Size Selector -->
+      <div class="size-selector">
+        <div class="size-header">
+          <label>Kích cỡ</label>
+          <a href="#" class="size-guide">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1L15 8L8 15L1 8L8 1Z" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            Hướng dẫn chọn kích cỡ
+          </a>
+        </div>
+
+        <div class="sizes-grid">
+          <button
+            *ngFor="let size of displaySizes()"
+            class="size-option"
+            [class.active]="selectedSizeId() === size.id"
+            [class.disabled]="!isSizeAvailable(size.id)"
+            [disabled]="!isSizeAvailable(size.id)"
+            (click)="selectSize(size.id)"
+          >
+            {{ size.bangSize }}
+          </button>
+        </div>
+
+        <p *ngIf="!selectedColorId()" class="no-sizes">
+          Vui lòng chọn màu sắc trước
+        </p>
+      </div>
+
+      <!-- Quantity Selector -->
+      <div class="quantity-selector">
+        <label>Số lượng</label>
+        <div class="quantity-controls">
+          <button class="qty-btn" (click)="decrementQuantity()">−</button>
+          <input type="number" [value]="quantity()" readonly />
+          <button class="qty-btn" (click)="incrementQuantity()">+</button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button 
+          class="btn-add-to-cart" 
+          (click)="addToCart()"
+          [disabled]="!selectedColorId() || !selectedSizeId()"
+        >
+          Thêm vào Giỏ
+        </button>
+        <button class="btn-wishlist">
+          Yêu thích
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke-width="2"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Product Description Accordion -->
+      <div class="accordion-section">
+        <button class="accordion-header" (click)="toggleDescription()">
+          <span>Xem chi tiết sản phẩm</span>
+          <svg 
+            class="accordion-icon" 
+            [class.open]="isDescriptionOpen()"
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none"
+          >
+            <path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="accordion-content" [class.open]="isDescriptionOpen()">
+          <div class="content-inner">
+            <p>{{ product()?.description || 'Thoải mái, bền bỉ và vượt thời gian—nó đúng đầu bảng xếp hạng vì một lý do. Mẫu AF-1 này kết hợp chất liệu da cao cấp với các chi tiết kim loại nhỏ nhắn nên về ngoài thanh lịch, cổ điển.' }}</p>
+            <ul>
+              <li>Màu sắc hiển thị: Trắng/Vàng kim loại/Đen</li>
+              <li>Style: IB6543-101</li>
+              <li>Quốc gia/Khu vực xuất xứ: Trung Quốc, Việt Nam</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery & Returns Accordion -->
+      <div class="accordion-section">
+        <button class="accordion-header" (click)="toggleDelivery()">
+          <span>Giao hàng và trả hàng</span>
+          <svg 
+            class="accordion-icon" 
+            [class.open]="isDeliveryOpen()"
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none"
+          >
+            <path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="accordion-content" [class.open]="isDeliveryOpen()">
+          <div class="content-inner">
+            <p><strong>Miễn phí giao hàng và trả hàng</strong></p>
+            <p>Đơn hàng của bạn sẽ được giao trong vòng 3-7 ngày làm việc.</p>
+            <p>Bạn có thể trả hàng miễn phí trong vòng 30 ngày với bất kỳ lý do nào.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews Accordion -->
+      <div class="accordion-section">
+        <button class="accordion-header" (click)="toggleReviews()">
+          <span>Reviews</span>
+          <div class="reviews-header-right">
+            <div class="stars">
+              <svg *ngFor="let star of [1,2,3,4,5]" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+            </div>
+            <svg 
+              class="accordion-icon" 
+              [class.open]="isReviewsOpen()"
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill="none"
+            >
+              <path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </button>
+        <div class="accordion-content" [class.open]="isReviewsOpen()">
+          <div class="content-inner">
+            <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products Section -->
+  <div *ngIf="relatedProducts().length > 0" class="related-products">
+    <div class="section-header">
+      <h2>Có thể bạn sẽ thích</h2>
+      <div class="carousel-controls">
+        <button class="carousel-btn prev">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
+        <button class="carousel-btn next">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="products-grid">
+      <div *ngFor="let relatedProduct of relatedProducts()" class="product-card">
+        <a [routerLink]="['/products', relatedProduct.id]">
+          <div class="card-image">
+            <img [src]="relatedProduct.imageUrl" [alt]="relatedProduct.title" />
+          </div>
+          <div class="card-info">
+            <h3 class="card-title">{{ relatedProduct.title }}</h3>
+            <p class="card-brand">{{ relatedProduct.brand }} / Giày Nam</p>
+            <p class="card-price">{{ relatedProduct.price }} VND</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Not Found State -->
+  <div *ngIf="!isLoading() && !product()" class="not-found">
+    <h2>Không tìm thấy sản phẩm</h2>
+    <p>Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+    <a routerLink="/products" class="btn-back">Quay lại trang sản phẩm</a>
+  </div>
+</div>

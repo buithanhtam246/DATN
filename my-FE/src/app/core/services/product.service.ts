@@ -43,18 +43,18 @@ export class ProductService implements IProductOperations {
 
   /**
    * Lấy danh sách products
-   * TODO: Kết nối với API thực tế
    */
   getProducts(): Observable<Product[]> {
-    return of([FEATURED_PRODUCT]);
+    return this.loadProductsFromJSON();
   }
 
   /**
    * Lấy product theo ID
    */
   getProductById(id: string): Observable<Product | undefined> {
-    // TODO: Implement khi có API
-    return of(FEATURED_PRODUCT);
+    return this.loadProductsFromJSON().pipe(
+      map(products => products.find(p => p.id === id))
+    );
   }
 
   /**
@@ -70,23 +70,70 @@ export class ProductService implements IProductOperations {
   loadProductsFromJSON(): Observable<Product[]> {
     return this.http.get<any[]>('/assets/data/sample-products.json').pipe(
       map(data => {
+        console.log('Successfully loaded products from JSON:', data.length);
         return data.map(item => ({
           id: item.id?.toString(),
           title: item.name,
           price: item.price,
           imageUrl: item.image,
+          images: item.gallery || [item.image], // Thêm gallery ảnh
           brand: this.getBrandName(item.brand_id),
+          category: item.category || 'Giày',
           description: item.describ,
-          colors: ['#000000', '#FFFFFF', '#FF0000'], // Mock colors
-          sizes: [38, 39, 40, 41, 42, 43]
+          colors: item.variants ? this.getUniqueColors(item.variants) : ['#000000', '#FFFFFF'],
+          sizes: item.variants ? this.getUniqueSizes(item.variants) : [38, 39, 40, 41, 42, 43],
+          variants: item.variants || [],
+          minPrice: item.variants ? this.getMinPrice(item.variants) : this.parsePrice(item.price),
+          minPriceSale: item.variants ? this.getMinPriceSale(item.variants) : undefined
         }));
       }),
       catchError(error => {
-        console.error('Error loading products from JSON:', error);
+        console.error('Error loading products from JSON, using fallback data:', error);
         // Return fallback data
         return of(this.getFallbackProducts());
       })
     );
+  }
+
+  /**
+   * Helper: Lấy màu sắc unique từ variants
+   */
+  private getUniqueColors(variants: any[]): string[] {
+    const colors = variants.map(v => v.color?.tableColor).filter(c => c);
+    return [...new Set(colors)];
+  }
+
+  /**
+   * Helper: Lấy sizes unique từ variants
+   */
+  private getUniqueSizes(variants: any[]): number[] {
+    const sizes = variants.map(v => parseInt(v.size?.bangSize)).filter(s => !isNaN(s));
+    return [...new Set(sizes)].sort((a, b) => a - b);
+  }
+
+  /**
+   * Helper: Lấy giá thấp nhất từ variants
+   */
+  private getMinPrice(variants: any[]): number {
+    const prices = variants.map(v => v.price).filter(p => p);
+    return prices.length > 0 ? Math.min(...prices) : 0;
+  }
+
+  /**
+   * Helper: Lấy giá sale thấp nhất từ variants
+   */
+  private getMinPriceSale(variants: any[]): number | undefined {
+    const salePrices = variants.map(v => v.priceSale).filter(p => p);
+    return salePrices.length > 0 ? Math.min(...salePrices) : undefined;
+  }
+
+  /**
+   * Helper: Parse price string to number
+   */
+  private parsePrice(priceStr: string): number {
+    if (typeof priceStr === 'number') return priceStr;
+    // Remove all dots and commas, keep only numbers
+    return parseFloat(priceStr.replace(/\./g, '').replace(/,/g, '').replace(/[^0-9]/g, '')) || 0;
   }
 
   /**
@@ -154,6 +201,42 @@ export class ProductService implements IProductOperations {
         imageUrl: '/assets/images/products/nikeamax.jpg',
         brand: 'NIKE',
         colors: ['#0000FF', '#FFFFFF'],
+        sizes: [38, 39, 40, 41, 42, 43]
+      },
+      {
+        id: '5',
+        title: 'Nike Vomero 18',
+        price: '3.290.000 VND',
+        imageUrl: '/assets/images/products/vomero.jpg',
+        brand: 'NIKE',
+        colors: ['#FF0000', '#FFFFFF'],
+        sizes: [38, 39, 40, 41, 42, 43]
+      },
+      {
+        id: '6',
+        title: 'Nike Dunk Low Retro',
+        price: '2.990.000 VND',
+        imageUrl: '/assets/images/products/nikeduck.jpg',
+        brand: 'NIKE',
+        colors: ['#000000', '#FFFFFF'],
+        sizes: [38, 39, 40, 41, 42, 43]
+      },
+      {
+        id: '7',
+        title: 'Nike Vapormax 2024',
+        price: '4.590.000 VND',
+        imageUrl: '/assets/images/products/vapomax.jpg',
+        brand: 'NIKE',
+        colors: ['#0000FF', '#000000'],
+        sizes: [38, 39, 40, 41, 42, 43]
+      },
+      {
+        id: '8',
+        title: 'Adidas Ultraboost 5',
+        price: '4.590.000 VND',
+        imageUrl: '/assets/images/products/ultraboost.jpg',
+        brand: 'ADIDAS',
+        colors: ['#000000', '#FFFFFF'],
         sizes: [38, 39, 40, 41, 42, 43]
       }
     ];

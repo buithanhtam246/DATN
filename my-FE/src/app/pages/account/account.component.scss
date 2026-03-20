@@ -1,0 +1,62 @@
+.account-container{
+  display:flex;
+  max-width:1200px;
+  margin:40px auto;
+  gap:50px;
+}
+
+.account-left{
+  width:300px;
+  border-right:1px solid #ddd;
+  padding-right:30px;
+}
+
+.account-left h2{
+  font-size:20px;
+  margin-bottom:10px;
+}
+
+.account-left ul{
+  list-style:none;
+  padding:0;
+}
+
+.account-left li{
+  margin:15px 0;
+  cursor:pointer;
+}
+
+.account-left li a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.account-left li a:hover {
+  color: #007bff;
+}
+
+.account-left li.active{
+  font-weight: bold;
+  color: #0f0f0f;
+}
+
+.account-left li.active a {
+  color: #007bff;
+}
+
+.account-right{
+  flex:1;
+}
+
+.account-right h2{
+  margin-bottom:20px;
+}
+
+.account-right button{
+  margin-top:20px;
+  padding:10px 20px;
+  background:black;
+  color:white;
+  border:none;
+  cursor:pointer;
+}

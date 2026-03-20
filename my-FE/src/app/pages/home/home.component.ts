@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { BannerComponent } from '../../banner/banner.component';
 import { CollectionComponent } from '../../collection/collection.component';
-import { BrandsComponent } from '../../brands/brands.component';
+import { BrandsComponent } from '../../banner/brands/brands.component';
 import { FeaturedCollectionsComponent } from '../../featured-collections/featured-collections.component';
 import { ProductsSectionComponent } from '../../products-section/products-section.component';
 import { NewsSectionComponent } from '../../news-section/news-section.component';

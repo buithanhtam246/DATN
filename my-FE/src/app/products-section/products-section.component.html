@@ -1,21 +1,23 @@
 <section class="products-section">
   <div class="section-header">
     <h2 class="section-title">SẢN PHẨM</h2>
-    <button class="view-more-btn">Xem Thêm</button>
+    <button class="view-more-btn" (click)="navigateToProducts()">Xem Thêm</button>
   </div>
 
   <div class="products-grid">
     @for (product of products; track product.id) {
       <div class="product-item">
-        <div class="product-image">
+        <a [routerLink]="['/products', product.id]" class="product-image">
           <img [src]="product.imageUrl" [alt]="product.title" loading="lazy" />
-        </div>
+        </a>
         <div class="product-info">
-          <h3 class="product-name">{{ product.title }}</h3>
+          <a [routerLink]="['/products', product.id]" class="product-name-link">
+            <h3 class="product-name">{{ product.title }}</h3>
+          </a>
           <p class="product-category">{{ product.category }}</p>
           <div class="product-actions">
             <div class="product-price">{{ product.price }}</div>
-            <button class="details-btn">Chi tiết</button>
+            <a [routerLink]="['/products', product.id]" class="details-btn">Chi tiết</a>
           </div>
         </div>
       </div>

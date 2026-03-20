@@ -6,6 +6,8 @@
 
 export { HomeComponent } from './home/home.component';
 export { CartComponent } from './cart/cart.component';
+export { CheckoutComponent } from './checkout/checkout.component';
+export { Products } from './products/products';
 
 // Future pages can be added here:
 // export { ProductsComponent } from './products/products.component';

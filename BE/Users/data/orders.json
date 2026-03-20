@@ -1,0 +1,58 @@
+[
+  {
+    "id": "order_1773639911246",
+    "createdAt": "2026-03-16T05:45:11.246Z",
+    "customer": {
+      "fullName": "Test"
+    },
+    "paymentMethod": "cod",
+    "items": [
+      {
+        "id": "x1",
+        "quantity": 1
+      }
+    ],
+    "summary": {
+      "subtotal": 100,
+      "shipping": 10,
+      "discount": 0,
+      "total": 110
+    }
+  },
+  {
+    "id": "order_1773640173554",
+    "createdAt": "2026-03-16T05:49:33.555Z",
+    "customer": {
+      "fullName": "hải",
+      "phone": "0913091832",
+      "email": "hai@gmail.com",
+      "address": "bà điểm",
+      "city": "hồ chí minh",
+      "district": "hóc môn",
+      "note": ""
+    },
+    "paymentMethod": "cod",
+    "items": [
+      {
+        "id": "1_1_2",
+        "product": {
+          "id": "1",
+          "title": "Nike Air Force 1 '07",
+          "imageUrl": "/assets/images/products/nikeaf1.jpg",
+          "brand": "NIKE"
+        },
+        "selectedColor": "Đen",
+        "selectedSize": 39,
+        "quantity": 1,
+        "price": 2295000,
+        "originalPrice": 2695000
+      }
+    ],
+    "summary": {
+      "subtotal": 2295000,
+      "shipping": 100000,
+      "discount": 400000,
+      "total": 2395000
+    }
+  }
+]

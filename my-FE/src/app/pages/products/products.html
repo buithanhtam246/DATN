@@ -1,0 +1,122 @@
+<div class="products-page">
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="loading">
+    <div class="spinner"></div>
+    <p>Đang tải sản phẩm...</p>
+  </div>
+
+  <!-- Products Content -->
+  <div *ngIf="!isLoading()" class="products-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Giày ({{ displayProducts().length }})</h1>
+      
+      <div class="header-actions">
+        <button class="filter-toggle" (click)="toggleFilters()">
+          Lọc & Sắp xếp
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 4h18M3 12h12M3 20h6" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        
+        <div class="sort-by">
+          <label for="sort">Sort By</label>
+          <select id="sort" (change)="onSortChange($event)" [value]="sortBy()">
+            <option value="default">Mới nhất</option>
+            <option value="price-asc">Giá: Thấp đến Cao</option>
+            <option value="price-desc">Giá: Cao đến Thấp</option>
+            <option value="name">Tên A-Z</option>
+          </select>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Sidebar (Collapsible) -->
+    <div class="filters-sidebar" [class.open]="showFilters()">
+      <div class="filters-header">
+        <h3>Bộ lọc</h3>
+        <button class="clear-filters" (click)="clearFilters()">Xóa tất cả</button>
+      </div>
+
+      <div class="filter-group">
+        <h4>Danh mục</h4>
+        <button 
+          class="filter-option" 
+          [class.active]="selectedCategory() === null"
+          (click)="onCategoryChange(null)">
+          Tất cả
+        </button>
+        <button 
+          class="filter-option" 
+          [class.active]="selectedCategory() === 'AIR FORCE'"
+          (click)="onCategoryChange('AIR FORCE')">
+          Air Force
+        </button>
+        <button 
+          class="filter-option" 
+          [class.active]="selectedCategory() === 'JORDAN'"
+          (click)="onCategoryChange('JORDAN')">
+          Jordan
+        </button>
+        <button 
+          class="filter-option" 
+          [class.active]="selectedCategory() === 'AIR MAX'"
+          (click)="onCategoryChange('AIR MAX')">
+          Air Max
+        </button>
+      </div>
+
+      <div class="filter-group">
+        <h4>Thương hiệu</h4>
+        <button 
+          class="filter-option" 
+          [class.active]="selectedBrand() === null"
+          (click)="onBrandChange(null)">
+          Tất cả
+        </button>
+        <button 
+          class="filter-option" 
+          [class.active]="selectedBrand() === 'NIKE'"
+          (click)="onBrandChange('NIKE')">
+          Nike
+        </button>
+        <button 
+          class="filter-option" 
+          [class.active]="selectedBrand() === 'ADIDAS'"
+          (click)="onBrandChange('ADIDAS')">
+          Adidas
+        </button>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid">
+      <div *ngFor="let product of displayProducts()" class="product-item">
+        <a [routerLink]="['/products', product.id]" class="product-image">
+          <img [src]="product.imageUrl" [alt]="product.title" loading="lazy" />
+        </a>
+        <div class="product-info">
+          <a [routerLink]="['/products', product.id]" class="product-name-link">
+            <h3 class="product-name">{{ product.title }}</h3>
+          </a>
+          <p class="product-category">{{ product.category || product.brand }}</p>
+          <div class="product-actions">
+            <div class="product-price">
+              {{ (product.minPriceSale || product.minPrice || 0) | number:'1.0-0' }} VND
+            </div>
+            <a [routerLink]="['/products', product.id]" class="details-btn">Chi tiết</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="displayProducts().length === 0" class="empty-state">
+      <p>Không tìm thấy sản phẩm nào.</p>
+      <button class="btn-clear" (click)="clearFilters()">Xóa bộ lọc</button>
+    </div>
+  </div>
+</div>

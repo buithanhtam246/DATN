@@ -1,0 +1,149 @@
+<div class="checkout-page">
+  <div class="checkout-container">
+    @if (isEmpty()) {
+      <section class="checkout-empty">
+        <h1>Chưa có sản phẩm để thanh toán</h1>
+        <p>Giỏ hàng của bạn đang trống. Hãy quay lại và chọn sản phẩm bạn yêu thích.</p>
+        <button class="btn-primary" (click)="goBackToCart()">Quay lại giỏ hàng</button>
+      </section>
+    }
+
+    @if (!isEmpty()) {
+      <section class="checkout-main">
+        <div class="checkout-form-panel">
+          <div class="section-head">
+            <p class="eyebrow">CHECKOUT</p>
+            <h1>Thông tin giao hàng</h1>
+          </div>
+
+          <div class="form-grid">
+            <label class="field field-full">
+              <span>Họ và tên *</span>
+              <input type="text" [ngModel]="fullName()" (ngModelChange)="fullName.set($event)" placeholder="Nguyen Van A" />
+            </label>
+
+            <label class="field">
+              <span>Số điện thoại *</span>
+              <input type="tel" [ngModel]="phone()" (ngModelChange)="phone.set($event)" placeholder="09xxxxxxxx" />
+            </label>
+
+            <label class="field">
+              <span>Email</span>
+              <input type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" placeholder="name@email.com" />
+            </label>
+
+            <label class="field field-full">
+              <span>Địa chỉ nhận hàng *</span>
+              <input type="text" [ngModel]="address()" (ngModelChange)="address.set($event)" placeholder="So nha, ten duong" />
+            </label>
+
+            <label class="field">
+              <span>Tỉnh/Thành phố *</span>
+              <input type="text" [ngModel]="city()" (ngModelChange)="city.set($event)" placeholder="Ho Chi Minh" />
+            </label>
+
+            <label class="field">
+              <span>Quận/Huyện *</span>
+              <input type="text" [ngModel]="district()" (ngModelChange)="district.set($event)" placeholder="Quan 1" />
+            </label>
+
+            <label class="field field-full">
+              <span>Ghi chú</span>
+              <textarea rows="3" [ngModel]="note()" (ngModelChange)="note.set($event)" placeholder="Thông tin giao hàng thêm (nếu có)"></textarea>
+            </label>
+          </div>
+
+          <div class="payment-panel">
+            <h2>Phương thức thanh toán</h2>
+
+            <button
+              class="payment-option"
+              [class.active]="paymentMethod() === 'cod'"
+              (click)="paymentMethod.set('cod')"
+              type="button"
+            >
+              <span>Thanh toán khi nhận hàng (COD)</span>
+              <strong>Khuyến nghị</strong>
+            </button>
+
+            <button
+              class="payment-option"
+              [class.active]="paymentMethod() === 'bank'"
+              (click)="paymentMethod.set('bank')"
+              type="button"
+            >
+              <span>Chuyển khoản ngân hàng</span>
+              <strong>0% phí</strong>
+            </button>
+
+            <button
+              class="payment-option"
+              [class.active]="paymentMethod() === 'momo'"
+              (click)="paymentMethod.set('momo')"
+              type="button"
+            >
+              <span>Ví điện tử MoMo</span>
+              <strong>Nhanh</strong>
+            </button>
+          </div>
+
+          <label class="policy-checkbox">
+            <input type="checkbox" [ngModel]="agreedPolicy()" (ngModelChange)="agreedPolicy.set($event)" />
+            <span>Tôi đồng ý với các điều khoản mua hàng và chính sách bảo mật của GoodShoes.</span>
+          </label>
+
+          <div class="actions-row">
+            <button type="button" class="btn-back-cart" (click)="goBackToCart()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M19 12H5"></path>
+                <path d="M12 19l-7-7 7-7"></path>
+              </svg>
+              <span>Quay lại giỏ hàng</span>
+            </button>
+            <button class="btn-primary" (click)="placeOrder()" [disabled]="!canPlaceOrder() || isSubmitting()">
+              {{ isSubmitting() ? 'Dang xu ly...' : 'Đặt hàng ngay' }}
+            </button>
+          </div>
+        </div>
+
+        <aside class="summary-panel">
+          <h2>Tóm tắt đơn hàng</h2>
+
+          <div class="summary-items">
+            @for (item of cart().items; track item.id) {
+              <article class="summary-item">
+                <img [src]="item.product.imageUrl" [alt]="item.product.title" />
+                <div class="item-info">
+                  <h3>{{ item.product.title }}</h3>
+                  <p>{{ item.selectedColor }} | Size {{ item.selectedSize }} | x{{ item.quantity }}</p>
+                </div>
+                <strong>{{ formatPrice(item.price * item.quantity) }}</strong>
+              </article>
+            }
+          </div>
+
+          <div class="summary-total">
+            <div class="line">
+              <span>Tạm tính</span>
+              <span>{{ formatPrice(cart().subtotal) }}</span>
+            </div>
+            <div class="line">
+              <span>Phí giao hàng</span>
+              <span>{{ formatPrice(cart().shipping) }}</span>
+            </div>
+            @if (cart().discount > 0) {
+              <div class="line discount">
+                <span>Tiết kiệm</span>
+                <span>-{{ formatPrice(cart().discount) }}</span>
+              </div>
+            }
+            <div class="line final">
+              <span>Tổng thanh toán</span>
+              <span>{{ formatPrice(cart().total) }}</span>
+            </div>
+          </div>
+        </aside>
+      </section>
+    }
+  </div>
+</div>
