@@ -30,17 +30,60 @@ class AuthService {
     // Mã hóa mật khẩu
     const hashed = await bcryptUtil.hash(password);
 
+    // Role mặc định với register công khai là user
+    const userRole = 'user';
+
     // Tạo user mới
     const user = await userRepository.create({
       name: fullname,
       email,
       password: hashed,
-      role: 'user'
+      role: userRole
     });
 
     // Trả về dữ liệu user (không bao gồm password).  Address/phone
     // information is now handled via the address book endpoints so we
     // only return the core user fields here.
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    };
+  }
+
+  async registerAdmin(data) {
+    const { fullname, email, password, confirmPassword, role } = data;
+
+    if (!fullname || !email || !password || !confirmPassword) {
+      throw new Error('Vui lòng nhập đầy đủ thông tin');
+    }
+
+    if (password !== confirmPassword) {
+      throw new Error('Mật khẩu xác nhận không trùng');
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      throw new Error('Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt');
+    }
+
+    const existing = await userRepository.findByEmail(email);
+    if (existing) throw new Error('Email đã tồn tại');
+
+    const normalizedRole = (role || 'admin').trim().toLowerCase();
+    if (normalizedRole !== 'admin') {
+      throw new Error('Chỉ admin mới có thể tạo tài khoản admin');
+    }
+
+    const hashed = await bcryptUtil.hash(password);
+    const user = await userRepository.create({
+      name: fullname,
+      email,
+      password: hashed,
+      role: 'admin'
+    });
+
     return {
       id: user.id,
       name: user.name,

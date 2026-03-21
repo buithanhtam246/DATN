@@ -17,6 +17,22 @@ class AuthController {
     }
   }
 
+  async registerAdmin(req, res) {
+    try {
+      const user = await authService.registerAdmin(req.body);
+      return res.status(201).json({
+        success: true,
+        message: 'Đăng ký admin thành công',
+        data: user
+      });
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message
+      });
+    }
+  }
+
   async login(req, res) {
     try {
       const result = await authService.login(req.body);

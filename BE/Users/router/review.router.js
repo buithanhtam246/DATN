@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const reviewController = require('../controller/review.controller');
-const authMiddleware = require('../middleware/auth.middleware');
+const { authMiddleware } = require('../middleware/auth.middleware');
 
 // Tạo đánh giá (require authentication)
 router.post('/create', authMiddleware, reviewController.create.bind(reviewController));

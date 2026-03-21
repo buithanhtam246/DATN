@@ -2,11 +2,13 @@ const express = require('express');
 const router = express.Router();
 
 const authController = require('../controller/auth.controller');
-const authMiddleware = require('../middleware/auth.middleware');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth.middleware');
 const { validateRegister, validateLogin, validateResetWithCode, validateForgot, validateReset } = require('../middleware/validate.middleware');
 
 // Đăng ký
 router.post('/register', validateRegister, authController.register);
+// Đăng ký admin (chỉ admin hiện tại mới tạo được)
+router.post('/register-admin', authMiddleware, adminMiddleware, validateRegister, authController.registerAdmin);
 
 // Đăng nhập
 router.post('/login', validateLogin, authController.login);

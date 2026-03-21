@@ -38,4 +38,17 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
+const adminMiddleware = (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Bạn không có quyền truy cập tài nguyên này'
+    });
+  }
+  next();
+};
+
+module.exports = {
+  authMiddleware,
+  adminMiddleware
+};

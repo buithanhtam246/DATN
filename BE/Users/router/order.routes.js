@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controller/Order.controller');
-const authMiddleware = require('../middleware/auth.middleware'); // Middleware kiểm tra đăng nhập
+const { authMiddleware } = require('../middleware/auth.middleware'); // Middleware kiểm tra đăng nhập
 
 // Route đặt hàng (Cần đăng nhập)
 router.post('/checkout', authMiddleware, orderController.create);
