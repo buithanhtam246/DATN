@@ -1,37 +1,29 @@
-const productService = require("../services/product.service");
+const Product = require("../models/product.model");
 const { PRODUCT_IMAGE_PATH } = require("../config/constants");
+
+const mapImage = (p) => ({
+  ...p,
+  image: p.image ? PRODUCT_IMAGE_PATH + p.image : null
+});
 
 exports.getAllProducts = async (req, res) => {
   try {
-
-    const products = await productService.getAllProducts();
-
-    const data = products.map(p => ({
-      ...p,
-      image: PRODUCT_IMAGE_PATH + p.image
-    }));
-
-    res.json(data);
-
-  } catch (error) {
-
-    console.error(error);
+    const products = await Product.getAllProducts();
+    res.json({ success: true, data: products.map(mapImage) });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
-
   }
 };
-
 
 exports.getProductDetail = async (req, res) => {
   try {
 
-    const productId = req.params.id;
+    const productId = Number(req.params.id);
+    if (!productId) return res.status(400).json({ message: "Invalid id" });
 
-    const rows = await productService.getProductDetail(productId);
-
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+    const rows = await Product.getProductDetail(productId);
+    if (!rows.length) return res.status(404).json({ message: "Not found" });
 
     const product = {
       id: rows[0].productId,
@@ -39,261 +31,120 @@ exports.getProductDetail = async (req, res) => {
       description: rows[0].describ,
       image: PRODUCT_IMAGE_PATH + rows[0].productImage,
       brand: rows[0].brand,
-      colors: [],
+      colors: []
     };
 
     const colorMap = {};
 
-    rows.forEach((row) => {
-
-      if (!colorMap[row.colorId]) {
-
-        colorMap[row.colorId] = {
-          colorId: row.colorId,
-          colorCode: row.table_color,
-          image: PRODUCT_IMAGE_PATH + row.image,
-          sizes: [],
+    rows.forEach(r => {
+      if (!colorMap[r.colorId]) {
+        colorMap[r.colorId] = {
+          colorId: r.colorId,
+          colorCode: r.table_color,
+          image: r.image ? PRODUCT_IMAGE_PATH + r.image : null,
+          sizes: []
         };
-
-        product.colors.push(colorMap[row.colorId]);
-
+        product.colors.push(colorMap[r.colorId]);
       }
 
-      colorMap[row.colorId].sizes.push({
-        sizeId: row.size_id,
-        sizeName: row.bang_size,
-        variantId: row.variantId,
-        price: row.price,
-        priceSale: row.price_sale,
-        quantity: row.quantity,
+      colorMap[r.colorId].sizes.push({
+        sizeId: r.size_id,
+        sizeName: r.bang_size,
+        variantId: r.variantId,
+        price: r.price,
+        priceSale: r.price_sale,
+        quantity: r.quantity
       });
-
     });
 
-    res.json(product);
+    res.json({ success: true, data: product });
 
-  } catch (error) {
-
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
-
   }
 };
-
 
 exports.getProductReviews = async (req, res) => {
-
   try {
-
-    const productId = req.params.id;
-
-    const reviews = await productService.getProductReviews(productId);
-
-    res.json(reviews);
-
-  } catch (error) {
-
-    console.error(error);
+    const productId = Number(req.params.id);
+    const data = await Product.getProductReviews(productId);
+    res.json({ success: true, data });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
-
   }
-
 };
-
 
 exports.getRelatedProducts = async (req, res) => {
-
   try {
-
-    const productId = req.params.id;
-
-    const products = await productService.getRelatedProducts(productId);
-
-    res.json({
-      success: true,
-      data: products
-    });
-
-  } catch (error) {
-
-    console.error(error);
+    const productId = Number(req.params.id);
+    const data = await Product.getRelatedProducts(productId);
+    res.json({ success: true, data: data.map(mapImage) });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
-
   }
-
 };
-
 
 exports.getProductsByBrand = async (req, res) => {
-
   try {
-
-    const brandId = req.params.brandId;
-
-    const products = await productService.getProductsByBrand(brandId);
-
-    const data = products.map(p => ({
-      ...p,
-      image: PRODUCT_IMAGE_PATH + p.image
-    }));
-
-    res.json({
-      success: true,
-      data
-    });
-
-  } catch (error) {
-
-    console.error(error);
+    const data = await Product.getProductsByBrand(req.params.brandId);
+    res.json({ success: true, data: data.map(mapImage) });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
-
   }
-
 };
-
 
 exports.getProductsByCategory = async (req, res) => {
-
   try {
-
-    const categoryId = req.params.categoryId;
-
-    const products = await productService.getProductsByCategory(categoryId);
-
-    const data = products.map(p => ({
-      ...p,
-      image: PRODUCT_IMAGE_PATH + p.image
-    }));
-
-    res.json({
-      success: true,
-      data
-    });
-
-  } catch (error) {
-
-    console.error(error);
+    const data = await Product.getProductsByCategory(req.params.categoryId);
+    res.json({ success: true, data: data.map(mapImage) });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
-
   }
-
 };
-
 
 exports.getNewProducts = async (req, res) => {
-
   try {
-
-    const products = await productService.getNewProducts();
-
-    const data = products.map(p => ({
-      ...p,
-      image: PRODUCT_IMAGE_PATH + p.image
-    }));
-
-    res.json({
-      success: true,
-      data
-    });
-
-  } catch (error) {
-
-    console.error(error);
+    const data = await Product.getNewProducts();
+    res.json({ success: true, data: data.map(mapImage) });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
-
   }
-
 };
-
 
 exports.getBestSellingProducts = async (req, res) => {
-
   try {
-
-    const products = await productService.getBestSellingProducts();
-
-    const data = products.map(p => ({
-      ...p,
-      image: PRODUCT_IMAGE_PATH + p.image
-    }));
-
-    res.json({
-      success: true,
-      data
-    });
-
-  } catch (error) {
-
-    console.error(error);
+    const data = await Product.getBestSellingProducts();
+    res.json({ success: true, data: data.map(mapImage) });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
-
   }
-
 };
-
 
 exports.createProduct = async (req, res) => {
-
   try {
-
-    const productId = await productService.createProduct(req.body);
-
-    res.json({
-      success: true,
-      productId
-    });
-
-  } catch (error) {
-
-    console.error(error);
+    const productId = await Product.createProduct(req.body);
+    res.json({ success: true, productId });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
-
   }
-
 };
-
 
 exports.generateVariants = async (req, res) => {
-
   try {
-
     const { productId, colors, sizes } = req.body;
-
-    await productService.generateVariants(productId, colors, sizes);
-
-    res.json({
-      success: true,
-      message: "Variants created"
-    });
-
-  } catch (error) {
-
-    console.error(error);
+    await Product.generateVariants(productId, colors, sizes);
+    res.json({ success: true });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
-
   }
-
 };
 
-
 exports.updateVariant = async (req, res) => {
-
   try {
-
-    const variantId = req.params.id;
-
-    await productService.updateVariant(variantId, req.body);
-
-    res.json({
-      success: true,
-      message: "Variant updated"
-    });
-
-  } catch (error) {
-
-    console.error(error);
+    await Product.updateVariant(req.params.id, req.body);
+    res.json({ success: true });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
-
   }
-
 };
