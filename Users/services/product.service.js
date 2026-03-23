@@ -1,445 +1,108 @@
-const db = require("../config/db");
+const { PRODUCT_IMAGE_PATH } = require('../config/constants');
+const productRepo = require('../repository/product.repository');
 
-exports.getAllProducts = async () => {
+class ProductService {
+  async getAllProducts() {
+    const products = await productRepo.getAllProducts();
+    return products.map(p => ({
+      ...p,
+      image: PRODUCT_IMAGE_PATH + p.image,
+    }));
+  }
 
-  const [rows] = await db.query(`
-    
-SELECT 
-    p.id,
-    p.name,
-    p.image,
+  async getProductDetail(productId) {
+    const rows = await productRepo.getProductDetail(productId);
+    if (!rows.length) return null;
 
-    v.price,
-    v.price_sale,
+    const product = {
+      id: rows[0].productId,
+      name: rows[0].name,
+      description: rows[0].describ,
+      image: PRODUCT_IMAGE_PATH + rows[0].productImage,
+      brand: rows[0].brand,
+      colors: [],
+    };
 
-    r.avg_rating,
-
-    IFNULL(s.total_sold,0) AS total_sold
-
-FROM products p
-
-/* variant có sale thấp nhất */
-JOIN variant v 
-    ON v.id = (
-        SELECT v2.id
-        FROM variant v2
-        WHERE v2.product_id = p.id
-        ORDER BY v2.price_sale ASC
-        LIMIT 1
-    )
-
-/* rating trung bình */
-LEFT JOIN (
-    SELECT 
-        v.product_id,
-        AVG(orv.rating) AS avg_rating
-    FROM variant v
-    JOIN order_details od 
-        ON od.variant_id = v.id
-    JOIN order_review orv 
-        ON orv.order_detail_id = od.id
-    GROUP BY v.product_id
-) r 
-ON r.product_id = p.id
-
-/* tổng số lượt bán */
-LEFT JOIN (
-    SELECT 
-        v.product_id,
-        SUM(od.quantity) AS total_sold
-    FROM variant v
-    JOIN order_details od
-        ON od.variant_id = v.id
-    GROUP BY v.product_id
-) s
-ON s.product_id = p.id
-
-  `);
-
-  return rows;
-};
-
-exports.getProductDetail = async (productId) => {
-  const [rows] = await db.query(
-    `
-    SELECT 
-        p.id as productId,
-        p.name,
-        p.describ,
-        p.image as productImage,
-        b.name as brand,
-
-        v.id as variantId,
-        v.price,
-        v.price_sale,
-        v.quantity,
-        v.image,
-
-        c.id as colorId,
-        c.table_color,
-
-        s.size_id,
-        s.bang_size
-
-    FROM products p
-    JOIN brand b ON p.brand_id = b.id
-    JOIN variant v ON v.product_id = p.id
-    JOIN color c ON v.color_id = c.id
-    JOIN size s ON v.size_id = s.size_id
-
-    WHERE p.id = ?
-    `,
-    [productId]
-  );
-
-  return rows;
-};
-
-exports.getProductReviews = async (productId) => {
-
-  const sql = `
-    SELECT 
-        u.name AS user_name,
-        CONCAT(c.table_color, ' - ', s.bang_size) AS variant_name,
-        orv.comment AS review_content,
-        orv.rating,
-        orv.created_at AS review_date
-
-    FROM order_review orv
-
-    JOIN order_details od
-        ON orv.order_detail_id = od.id
-
-    JOIN orders o
-        ON od.order_id = o.id
-
-    JOIN users u
-        ON o.user_id = u.id
-
-    JOIN variant v
-        ON od.variant_id = v.id
-
-    JOIN color c
-        ON v.color_id = c.id
-
-    JOIN size s
-        ON v.size_id = s.size_id
-
-    WHERE v.product_id = ?
-
-    ORDER BY orv.created_at DESC
-  `;
-
-  const [rows] = await db.query(sql, [productId]);
-
-  return rows;
-};
-
-exports.getRelatedProducts = async (productId) => {
-
-  const [product] = await db.query(
-    `
-    SELECT id, brand_id, category_id
-    FROM products
-    WHERE id = ?
-    `,
-    [productId]
-  );
-
-  if (product.length === 0) return [];
-
-  const brandId = product[0].brand_id;
-  const categoryId = product[0].category_id;
-
-  let result = [];
-  let ids = [];
-
-  const addProducts = (rows) => {
-    rows.forEach(p => {
-      if (!ids.includes(p.id) && result.length < 10) {
-        ids.push(p.id);
-        result.push(p);
+    const colorMap = {};
+    rows.forEach(row => {
+      if (!colorMap[row.colorId]) {
+        colorMap[row.colorId] = {
+          colorId: row.colorId,
+          colorCode: row.table_color,
+          image: PRODUCT_IMAGE_PATH + row.image,
+          sizes: [],
+        };
+        product.colors.push(colorMap[row.colorId]);
       }
+
+      colorMap[row.colorId].sizes.push({
+        sizeId: row.size_id,
+        sizeName: row.bang_size,
+        variantId: row.variantId,
+        price: row.price,
+        priceSale: row.price_sale,
+        quantity: row.quantity,
+      });
     });
-  };
 
-  //cùng brand + category
-  const [brandCate] = await db.query(
-    `
-    SELECT p.id, p.name, p.image
-    FROM products p
-    WHERE p.brand_id = ?
-    AND p.category_id = ?
-    AND p.id != ?
-    LIMIT 10
-    `,
-    [brandId, categoryId, productId]
-  );
-
-  addProducts(brandCate);
-
-  if (result.length >= 10) return result;
-
-  //cùng category
-  const [cate] = await db.query(
-    `
-    SELECT p.id, p.name, p.image
-    FROM products p
-    WHERE p.category_id = ?
-    AND p.id != ?
-    LIMIT 10
-    `,
-    [categoryId, productId]
-  );
-
-  addProducts(cate);
-
-  if (result.length >= 10) return result;
-
-  //cùng brand
-  const [brand] = await db.query(
-    `
-    SELECT p.id, p.name, p.image
-    FROM products p
-    WHERE p.brand_id = ?
-    AND p.id != ?
-    LIMIT 10
-    `,
-    [brandId, productId]
-  );
-
-  addProducts(brand);
-
-  if (result.length >= 10) return result;
-
-  //bán chạy
-  const [bestSeller] = await db.query(
-    `
-    SELECT p.id, p.name, p.image, SUM(od.quantity) as sold
-    FROM products p
-    JOIN variant v ON v.product_id = p.id
-    JOIN order_details od ON od.variant_id = v.id
-    WHERE p.id != ?
-    GROUP BY p.id
-    ORDER BY sold DESC
-    LIMIT 10
-    `,
-    [productId]
-  );
-
-  addProducts(bestSeller);
-
-  if (result.length >= 10) return result;
-
-  //sản phẩm mới
-  const [newest] = await db.query(
-    `
-    SELECT p.id, p.name, p.image
-    FROM products p
-    WHERE p.id != ?
-    ORDER BY p.id DESC
-    LIMIT 10
-    `,
-    [productId]
-  );
-
-  addProducts(newest);
-
-  return result.slice(0, 10);
-};
-
-exports.getProductsByBrand = async (brandId) => {
-
-  const sql = `
-    SELECT 
-        p.id,
-        p.name,
-        p.image,
-
-        MIN(v.price) AS price,
-        MIN(v.price_sale) AS price_sale,
-
-        ROUND(AVG(orv.rating),1) AS avg_rating,
-
-        IFNULL(SUM(od.quantity),0) AS total_sold
-
-    FROM products p
-
-    JOIN variant v 
-        ON v.product_id = p.id
-
-    LEFT JOIN order_details od
-        ON od.variant_id = v.id
-
-    LEFT JOIN order_review orv
-        ON orv.order_detail_id = od.id
-
-    WHERE p.brand_id = ?
-
-    GROUP BY p.id
-    ORDER BY total_sold DESC
-  `;
-
-  const [rows] = await db.query(sql, [brandId]);
-  return rows;
-};
-
-exports.getProductsByCategory = async (categoryId) => {
-
-  const sql = `
-    SELECT 
-        p.id,
-        p.name,
-        p.image,
-
-        MIN(v.price) AS price,
-        MIN(v.price_sale) AS price_sale,
-
-        ROUND(AVG(orv.rating),1) AS avg_rating,
-
-        IFNULL(SUM(od.quantity),0) AS total_sold
-
-    FROM products p
-
-    JOIN variant v 
-        ON v.product_id = p.id
-
-    LEFT JOIN order_details od
-        ON od.variant_id = v.id
-
-    LEFT JOIN order_review orv
-        ON orv.order_detail_id = od.id
-
-    WHERE p.category_id = ?
-
-    GROUP BY p.id
-    ORDER BY total_sold DESC
-  `;
-
-  const [rows] = await db.query(sql, [categoryId]);
-  return rows;
-};
-
-exports.getNewProducts = async () => {
-
-  const sql = `
-    SELECT 
-        p.id,
-        p.name,
-        p.image,
-
-        v.price,
-        v.price_sale,
-
-        r.avg_rating,
-
-        IFNULL(s.total_sold,0) AS total_sold
-
-    FROM products p
-
-    /* variant sale thấp nhất */
-    JOIN variant v 
-        ON v.id = (
-            SELECT v2.id
-            FROM variant v2
-            WHERE v2.product_id = p.id
-            ORDER BY v2.price_sale ASC
-            LIMIT 1
-        )
-
-    /* rating */
-    LEFT JOIN (
-        SELECT 
-            v.product_id,
-            AVG(orv.rating) AS avg_rating
-        FROM variant v
-        JOIN order_details od 
-            ON od.variant_id = v.id
-        JOIN order_review orv 
-            ON orv.order_detail_id = od.id
-        GROUP BY v.product_id
-    ) r 
-    ON r.product_id = p.id
-
-    /* lượt bán */
-    LEFT JOIN (
-        SELECT 
-            v.product_id,
-            SUM(od.quantity) AS total_sold
-        FROM variant v
-        JOIN order_details od
-            ON od.variant_id = v.id
-        GROUP BY v.product_id
-    ) s
-    ON s.product_id = p.id
-
-    ORDER BY p.id DESC
-    LIMIT 10
-  `;
-
-  const [rows] = await db.query(sql);
-
-  return rows;
-};
-
-exports.getBestSellingProducts = async () => {
-
-  const sql = `
-    SELECT 
-        p.id,
-        p.name,
-        p.image,
-
-        v.price,
-        v.price_sale,
-
-        r.avg_rating,
-
-        IFNULL(s.total_sold,0) AS total_sold
-
-    FROM products p
-
-    JOIN variant v 
-        ON v.id = (
-            SELECT v2.id
-            FROM variant v2
-            WHERE v2.product_id = p.id
-            ORDER BY v2.price_sale ASC
-            LIMIT 1
-        )
-
-    /* rating */
-    LEFT JOIN (
-        SELECT 
-            v.product_id,
-            AVG(orv.rating) AS avg_rating
-        FROM variant v
-        JOIN order_details od 
-            ON od.variant_id = v.id
-        JOIN order_review orv 
-            ON orv.order_detail_id = od.id
-        GROUP BY v.product_id
-    ) r 
-    ON r.product_id = p.id
-
-    /* lượt bán */
-    LEFT JOIN (
-        SELECT 
-            v.product_id,
-            SUM(od.quantity) AS total_sold
-        FROM variant v
-        JOIN order_details od
-            ON od.variant_id = v.id
-        GROUP BY v.product_id
-    ) s
-    ON s.product_id = p.id
-
-    ORDER BY total_sold DESC
-    LIMIT 10
-  `;
-
-  const [rows] = await db.query(sql);
-
-  return rows;
-};
-
+    return product;
+  }
+
+  async getProductReviews(productId) {
+    return productRepo.getProductReviews(productId);
+  }
+
+  async getRelatedProducts(productId) {
+    const products = await productRepo.getRelatedProducts(productId);
+    return products.map(p => ({
+      ...p,
+      image: PRODUCT_IMAGE_PATH + p.image,
+    }));
+  }
+
+  async getProductsByBrand(brandId) {
+    const products = await productRepo.getProductsByBrand(brandId);
+    return products.map(p => ({
+      ...p,
+      image: PRODUCT_IMAGE_PATH + p.image,
+    }));
+  }
+
+  async getProductsByCategory(categoryId) {
+    const products = await productRepo.getProductsByCategory(categoryId);
+    return products.map(p => ({
+      ...p,
+      image: PRODUCT_IMAGE_PATH + p.image,
+    }));
+  }
+
+  async getNewProducts() {
+    const products = await productRepo.getNewProducts();
+    return products.map(p => ({
+      ...p,
+      image: PRODUCT_IMAGE_PATH + p.image,
+    }));
+  }
+
+  async getBestSellingProducts() {
+    const products = await productRepo.getBestSellingProducts();
+    return products.map(p => ({
+      ...p,
+      image: PRODUCT_IMAGE_PATH + p.image,
+    }));
+  }
+
+  async createProduct(data) {
+    return productRepo.createProduct(data);
+  }
+
+  async generateVariants(productId, colors, sizes) {
+    await productRepo.generateVariants(productId, colors, sizes);
+  }
+
+  async updateVariant(variantId, data) {
+    await productRepo.updateVariant(variantId, data);
+  }
+}
+
+module.exports = new ProductService();
