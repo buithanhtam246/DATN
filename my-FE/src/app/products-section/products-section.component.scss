@@ -90,7 +90,6 @@
   align-items: center;
   text-align: center;
   transition: all $transition-normal;
-  cursor: pointer;
   overflow: hidden;
 
   &:hover {
@@ -101,9 +100,21 @@
       transform: scale(1.05);
     }
 
+    .product-price {
+      transform: translateX(-50%) translateX(-75px);
+
+      @include mobile {
+        transform: translateX(-50%) translateX(-55px);
+      }
+    }
+
     .details-btn {
-      transform: translateX(0);
+      transform: translateX(-50%) translateX(95px);
       opacity: 1;
+
+      @include mobile {
+        transform: translateX(-50%) translateX(70px);
+      }
     }
   }
 }
@@ -117,6 +128,8 @@
   margin-bottom: $spacing-lg;
   overflow: hidden;
   border-radius: $border-radius-sm;
+  text-decoration: none;
+  cursor: pointer;
 
   img {
     width: 100%;
@@ -138,12 +151,23 @@
   gap: $spacing-sm;
 }
 
+.product-name-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color $transition-normal;
+
+  &:hover {
+    color: $color-primary;
+  }
+}
+
 .product-name {
   font-size: $font-size-md;
   font-weight: $font-weight-bold;
   color: $color-text;
   margin: 0;
   line-height: 1.4;
+  transition: color $transition-normal;
 
   @include mobile {
     font-size: $font-size-sm;
@@ -164,13 +188,14 @@
 .product-actions {
   margin-top: $spacing-sm;
   display: flex;
-  gap: $spacing-md;
   align-items: center;
   justify-content: center;
   width: 100%;
+  position: relative;
+  min-height: 44px;
 
   @include mobile {
-    gap: $spacing-sm;
+    min-height: 36px;
   }
 }
 
@@ -183,6 +208,10 @@
   color: $color-white;
   background-color: $color-primary;
   white-space: nowrap;
+  transition: all $transition-normal;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 
   @include mobile {
     font-size: $font-size-xs;
@@ -201,19 +230,22 @@
   cursor: pointer;
   transition: all $transition-normal;
   white-space: nowrap;
-  transform: translateX(100px);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) translateX(150px);
   opacity: 0;
+  text-decoration: none;
+  display: inline-block;
 
   &:hover {
     background-color: $color-white;
     color: $color-primary;
-    transform: translateX(0) scale(1.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
   @include mobile {
     font-size: $font-size-xs;
     padding: $spacing-xs $spacing-md;
-    transform: translateX(60px);
+    transform: translateX(-50%) translateX(100px);
   }
 }

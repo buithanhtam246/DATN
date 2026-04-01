@@ -1,0 +1,191 @@
+<div class="products-container">
+  <!-- Header Section -->
+  <div class="products-header">
+    <h1>Danh Sách Sản Phẩm</h1>
+    <p class="subtitle">Khám phá bộ sưu tập sản phẩm tuyệt vời của chúng tôi</p>
+  </div>
+
+  <!-- Filters & Search Section -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Tìm kiếm sản phẩm..." 
+        [(ngModel)]="searchQuery"
+        (input)="onSearchChange()"
+        class="search-input"
+      />
+      <i class="fas fa-search"></i>
+    </div>
+
+    <div class="filters-wrapper">
+      <!-- Category Filter -->
+      <div class="filter-group">
+        <label>Danh Mục</label>
+        <select 
+          [(ngModel)]="selectedCategoryFilter"
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option value="">Tất cả danh mục</option>
+          <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+        </select>
+      </div>
+
+      <!-- Brand Filter -->
+      <div class="filter-group">
+        <label>Thương Hiệu</label>
+        <select 
+          [(ngModel)]="selectedBrandFilter"
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option value="">Tất cả thương hiệu</option>
+          <option *ngFor="let brand of brands" [value]="brand.id">{{ brand.name }}</option>
+        </select>
+      </div>
+
+      <!-- Price Range Filter -->
+      <div class="filter-group">
+        <label>Giá Tối Thiểu</label>
+        <input 
+          type="number" 
+          [(ngModel)]="selectedMinPrice"
+          (change)="onFilterChange()"
+          class="filter-input"
+          placeholder="0"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Giá Tối Đa</label>
+        <input 
+          type="number" 
+          [(ngModel)]="selectedMaxPrice"
+          (change)="onFilterChange()"
+          class="filter-input"
+          placeholder="10000000"
+        />
+      </div>
+
+      <!-- Sort By -->
+      <div class="filter-group">
+        <label>Sắp Xếp</label>
+        <select 
+          [(ngModel)]="sortBy"
+          (change)="onSortChange()"
+          class="filter-select"
+        >
+          <option value="newest">Mới Nhất</option>
+          <option value="price-low">Giá: Thấp đến Cao</option>
+          <option value="price-high">Giá: Cao đến Thấp</option>
+          <option value="popular">Phổ Biến</option>
+        </select>
+      </div>
+
+      <!-- Reset Button -->
+      <button (click)="resetFilters()" class="btn-reset">
+        <i class="fas fa-redo"></i> Đặt Lại
+      </button>
+    </div>
+  </div>
+
+  <!-- Results Info -->
+  <div class="results-info">
+    <span *ngIf="!isLoading">Hiển thị {{ paginatedProducts.length }} trong {{ filteredProducts.length }} sản phẩm</span>
+    <span *ngIf="isLoading">Đang tải...</span>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Đang tải sản phẩm...</p>
+  </div>
+
+  <!-- Products Grid -->
+  <div *ngIf="!isLoading" class="products-grid">
+    <div *ngIf="paginatedProducts.length === 0" class="no-products">
+      <i class="fas fa-inbox"></i>
+      <p>Không tìm thấy sản phẩm nào</p>
+      <button (click)="resetFilters()" class="btn-primary">Xem Tất Cả Sản Phẩm</button>
+    </div>
+
+    <div *ngFor="let product of paginatedProducts" class="product-card" (click)="viewProductDetail(product)">
+      <!-- Product Image -->
+      <div class="product-image-wrapper">
+        <img 
+          [src]="getProductImage(product)" 
+          [alt]="product.name"
+          class="product-image"
+        />
+        <div *ngIf="getDiscountPercent(product) > 0" class="discount-badge">
+          -{{ getDiscountPercent(product) }}%
+        </div>
+      </div>
+
+      <!-- Product Info -->
+      <div class="product-info">
+        <h3 class="product-name">{{ product.name }}</h3>
+        
+        <p class="product-category">{{ getCategoryName(product.category_id) }}</p>
+        
+        <!-- Pricing -->
+        <div class="pricing">
+          <span class="current-price">{{ formatPrice(getDisplayPrice(product)) }}</span>
+          <span *ngIf="product.price_sale && product.price" class="original-price">
+            {{ formatPrice(product.price) }}
+          </span>
+        </div>
+
+        <!-- Rating & Reviews (optional) -->
+        <div class="rating">
+          <div class="stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star-half-alt"></i>
+          </div>
+          <span class="review-count">(128 đánh giá)</span>
+        </div>
+
+        <!-- Action Button -->
+        <button class="btn-view-detail">Xem Chi Tiết</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!isLoading && filteredProducts.length > 0" class="pagination-section">
+    <nav class="pagination">
+      <button 
+        class="pagination-btn"
+        [disabled]="currentPage === 1"
+        (click)="previousPage()"
+      >
+        <i class="fas fa-chevron-left"></i> Trước
+      </button>
+
+      <button 
+        *ngFor="let page of pageNumbers"
+        class="pagination-number"
+        [class.active]="page === currentPage"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
+
+      <button 
+        class="pagination-btn"
+        [disabled]="currentPage === totalPages"
+        (click)="nextPage()"
+      >
+        Tiếp <i class="fas fa-chevron-right"></i>
+      </button>
+    </nav>
+
+    <div class="pagination-info">
+      <span>Trang {{ currentPage }} / {{ totalPages }}</span>
+    </div>
+  </div>
+</div>

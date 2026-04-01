@@ -1,0 +1,118 @@
+<div class="brands-container">
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1 class="title">🏢 Quản lý Thương Hiệu</h1>
+    <button class="btn-add" (click)="openAddModal()">➕ Thêm thương hiệu mới</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="icon">📊</div>
+      <div class="label">Tổng Thương Hiệu</div>
+      <div class="value">{{ listBrands.length }}</div>
+    </div>
+  </div>
+
+  <!-- ERROR MESSAGE -->
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <!-- FILTER SECTION -->
+  <div class="filter-section">
+    <div class="filter-header">
+      <div class="search-box">
+        <input 
+          type="text" 
+          placeholder="Tìm kiếm thương hiệu..."
+          [(ngModel)]="searchText" 
+          (ngModelChange)="onSearchChange()"
+        >
+      </div>
+      <button class="btn-reset" (click)="resetFilters()" *ngIf="searchText">↺ Đặt lại</button>
+    </div>
+  </div>
+
+  <!-- TABLE CONTAINER -->
+  <div class="table-container">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner">⏳</div>
+      <div class="message">Đang tải dữ liệu...</div>
+    </div>
+
+    <!-- Table -->
+    <table *ngIf="!isLoading && filteredBrands.length > 0">
+      <thead>
+        <tr>
+          <th class="col-id">ID</th>
+          <th class="col-name">Tên Thương Hiệu</th>
+          <th class="col-status">Trạng Thái</th>
+          <th class="col-actions">Thao Tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let brand of filteredBrands">
+          <td class="col-id">#{{ brand.id }}</td>
+          <td class="col-name">{{ brand.name }}</td>
+          <td class="col-status">
+            <span class="status-badge" [ngClass]="brand.status">
+              {{ brand.status === 'active' ? '✅ Hoạt động' : '❌ Ẩn' }}
+            </span>
+          </td>
+          <td class="col-actions">
+            <div class="action-buttons">
+              <button class="btn-edit" (click)="editBrand(brand)">✏️ Sửa</button>
+              <button class="btn-delete" (click)="deleteBrand(brand.id)">🗑️ Xóa</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && filteredBrands.length === 0" class="empty-state">
+      <div class="spinner">📦</div>
+      <div class="message">Không tìm thấy thương hiệu nào</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL OVERLAY -->
+<div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      {{ editingBrand ? '✏️ Chỉnh sửa' : '➕ Thêm mới' }}
+    </div>
+
+    <div class="form-group">
+      <label>Tên Thương Hiệu</label>
+      <input 
+        type="text" 
+        [(ngModel)]="newBrand.name" 
+        placeholder="Nhập tên thương hiệu..."
+      >
+    </div>
+
+    <div class="form-group">
+      <label>Trạng Thái</label>
+      <select [(ngModel)]="newBrand.status">
+        <option value="active">✅ Hoạt động</option>
+        <option value="inactive">❌ Ẩn</option>
+      </select>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeModal()">Hủy</button>
+      <button 
+        class="btn-save" 
+        (click)="saveBrand()" 
+        [disabled]="!newBrand.name || isSubmitting"
+      >
+        {{ isSubmitting ? '⏳ Đang xử lý...' : (editingBrand ? '💾 Cập nhật' : '➕ Thêm mới') }}
+      </button>
+    </div>
+  </div>
+</div>

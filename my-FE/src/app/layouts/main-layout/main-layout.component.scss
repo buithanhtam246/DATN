@@ -2,12 +2,16 @@
 @use '../../../styles/mixins' as *;
 
 .main-layout {
-  display: flex;
-  flex-direction: column;
   min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
 }
 
 .main-content {
-  flex: 1;
   width: 100%;
+  padding-top: 92px; // Height of header (60px logo + 32px padding)
+  
+  @media (max-width: 768px) {
+    padding-top: 76px; // Smaller header on mobile
+  }
 }

@@ -26,7 +26,18 @@ export class LoginComponent {
   @ViewChild('passwordInput') passwordInput!: ElementRef;
   @ViewChild('emailInput') emailInput!: ElementRef;
 
-  constructor(private authService: AuthService, private router: Router, private cdr: ChangeDetectorRef, private notificationService: NotificationService) {}
+  constructor(private authService: AuthService, private router: Router, private cdr: ChangeDetectorRef, private notificationService: NotificationService) {
+    // Nếu đã đăng nhập và là user bình thường, redirect tới home
+    if (this.authService.isLoggedIn()) {
+      if (this.authService.isAdmin()) {
+        // Admin đã login từ /admin/login, cho phép access /admin routes
+        this.router.navigate(['/admin/dashboard']);
+      } else {
+        // User bình thường đã login, redirect tới home
+        this.router.navigate(['/']);
+      }
+    }
+  }
 
   get isFormValid(): boolean {
     return !!(this.email && this.password);
@@ -54,16 +65,41 @@ export class LoginComponent {
 
     this.authService.login(this.email, this.password).subscribe({
       next: (response: any) => {
-        if (response.success && response.data.token) {
-          localStorage.setItem('authToken', response.data.token);
-          localStorage.setItem('userId', response.data.id);
-          // Lưu thêm thông tin user vào localStorage
-          localStorage.setItem('user', JSON.stringify(response.data.user));
+        if (response.success && response.data && response.data.token) {
+          const token = response.data.token;
+          const userData = response.data.user;
+          
+          // Verify that we have user data
+          if (!userData) {
+            this.notificationService.showError("Lỗi: Không có thông tin user từ server");
+            this.isLoading = false;
+            return;
+          }
+
+          // Lưu token
+          localStorage.setItem('authToken', token);
+          localStorage.setItem('userId', userData.id);
+          localStorage.setItem('user', JSON.stringify(userData));
+          localStorage.setItem('userRole', userData.role);
+
           this.notificationService.showSuccess("Đăng nhập thành công");
           this.isLoading = false;
+          
+          // Redirect logic:
+          // - Nếu user có role='admin', hãy báo và redirect đến /admin/login
+          // - Nếu user là 'user' bình thường, redirect đến home '/'
           setTimeout(() => {
-            this.router.navigate(['/']);
-          }, 3000);
+            if (userData.role === 'admin') {
+              // Admin không được phép login từ /login
+              // Phải sử dụng /admin/login endpoint riêng biệt
+              this.notificationService.showError("Tài khoản admin phải sử dụng trang /admin/login để đăng nhập!");
+              localStorage.clear(); // Xóa token vì không hợp lệ
+              this.router.navigate(['/admin/login']);
+            } else {
+              // User bình thường
+              this.router.navigate(['/']);
+            }
+          }, 1500);
         } else {
           console.error('Login failed:', response.message || 'Unknown error');
           this.notificationService.showError(response.message || "Đăng nhập thất bại");

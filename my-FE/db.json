@@ -4,14 +4,16 @@
       "id": "6752",
       "name": "duy",
       "email": "duyntps40367@gmail.com",
-      "password": "444"
+      "password": "444",
+      "role": "user"
     },
    
     {
       "id": "ce11",
       "name": "duy nguyen",
       "email": "duyn7328@gmail.com",
-      "password": "222"
+      "password": "222",
+      "role": "user"
     }
   ]
 }

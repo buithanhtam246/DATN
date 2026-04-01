@@ -25,6 +25,32 @@
   margin-bottom:24px;
 }
 
+.admin-notice {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #856404;
+
+  strong {
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .admin-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+
+    &:hover {
+      text-decoration: underline;
+      color: #0056b3;
+    }
+  }
+}
+
 .form-group{
   margin-bottom:16px;
 }

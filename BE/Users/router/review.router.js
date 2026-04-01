@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const reviewController = require('../controller/review.controller');
-const { authMiddleware } = require('../middleware/auth.middleware');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth.middleware');
+
+// Lấy tất cả reviews (cho admin)
+router.get('/', authMiddleware, adminMiddleware, reviewController.getAllReviews.bind(reviewController));
 
 // Tạo đánh giá (require authentication)
 router.post('/create', authMiddleware, reviewController.create.bind(reviewController));

@@ -1,0 +1,501 @@
+@use 'sass:color';
+@use '../../styles/admin-variables' as *;
+
+// ========== VARIABLES ==========
+// Sử dụng variables từ admin-variables.scss
+$text-light: #7f8c8d;
+$border-color: #e1e8ed;
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+$shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+$transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// ========== ANIMATIONS ==========
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// ========== GLOBAL STYLES ==========
+.color-container {
+  width: 100%;
+  min-height: 100vh;
+  background: $light-bg;
+  animation: fadeIn 0.3s ease;
+}
+
+.color-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+// ========== HEADER SECTION ==========
+.header-section {
+  margin-bottom: 30px;
+  animation: slideUp 0.4s ease;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.header-info h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: $text-dark;
+}
+
+.page-subtitle {
+  margin: 5px 0 0 0;
+  color: $text-light;
+  font-size: 14px;
+}
+
+.btn-add-new {
+  background: $primary-gradient;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: $transition;
+  box-shadow: $shadow-sm;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  .icon {
+    font-size: 16px;
+  }
+}
+
+// ========== STATISTICS BAR ==========
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.stat-item {
+  background: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: $shadow-sm;
+  border-left: 4px solid $primary-color;
+
+  .stat-label {
+    display: block;
+    color: $text-light;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .stat-value {
+    display: block;
+    color: $text-dark;
+    font-size: 24px;
+    font-weight: 700;
+  }
+}
+
+// ========== FILTER SECTION ==========
+.filter-section {
+  background: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  box-shadow: $shadow-sm;
+}
+
+.search-box {
+  flex: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: $transition;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+  }
+}
+
+.btn-reset {
+  background: white;
+  color: $text-light;
+  border: 1px solid $border-color;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: $transition;
+
+  &:hover {
+    background: $light-bg;
+    color: $text-dark;
+  }
+}
+
+// ========== EMPTY STATE ==========
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: $shadow-sm;
+  animation: slideUp 0.4s ease;
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+  }
+
+  h3 {
+    margin: 0 0 10px 0;
+    color: $text-dark;
+    font-size: 20px;
+  }
+
+  p {
+    margin: 0 0 20px 0;
+    color: $text-light;
+    font-size: 14px;
+  }
+}
+
+// ========== COLORS GRID ==========
+.colors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  animation: slideUp 0.4s ease;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ========== COLOR CARD ==========
+.color-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: $shadow-sm;
+  transition: $transition;
+  animation: scaleIn 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-md;
+
+    .color-actions {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+
+.color-preview-wrapper {
+  width: 100%;
+  height: 120px;
+  border-bottom: 1px solid $border-color;
+}
+
+.color-preview {
+  width: 100%;
+  height: 100%;
+  transition: $transition;
+}
+
+.color-info {
+  padding: 15px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.color-name {
+  margin: 0 0 5px 0;
+  color: $text-dark;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.color-code {
+  margin: 0;
+  color: $text-light;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+}
+
+.color-actions {
+  padding: 10px 15px;
+  background: $light-bg;
+  display: flex;
+  gap: 10px;
+  opacity: 0.8;
+  visibility: visible;
+  transition: $transition;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: $transition;
+
+  &.edit-btn {
+    background: #E3F2FD;
+    color: #1976D2;
+
+    &:hover {
+      background: #1976D2;
+      color: white;
+    }
+  }
+
+  &.delete-btn {
+    background: #FFEBEE;
+    color: $danger-color;
+
+    &:hover {
+      background: $danger-color;
+      color: white;
+    }
+  }
+}
+
+// ========== MODAL STYLES ==========
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: $shadow-lg;
+  animation: slideUp 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  &.modal-md {
+    width: 90%;
+    max-width: 500px;
+  }
+}
+
+.modal-header {
+  padding: 20px 30px;
+  border-bottom: 1px solid $border-color;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: $text-dark;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: $text-light;
+  transition: $transition;
+
+  &:hover {
+    color: $text-dark;
+    transform: scale(1.1);
+  }
+}
+
+.modal-body {
+  padding: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: $text-dark;
+    font-size: 14px;
+    font-weight: 600;
+
+    .required {
+      color: $danger-color;
+    }
+  }
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: $transition;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+  }
+}
+
+.color-input-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.color-picker {
+  width: 60px;
+  height: 40px;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    border-color: $primary-color;
+  }
+}
+
+.hex-input {
+  flex: 1;
+  text-transform: uppercase;
+  font-family: 'Courier New', monospace;
+}
+
+.color-preview-large {
+  width: 100%;
+  height: 100px;
+  border-radius: 8px;
+  border: 2px solid $border-color;
+  transition: $transition;
+}
+
+.modal-footer {
+  padding: 20px 30px;
+  border-top: 1px solid $border-color;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: $transition;
+}
+
+.btn-cancel {
+  background: $light-bg;
+  color: $text-dark;
+
+  &:hover {
+    background: $border-color;
+  }
+}
+
+.btn-submit {
+  background: $primary-gradient;
+  color: white;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}

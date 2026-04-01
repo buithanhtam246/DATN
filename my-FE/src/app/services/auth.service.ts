@@ -19,9 +19,21 @@ export class AuthService {
     return this.apiService.login({ email, password });
   }
 
+  // Admin login từ endpoint riêng
+  adminLogin(email: string, password: string) {
+    return this.apiService.adminLogin({ email, password });
+  }
+
+  // Xác nhận token admin
+  adminVerifyToken() {
+    return this.apiService.adminVerifyToken();
+  }
+
   logout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userRole');
     this.router.navigate(['/login']);
   }
 
@@ -35,5 +47,13 @@ export class AuthService {
 
   getUserId(): string | null {
     return localStorage.getItem('userId');
+  }
+
+  getUserRole(): string | null {
+    return localStorage.getItem('userRole');
+  }
+
+  isAdmin(): boolean {
+    return this.getUserRole() === 'admin';
   }
 }

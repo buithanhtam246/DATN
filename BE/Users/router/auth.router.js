@@ -13,6 +13,9 @@ router.post('/register-admin', authMiddleware, adminMiddleware, validateRegister
 // Đăng nhập
 router.post('/login', validateLogin, authController.login);
 
+// Đăng nhập admin (endpoint riêng cho admin)
+router.post('/admin-login', validateLogin, authController.adminLogin);
+
 // Quên mật khẩu
 router.post('/forgot-password', validateForgot, authController.forgotPassword);
 // Quên mật khẩu (token/link version)
@@ -32,5 +35,8 @@ router.post('/test-email', authController.testEmail);
 
 // Đổi mật khẩu (yêu cầu đăng nhập)
 router.post('/change-password', authMiddleware, authController.changePassword);
+
+// Admin logout
+router.post('/admin-logout', authMiddleware, authController.adminLogout);
 
 module.exports = router;

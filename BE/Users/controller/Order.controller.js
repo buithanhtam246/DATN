@@ -1,6 +1,63 @@
 const orderService = require('../service/Order.service');
+const Order = require('../model/Order.model');
+const OrderDetail = require('../model/OrderDetail.model');
+const User = require('../model/user.model');
+const ProductVariant = require('../model/ProductVariant.model');
 
 class OrderController {
+  // Lấy tất cả đơn hàng (cho admin)
+  async getAllOrders(req, res) {
+    try {
+      const orders = await Order.findAll({
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'name', 'email', 'phone'],
+            as: 'user'
+          },
+          {
+            model: OrderDetail,
+            attributes: ['id', 'variant_id', 'quantity', 'price'],
+            as: 'orderDetails',
+            include: [
+              {
+                model: ProductVariant,
+                attributes: ['id', 'product_id'],
+                as: 'variant'
+              }
+            ]
+          }
+        ],
+        order: [['create_at', 'DESC']],
+        attributes: ['id', 'user_id', 'total_price', 'delivery_cost', 'status', 'create_at']
+      });
+
+      const formattedOrders = orders.map(order => ({
+        id: order.id,
+        customerName: order.user?.name || 'Ẩn danh',
+        email: order.user?.email,
+        phone: order.user?.phone,
+        totalPrice: order.total_price,
+        deliveryCost: order.delivery_cost,
+        status: order.status,
+        productCount: order.orderDetails?.length || 0,
+        created_at: order.create_at
+      }));
+
+      res.status(200).json({
+        success: true,
+        message: 'Lấy danh sách đơn hàng thành công',
+        data: formattedOrders
+      });
+    } catch (err) {
+      console.error('getAllOrders error:', err);
+      res.status(500).json({
+        success: false,
+        message: err.message
+      });
+    }
+  }
+
   async create(req, res) {
     try {
       const userId = req.user.id; // Lấy từ token đăng nhập

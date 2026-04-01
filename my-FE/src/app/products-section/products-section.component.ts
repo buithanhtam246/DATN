@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { ProductService } from '../core/services';
 
 interface ProductItem {
   id: string;
@@ -19,11 +21,13 @@ interface ProductItem {
 @Component({
   selector: 'app-products-section',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './products-section.component.html',
   styleUrl: './products-section.component.scss'
 })
 export class ProductsSectionComponent implements OnInit {
+  private productService = inject(ProductService);
+  private router = inject(Router);
   products: ProductItem[] = [];
 
   ngOnInit(): void {
@@ -31,64 +35,23 @@ export class ProductsSectionComponent implements OnInit {
   }
 
   private loadProducts(): void {
-    // Mock data - replace with API call
-    this.products = [
-      {
-        id: '1',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-af1-white.jpg'
-      },
-      {
-        id: '2',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-af1-blue.jpg'
-      },
-      {
-        id: '3',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-jordan-black.jpg'
-      },
-      {
-        id: '4',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-jordan-white.jpg'
-      },
-      {
-        id: '5',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/adidas-classic.jpg'
-      },
-      {
-        id: '6',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-vapormax.jpg'
-      },
-      {
-        id: '7',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-beige.jpg'
-      },
-      {
-        id: '8',
-        title: 'Nike Air Force 1 \'07 Mini Jewel',
-        category: 'AIR FORCE / Giày Nam',
-        price: '2.695.000 VND',
-        imageUrl: '/assets/images/products/nike-pink.jpg'
-      }
-    ];
+    // Load all products from JSON via ProductService for home page
+    this.productService.getProducts().subscribe(data => {
+      console.log('Total products loaded from JSON:', data.length);
+      // Display all products (8 items from JSON, or more if added)
+      this.products = data.map((p: any) => ({
+        id: p.id || '',
+        title: p.title,
+        category: p.category || p.brand || 'Giày',
+        price: p.price,
+        imageUrl: p.imageUrl || ''
+      }));
+      console.log('Products displayed on home page:', this.products.length);
+      console.log('First product:', this.products[0]);
+    });
+  }
+
+  navigateToProducts(): void {
+    this.router.navigate(['/products']);
   }
 }

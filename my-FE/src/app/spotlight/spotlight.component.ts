@@ -33,12 +33,12 @@ export class SpotlightComponent implements OnInit {
       {
         id: 'air-force',
         name: 'AIR FORCE',
-        imageUrl: '/assets/images/categories/air-force.jpg'
+        imageUrl: '/assets/images/categories/nikeaf1.jpg'
       },
       {
         id: 'jordan',
         name: 'JORDAN',
-        imageUrl: '/assets/images/categories/jordan.jpg'
+        imageUrl: '/assets/images/categories/nikejd.jpg'
       },
       {
         id: 'vomero',
@@ -48,7 +48,7 @@ export class SpotlightComponent implements OnInit {
       {
         id: 'air-max',
         name: 'AIR MAX',
-        imageUrl: '/assets/images/categories/air-max.jpg'
+        imageUrl: '/assets/images/categories/nike-amax.jpg'
       },
       {
         id: 'pegasus',
@@ -58,7 +58,7 @@ export class SpotlightComponent implements OnInit {
       {
         id: 'dunk',
         name: 'DUNK',
-        imageUrl: '/assets/images/categories/dunk.jpg'
+        imageUrl: '/assets/images/categories/nikedunk.jpg'
       },
       {
         id: 'gym',
@@ -73,7 +73,7 @@ export class SpotlightComponent implements OnInit {
       {
         id: 'pegasus-2',
         name: 'PEGASUS',
-        imageUrl: '/assets/images/categories/pegasus-2.jpg'
+        imageUrl: '/assets/images/categories/tennis.jpg'
       },
       {
         id: 'basketball',

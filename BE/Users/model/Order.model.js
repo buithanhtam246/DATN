@@ -59,6 +59,10 @@ Order.associate = (models) => {
     foreignKey: 'order_id',
     as: 'orderDetails'
   });
+  Order.belongsTo(models.User, {
+    foreignKey: 'user_id',
+    as: 'user'
+  });
 };
 
 module.exports = Order;

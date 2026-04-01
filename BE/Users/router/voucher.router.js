@@ -14,4 +14,7 @@ router.get('/detail/:code', voucherController.getDetail);
 // Tạo voucher mới
 router.post('/', voucherController.create);
 
+// xóa voucher
+router.delete('/:id', voucherController.deleteVoucher);
+
 module.exports = router;

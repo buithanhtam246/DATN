@@ -1,0 +1,218 @@
+<div class="sizes-page-new">
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-info">
+        <h1 class="page-title">📏 Quản lý Kích Thước</h1>
+        <p class="page-subtitle">Quản lý danh sách kích thước cho sản phẩm giày dép</p>
+      </div>
+      <button class="btn btn-primary btn-lg" (click)="openAddSizeModal()">
+        <span class="btn-icon">➕</span> Thêm size mới
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-container">
+    <div class="stat-box">
+      <div class="stat-icon">📊</div>
+      <div class="stat-info">
+        <div class="stat-label">Tổng Size</div>
+        <div class="stat-number">{{ sizes.length }}</div>
+      </div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon">👨</div>
+      <div class="stat-info">
+        <div class="stat-label">Nam</div>
+        <div class="stat-number">{{ sizesByGender.male.length }}</div>
+      </div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon">👩</div>
+      <div class="stat-info">
+        <div class="stat-label">Nữ</div>
+        <div class="stat-number">{{ sizesByGender.female.length }}</div>
+      </div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon">📐</div>
+      <div class="stat-info">
+        <div class="stat-label">Min - Max</div>
+        <div class="stat-number">{{ getMinMaxSize() }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <div class="filter-group">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="search" 
+          class="search-input"
+          placeholder="Tìm kiếm size..."
+          [(ngModel)]="searchText" 
+          (ngModelChange)="onSearchChange()"
+        >
+      </div>
+      
+      <select [(ngModel)]="activeTab" (ngModelChange)="applyFilters()" class="filter-select">
+        <option value="all">📊 Tất cả</option>
+        <option value="male">👨 Nam</option>
+        <option value="female">👩 Nữ</option>
+      </select>
+
+      <button class="btn btn-reset" (click)="resetFilters()" *ngIf="searchText || activeTab !== 'all'">
+        ↺ Đặt lại
+      </button>
+    </div>
+  </div>
+
+  <div class="sizes-table-card">
+    <table class="sizes-table" *ngIf="filteredSizes.length > 0">
+      <thead>
+        <tr>
+          <th class="col-id">ID</th>
+          <th class="col-size">Kích Thước</th>
+          <th class="col-gender">Giới Tính</th>
+          <th class="col-date">Ngày Tạo</th>
+          <th class="col-actions">Thao Tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let size of filteredSizes">
+          <td><span class="id-badge">#{{ size.id }}</span></td>
+          <td><span class="size-number">{{ size.size }}</span></td>
+          <td>
+            <span class="gender-badge" [ngClass]="'gender-' + size.gender">
+              {{ size.gender === 'male' ? '👨 Nam' : '👩 Nữ' }}
+            </span>
+          </td>
+          <td><span class="date-text">{{ size.created_at | date: 'dd/MM/yyyy' }}</span></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-action edit" title="Sửa" (click)="editSize(size)">✏️</button>
+              <button class="btn-action delete" title="Xóa" (click)="deleteSize(size.id)">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="filteredSizes.length === 0" class="empty-state">
+      <div class="empty-icon">📦</div>
+      <h4>Không tìm thấy size</h4>
+      <p>Không có size phù hợp với bộ lọc của bạn.</p>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5 class="modal-title">{{ editingSize ? '✏️ Chỉnh sửa Kích Thước' : '➕ Thêm Kích Thước Mới' }}</h5>
+      <button type="button" class="modal-close" (click)="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="step-category" *ngIf="!editingSize && !selectedCategoryForAdd">
+        <p class="step-description">Chọn Danh Mục Cha để thêm kích thước</p>
+        <div class="category-selector">
+          <button type="button" class="category-select-btn" (click)="toggleCategoryList()">
+            {{ selectedCategoryId ? getCategoryName(selectedCategoryId) : '📁 Chọn Danh Mục Cha...' }}
+            <span class="dropdown-icon">▼</span>
+          </button>
+          
+          <div *ngIf="showCategoryList" class="category-list-dropdown">
+            <div *ngIf="parentCategories.length > 0" class="category-items">
+              <div *ngFor="let category of parentCategories" class="category-item"
+                [class.selected]="selectedCategoryId === category.id" (click)="selectCategory(category)">
+                <span class="icon">{{ category.gender === 'male' ? '👨' : '👩' }}</span>
+                <span class="name">{{ category.name }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="selectedCategoryId" class="selected-category-info" style="margin-top: 15px;">
+          <div class="category-card" style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <span class="icon">{{ getCategoryById(selectedCategoryId)?.gender === 'male' ? '👨' : '👩' }}</span>
+            <span class="name">{{ getCategoryName(selectedCategoryId) }}</span>
+          </div>
+          <button type="button" class="btn btn-primary w-100" style="margin-top: 10px;" (click)="selectCategoryForAdd()">
+            Tiếp tục ➜
+          </button>
+        </div>
+      </div>
+
+      <div class="step-size" *ngIf="editingSize || selectedCategoryForAdd">
+        <div class="form-group">
+          <label class="form-label">Kích Thước</label>
+          <input type="number" [(ngModel)]="newSize.size" class="form-control" placeholder="VD: 42" min="0" max="50">
+        </div>
+
+        <div class="existing-sizes" style="margin-top: 20px;">
+          <label class="form-label">📋 Size hiện có ({{ editingSize ? editingSize.gender : (selectedGenderForAdd === 'male' ? 'Nam' : 'Nữ') }})</label>
+          <div class="sizes-list" style="max-height: 120px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 8px;">
+            <div *ngIf="getExistingSizes().length > 0" class="size-items" style="display: flex; flex-wrap: wrap; gap: 5px;">
+              <span *ngFor="let size of getExistingSizes()" class="size-tag" style="background: #e9ecef; padding: 2px 8px; border-radius: 4px; font-size: 12px;">
+                {{ size.size }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" (click)="closeModal()">Hủy</button>
+      <button *ngIf="editingSize || selectedCategoryForAdd" type="button" class="btn btn-primary" (click)="submitSize()" 
+        [disabled]="!newSize.size || isSubmitting">
+        {{ isSubmitting ? '⏳ Đang xử lý...' : (editingSize ? '💾 Cập nhật' : '➕ Thêm mới') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Guide Modal -->
+<div class="modal-overlay" *ngIf="showGuideModal" (click)="closeGuideModal()">
+  <div class="modal-content guide-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4 class="modal-title">📂 Chọn Danh Mục Để Upload Ảnh Hướng Dẫn</h4>
+      <button type="button" class="close-btn" (click)="closeGuideModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="guide-instruction">Vui lòng chọn một danh mục cha để upload ảnh hướng dẫn chọn size:</p>
+      
+      <div class="categories-list">
+        <div class="category-option" 
+             *ngFor="let category of parentCategories" 
+             (click)="selectCategoryForGuide(category)"
+             [class.selected]="selectedGuideCategory?.id === category.id">
+          <div class="category-checkbox">
+            <input type="radio" [checked]="selectedGuideCategory?.id === category.id" (change)="selectCategoryForGuide(category)">
+          </div>
+          <div class="category-info">
+            <div class="category-name">{{ category.name }}</div>
+            <div class="category-gender" [ngClass]="'gender-' + category.gender">
+              {{ category.gender === 'male' ? '👨 Nam' : category.gender === 'female' ? '👩 Nữ' : '⚙️ Cả hai' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="parentCategories.length === 0" class="no-categories">
+        <p>Không có danh mục cha nào. Vui lòng tạo danh mục cha trước.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" (click)="closeGuideModal()">Hủy</button>
+      <button type="button" class="btn btn-primary" (click)="openGuideFileUpload()" 
+        [disabled]="!selectedGuideCategory || isSubmitting">
+        {{ isSubmitting ? '⏳ Đang upload...' : '📤 Upload Ảnh' }}
+      </button>
+      <input type="file" class="file-input" (change)="onFileSelected($event, selectedGuideCategory!)" accept="image/*">
+    </div>
+  </div>
+</div>

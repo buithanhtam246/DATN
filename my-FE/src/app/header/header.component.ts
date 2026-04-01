@@ -1,12 +1,8 @@
-import { RouterModule } from '@angular/router';
-import { Router } from '@angular/router';
-import { Component, inject, computed, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NavigationService, CartService, NotificationService } from '../core/services';
+import { Router } from '@angular/router';
+import { NavigationService, CartService } from '../core/services';
 import { MenuItem } from '../core/models';
-import { Subscription } from 'rxjs';
-
-
 
 /**
  * Header Component
@@ -17,47 +13,21 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule,RouterModule],
+  imports: [CommonModule],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.scss'
+  styleUrl: './header.component.scss',
+  host: {
+    '[class.scrolled]': 'isScrolled'
+  }
 })
-export class HeaderComponent implements OnInit, OnDestroy{
-  user: any;
-  errorMessage = '';
-  successMessage = '';
-  private subscriptions: Subscription = new Subscription();
-
-  ngOnInit(){
-  const data = localStorage.getItem("user");
-  if(data){
-    this.user = JSON.parse(data);
-  }
-
-  // Subscribe to notification messages
-  this.subscriptions.add(
-    this.notificationService.errorMessage$.subscribe(message => {
-      console.log('Header received error message:', message);
-      this.errorMessage = message;
-    })
-  );
-
-  this.subscriptions.add(
-    this.notificationService.successMessage$.subscribe(message => {
-      console.log('Header received success message:', message);
-      this.successMessage = message;
-    })
-  );
-}
-
-  ngOnDestroy() {
-    this.subscriptions.unsubscribe();
-  }
+export class HeaderComponent {
   // Dependency Injection - Inversion of Control
   private readonly navigationService = inject(NavigationService);
   private readonly cartService = inject(CartService);
-  private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
-  
+
+  // Scroll state
+  public isScrolled = false;
 
   // Public properties for template
   public readonly menuItems: MenuItem[] = this.navigationService.getMenuItems();
@@ -68,39 +38,35 @@ export class HeaderComponent implements OnInit, OnDestroy{
    */
   onSearch(): void {
     // TODO: Implement search functionality
-    console.log('Search clicked');
   }
 
   /**
    * Handle user profile action
    */
-
-
   onUserProfile(): void {
-
-const user = localStorage.getItem('user');
-
-if(user){
-  this.router.navigate(['/account']);
-}else{
-  this.router.navigate(['/login']);
-}
-
-}
+    const token = localStorage.getItem('authToken');
+    this.router.navigate([token ? '/account' : '/login']);
+  }
 
   /**
    * Handle favorites action
    */
   onFavorites(): void {
     // TODO: Implement favorites functionality
-    console.log('Favorites clicked');
   }
 
   /**
    * Handle cart action
    */
   onCart(): void {
-    // TODO: Implement cart functionality
-    console.log('Cart clicked');
+    this.router.navigate(['/cart']);
+  }
+
+  /**
+   * Detect scroll to add/remove scrolled class
+   */
+  @HostListener('window:scroll', [])
+  onWindowScroll(): void {
+    this.isScrolled = window.scrollY > 50;
   }
 }

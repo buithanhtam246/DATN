@@ -10,6 +10,8 @@ import { ChangePasswordComponent } from './pages/change-password/change-password
 import { OrdersComponent } from './pages/orders/orders.component';
 import { CartComponent } from './pages/cart/cart.component';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
+import { ProductsListComponent } from './pages/products-list/products-list.component';
+import { adminRoutes } from './admin/admin.routes';
 
 
 /**
@@ -19,6 +21,7 @@ import { CheckoutComponent } from './pages/checkout/checkout.component';
  * - Main Layout (Header + Footer wrapper)
  *   - Home page (default route)
  *   - Other pages can be added here
+ * - Admin routes (under /admin path)
  */
 export const routes: Routes = [
   {
@@ -39,6 +42,11 @@ export const routes: Routes = [
           { path: 'orders',component: OrdersComponent},
           { path: 'cart', component: CartComponent },
           { path: 'checkout', component: CheckoutComponent },
+          { 
+            path: 'products', 
+            component: ProductsListComponent,
+            title: 'Sản Phẩm - GoodShoes'
+          },
           
       // Add more routes here
       // {
@@ -48,5 +56,9 @@ export const routes: Routes = [
       // }
     ]
 
+  },
+  {
+    path: 'admin',
+    children: adminRoutes
   }
 ];

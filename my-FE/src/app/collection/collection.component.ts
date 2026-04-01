@@ -35,7 +35,7 @@ export class CollectionComponent implements OnInit {
         id: '1',
         title: 'Jordan Jumpman MVP',
         price: '4.000.000 VND',
-        imageUrl: '/assets/images/jordan-jumpman.jpg',
+        imageUrl: '/assets/images/products/mvp.jpg',
         brand: 'JORDAN',
         colors: ['#FF6B35', '#F7B731', '#E91E63', '#3B82F6'],
         sizes: [40, 41, 42, 43]
@@ -44,7 +44,7 @@ export class CollectionComponent implements OnInit {
         id: '2',
         title: 'Grand Court Cloudfoam',
         price: '3.500.000 VND',
-        imageUrl: '/assets/images/adidas-grand-court.jpg',
+        imageUrl: '/assets/images/products/superstar.jpg',
         brand: 'ADIDAS',
         colors: ['#FF6B35', '#F7B731', '#E91E63', '#3B82F6'],
         sizes: [40, 41, 42, 43]

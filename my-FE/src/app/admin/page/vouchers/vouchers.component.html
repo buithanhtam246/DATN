@@ -1,0 +1,135 @@
+<div class="vouchers-container">
+  <div class="page-header">
+    <h1>Quản lý Voucher</h1>
+    <div class="header-actions">
+      <div class="search-box">
+        <input type="text" placeholder="Tìm kiếm voucher..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)">
+      </div>
+      <button class="btn-add" (click)="showModal.set(true)">+ Thêm mới Voucher</button>
+    </div>
+  </div>
+
+  <div class="vouchers-grid">
+    @for (voucher of filteredVouchers(); track voucher.id) {
+      <div class="voucher-card" [class]="'status-' + getStatusClass(getVoucherStatus(voucher))">
+        <div class="card-header">
+          <div class="header-top">
+            <span class="discount-badge">{{ getDiscountText(voucher) }}</span>
+            <span class="status-badge" [class]="getStatusClass(getVoucherStatus(voucher))">{{ getVoucherStatus(voucher) }}</span>
+          </div>
+          <span class="voucher-code">{{ voucher.code }}</span>
+        </div>
+        
+        <div class="card-body">
+          <h3 class="voucher-name">{{ voucher.name }}</h3>
+          
+          <div class="info-grid">
+            <div class="info-box">
+              <span class="label">Số lượng</span>
+              <strong class="value">{{ voucher.quantity }}</strong>
+            </div>
+            <div class="info-box">
+              <span class="label">Còn lại</span>
+              <strong class="value" [class.low]="voucher.quantity < 5">{{ voucher.quantity > 0 ? '✓' : '✗' }}</strong>
+            </div>
+            <div class="info-box">
+              <span class="label">Min đơn</span>
+              <strong class="value">{{ (voucher.minimumOrder || 0) | number:'1.0-0' }}₫</strong>
+            </div>
+            @if (voucher.maxValue) {
+              <div class="info-box">
+                <span class="label">Tối đa</span>
+                <strong class="value">{{ (voucher.maxValue | number:'1.0-0') }}₫</strong>
+              </div>
+            }
+          </div>
+
+          <div class="date-info">
+            <div class="date-item">
+              <span class="date-label">Bắt đầu:</span>
+              <span class="date-value">{{ voucher.startDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="date-item">
+              <span class="date-label">Kết thúc:</span>
+              <span class="date-value">{{ voucher.endDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="countdown" [class]="getRemainingDays(voucher.endDate) <= 3 ? 'urgent' : ''">
+            @if (getRemainingDays(voucher.endDate) > 0) {
+              ⏱️ Còn <strong>{{ getRemainingDays(voucher.endDate) }}</strong> ngày
+            } @else {
+              ❌ Đã hết hạn
+            }
+          </div>
+          <button class="btn-delete" (click)="deleteVoucher(voucher.id)" title="Xóa voucher">🗑️</button>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state">📭 Không có voucher nào được tìm thấy</div>
+    }
+  </div>
+
+  @if (showModal()) {
+    <div class="modal-overlay" (click)="showModal.set(false)">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h2>🎁 Tạo Voucher Mới</h2>
+        <form [formGroup]="voucherForm" (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label>Mã Voucher</label>
+            <input formControlName="code_voucher" placeholder="VD: GIAM50K, SUMMER2024" required>
+          </div>
+          <div class="form-group">
+            <label>Tên hiển thị</label>
+            <input formControlName="name_voucher" placeholder="VD: Giảm giá mùa hè 50%" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Loại giảm giá</label>
+              <select formControlName="promotion_type" required>
+                <option value="percentage">Phần trăm (%)</option>
+                <option value="fixed">Tiền mặt (₫)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Giá trị giảm</label>
+              <input type="number" formControlName="value_reduced" placeholder="50" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ngày bắt đầu</label>
+              <input type="date" formControlName="start_date" required>
+            </div>
+            <div class="form-group">
+              <label>Ngày hết hạn</label>
+              <input type="date" formControlName="promotion_date" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Số lượng</label>
+              <input type="number" formControlName="quantity" placeholder="100" required>
+            </div>
+            <div class="form-group">
+              <label>Giảm giá tối đa (₫)</label>
+              <input type="number" formControlName="max_value" placeholder="Không bắt buộc">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Đơn hàng tối thiểu (₫)</label>
+              <input type="number" formControlName="minimum_order" placeholder="0">
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" (click)="showModal.set(false)">Hủy</button>
+            <button type="submit" class="btn-save" [disabled]="voucherForm.invalid">Lưu Voucher</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

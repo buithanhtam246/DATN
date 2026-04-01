@@ -33,7 +33,11 @@ const OrderDetail = sequelize.sequelize.define('order_details', {
 OrderDetail.associate = (models) => {
   OrderDetail.belongsTo(models.Order, {
     foreignKey: 'order_id',
-    as: 'Order'
+    as: 'order'
+  });
+  OrderDetail.belongsTo(models.ProductVariant, {
+    foreignKey: 'variant_id',
+    as: 'variant'
   });
   OrderDetail.hasMany(models.OrderReview, {
     foreignKey: 'order_detail_id',

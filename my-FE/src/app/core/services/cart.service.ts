@@ -9,6 +9,7 @@ export interface CartItem {
   product: Product;
   quantity: number;
   selectedColor?: string;
+  selectedSize?: number | string;
 }
 
 /**
@@ -131,6 +132,29 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
    */
   setState(newState: CartItem[]): void {
     this.cartItems.set(newState);
+  }
+
+  /**
+   * Thêm item vào giỏ hàng (dùng cho cart item objects phức tạp)
+   */
+  addItem(cartItem: any): void {
+    const currentItems = this.cartItems();
+    const existingItemIndex = currentItems.findIndex(
+      item => item.product.id === cartItem.product.id && 
+              item.selectedColor === cartItem.selectedColor &&
+              item.selectedSize === cartItem.selectedSize
+    );
+
+    if (existingItemIndex > -1) {
+      const updatedItems = [...currentItems];
+      updatedItems[existingItemIndex] = {
+        ...updatedItems[existingItemIndex],
+        quantity: updatedItems[existingItemIndex].quantity + (cartItem.quantity || 1)
+      };
+      this.cartItems.set(updatedItems);
+    } else {
+      this.cartItems.set([...currentItems, cartItem]);
+    }
   }
 
   /**

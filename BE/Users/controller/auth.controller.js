@@ -49,6 +49,40 @@ class AuthController {
     }
   }
 
+  async adminLogin(req, res) {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email và mật khẩu không được để trống'
+        });
+      }
+
+      // Kiểm tra user có role = 'admin'
+      const result = await authService.login({ email, password });
+      
+      if (!result.user || result.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Tài khoản này không có quyền admin'
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: 'Đăng nhập admin thành công',
+        data: result
+      });
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message
+      });
+    }
+  }
+
   async forgotPassword(req, res) {
     try {
       console.log('forgotPassword called with', req.body);
@@ -166,6 +200,24 @@ class AuthController {
       return res.json({ success: true, message: 'Đổi mật khẩu thành công' });
     } catch (err) {
       return res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  async adminLogout(req, res) {
+    try {
+      // Token đã được verify bởi middleware
+      const user = req.user;
+
+      return res.json({
+        success: true,
+        message: 'Đăng xuất admin thành công'
+      });
+    } catch (err) {
+      console.error('Admin logout error:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server: ' + err.message
+      });
     }
   }
 }

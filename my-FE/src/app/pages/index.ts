@@ -5,6 +5,7 @@
  */
 
 export { HomeComponent } from './home/home.component';
+export { ProductsListComponent } from './products-list/products-list.component';
 
 // Future pages can be added here:
 // export { ProductsComponent } from './products/products.component';

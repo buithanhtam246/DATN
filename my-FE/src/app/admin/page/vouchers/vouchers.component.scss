@@ -1,0 +1,486 @@
+@use 'sass:color';
+@use '../../styles/admin-variables' as *;
+
+.vouchers-container {
+  padding: $spacing-xl;
+  background: $light-bg;
+  min-height: 100vh;
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-2xl;
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 700;
+      color: $dark;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: $spacing-md;
+
+      .search-box {
+        flex: 1;
+        max-width: 400px;
+        
+        input {
+          width: 100%;
+          padding: $spacing-md;
+          border: 1px solid $gray-300;
+          border-radius: 8px;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+
+          &:focus {
+            outline: none;
+            border-color: $primary-color;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+          }
+        }
+      }
+
+      .btn-add {
+        padding: $spacing-md $spacing-lg;
+        background: $primary-color;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+
+        &:hover {
+          background: $primary-dark;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+    }
+  }
+
+  .vouchers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: $spacing-xl;
+    margin-bottom: $spacing-2xl;
+
+    .voucher-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: $shadow-sm;
+      transition: all 0.3s ease;
+      border: 2px solid #f0f0f0;
+      display: flex;
+      flex-direction: column;
+
+      &:hover {
+        box-shadow: $shadow-lg;
+        transform: translateY(-6px);
+        border-color: $primary-light;
+      }
+
+      &.status-active {
+        border-color: #10b981;
+        .card-header {
+          background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+          border-bottom-color: #10b981;
+        }
+      }
+
+      &.status-upcoming {
+        border-color: #f59e0b;
+        .card-header {
+          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          border-bottom-color: #f59e0b;
+        }
+      }
+
+      &.status-expired {
+        border-color: #ef4444;
+        opacity: 0.8;
+        .card-header {
+          background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+          border-bottom-color: #ef4444;
+        }
+      }
+
+      .card-header {
+        padding: $spacing-lg;
+        border-bottom: 2px solid $primary-color;
+        transition: all 0.3s ease;
+
+        .header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: $spacing-md;
+          margin-bottom: $spacing-md;
+        }
+
+        .discount-badge {
+          display: inline-block;
+          background: $primary-color;
+          color: white;
+          padding: $spacing-sm $spacing-md;
+          border-radius: 6px;
+          font-weight: 700;
+          font-size: 0.9rem;
+        }
+
+        .status-badge {
+          display: inline-block;
+          padding: $spacing-xs $spacing-sm;
+          border-radius: 4px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          white-space: nowrap;
+
+          &.active {
+            background: #d1fae5;
+            color: #10b981;
+          }
+
+          &.upcoming {
+            background: #fef3c7;
+            color: #f59e0b;
+          }
+
+          &.expired {
+            background: #fee2e2;
+            color: #ef4444;
+          }
+
+          &.pending {
+            background: #f3f4f6;
+            color: #6b7280;
+          }
+        }
+
+        .voucher-code {
+          display: block;
+          font-size: 1.3rem;
+          color: $primary-dark;
+          font-family: 'Courier New', monospace;
+          letter-spacing: 1.5px;
+          font-weight: 700;
+        }
+      }
+
+      .card-body {
+        padding: $spacing-lg;
+        flex: 1;
+
+        .voucher-name {
+          margin: 0 0 $spacing-md;
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: $dark;
+          line-height: 1.4;
+        }
+
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: $spacing-md;
+          margin-bottom: $spacing-md;
+
+          .info-box {
+            background: $light;
+            padding: $spacing-md;
+            border-radius: 8px;
+            border-left: 3px solid $primary-color;
+            display: flex;
+            flex-direction: column;
+            gap: $spacing-xs;
+
+            .label {
+              font-size: 0.8rem;
+              color: $muted;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              font-weight: 600;
+            }
+
+            .value {
+              font-size: 1rem;
+              color: $dark;
+              font-weight: 700;
+
+              &.low {
+                color: $danger-color;
+              }
+            }
+          }
+        }
+
+        .date-info {
+          background: #f9fafb;
+          padding: $spacing-md;
+          border-radius: 8px;
+          display: flex;
+          flex-direction: column;
+          gap: $spacing-sm;
+
+          .date-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+
+            .date-label {
+              color: $muted;
+              font-weight: 500;
+            }
+
+            .date-value {
+              color: $dark;
+              font-weight: 600;
+              font-family: 'Courier New', monospace;
+            }
+          }
+        }
+      }
+
+      .card-footer {
+        padding: $spacing-lg;
+        background: $light;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid $gray-300;
+        gap: $spacing-md;
+
+        .countdown {
+          font-size: 0.9rem;
+          color: $text-muted;
+          font-weight: 500;
+
+          strong {
+            color: $success-color;
+            font-weight: 700;
+          }
+
+          &.urgent {
+            color: $danger-color;
+
+            strong {
+              color: $danger-color;
+            }
+          }
+        }
+
+        .btn-delete {
+          padding: $spacing-sm $spacing-md;
+          background: $danger-light;
+          color: $danger-color;
+          border: 1px solid $danger-color;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+          flex-shrink: 0;
+
+          &:hover {
+            background: $danger-color;
+            color: white;
+            transform: scale(1.1);
+          }
+        }
+      }
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: $spacing-2xl;
+      color: $text-muted;
+      font-size: 1.1rem;
+    }
+  }
+}
+
+// Modal Styles
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+
+  .modal-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 500px;
+    padding: $spacing-2xl;
+    animation: slideUp 0.3s ease;
+
+    h2 {
+      margin: 0 0 $spacing-xl;
+      font-size: 1.5rem;
+      color: $dark;
+      font-weight: 700;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-lg;
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+
+        label {
+          margin-bottom: $spacing-sm;
+          font-weight: 600;
+          color: $dark;
+          font-size: 0.95rem;
+        }
+
+        input,
+        select {
+          padding: $spacing-md;
+          border: 1px solid $gray-300;
+          border-radius: 8px;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+
+          &:focus {
+            outline: none;
+            border-color: $primary-color;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+          }
+        }
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: $spacing-md;
+
+        input,
+        select {
+          padding: $spacing-md;
+          border: 1px solid $gray-300;
+          border-radius: 8px;
+          font-size: 1rem;
+
+          &:focus {
+            outline: none;
+            border-color: $primary-color;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+          }
+        }
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: $spacing-md;
+        justify-content: flex-end;
+        margin-top: $spacing-md;
+
+        button {
+          padding: $spacing-md $spacing-lg;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          font-size: 1rem;
+
+          &:first-child {
+            background: $gray-300;
+            color: $dark;
+
+            &:hover {
+              background: $secondary-light;
+            }
+          }
+
+          &.btn-save {
+            background: $success-color;
+            color: white;
+
+            &:hover:not(:disabled) {
+              background: color.adjust($success-color, $lightness: -10%);
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+            }
+
+            &:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .vouchers-container {
+    padding: $spacing-lg;
+
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $spacing-lg;
+
+      .header-actions {
+        width: 100%;
+        flex-direction: column;
+
+        .search-box {
+          max-width: none;
+        }
+
+        .btn-add {
+          width: 100%;
+          text-align: center;
+        }
+      }
+    }
+
+    .vouchers-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .modal-overlay {
+    .modal-card {
+      width: 95%;
+      padding: $spacing-lg;
+    }
+  }
+}

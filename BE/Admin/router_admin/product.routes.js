@@ -1,48 +1,18 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
+const upload = require('../middleware_admin/upload.middleware');
+const productController = require('../controller_admin/product.controller');
 
-const multer = require('multer');
-const path = require('path');
+// Dòng 8: Đảm bảo productController.getAllProducts không bị undefined
+router.get('/all-products', productController.getAllProducts);
 
-const storage = multer.diskStorage({
-	destination: (req, file, cb) => {
-		const uploadPath = path.join(__dirname, '..', 'public', 'uploads');
-		cb(null, uploadPath);
-	},
-	filename: (req, file, cb) => {
-		const timestamp = Date.now();
-		const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-		cb(null, `${timestamp}-${safeName}`);
-	}
-});
+// Route thêm sản phẩm
+router.post('/add-product', upload.array('images', 10), productController.createFullProduct);
 
-const upload = multer({
-	storage,
-	limits: { fileSize: 5 * 1024 * 1024 } // 5MB
-});
+// Route cập nhật sản phẩm
+router.put('/products/:id', upload.array('images', 10), productController.updateProduct);
 
-const productController = require("../controller_admin/product.controller");
-
-router.get("/", productController.getAllProducts);
-
-router.get("/new", productController.getNewProducts);
-
-router.get("/best-sell", productController.getBestSellingProducts);
-
-router.get("/brand/:brandId", productController.getProductsByBrand);
-
-router.get("/category/:categoryId", productController.getProductsByCategory);
-
-router.get("/:id/reviews", productController.getProductReviews);
-
-// router.get("/:id/related", productController.getRelatedProducts);   
-
-router.post("/", upload.single('image'), productController.createProduct);
-
-router.post("/generate-variants", productController.generateVariants);
-
-router.put("/variants/:id", productController.updateVariant);
-
-router.get("/:id", productController.getProductDetail);             
+// Route xóa sản phẩm
+router.delete('/products/:id', productController.deleteProduct);
 
 module.exports = router;

@@ -64,6 +64,10 @@ User.associate = (models) => {
     onDelete: 'CASCADE',
     hooks: true
   });
+  User.hasMany(models.Order, {
+    foreignKey: 'user_id',
+    as: 'orders'
+  });
 };
 
 module.exports = User;

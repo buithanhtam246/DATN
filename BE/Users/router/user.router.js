@@ -2,18 +2,18 @@ const express = require('express');
 const router = express.Router();
 
 const userController = require('../controller/user.controller');
-const { authMiddleware } = require('../middleware/auth.middleware');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth.middleware');
 
-// Tất cả endpoint đều yêu cầu xác thực
-router.use(authMiddleware);
+// Lấy tất cả users (yêu cầu admin) - TRƯỚC middleware
+router.get('/', authMiddleware, adminMiddleware, userController.getAllUsers.bind(userController));
 
 // Lấy thông tin tài khoản (không có địa chỉ)
-router.get('/profile', userController.getProfile.bind(userController));
+router.get('/profile', authMiddleware, userController.getProfile.bind(userController));
 
 // Lấy thông tin tài khoản kèm địa chỉ mặc định
-router.get('/profile-with-address', userController.getProfileWithDefaultAddress.bind(userController));
+router.get('/profile-with-address', authMiddleware, userController.getProfileWithDefaultAddress.bind(userController));
 
 // Cập nhật thông tin tài khoản
-router.put('/profile', userController.updateProfile.bind(userController));
+router.put('/profile', authMiddleware, userController.updateProfile.bind(userController));
 
 module.exports = router;

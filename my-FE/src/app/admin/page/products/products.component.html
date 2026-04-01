@@ -1,0 +1,290 @@
+<div class="products-container">
+  <div class="products-wrapper">
+
+    <div class="header-section">
+      <div class="header-content">
+        <div class="header-info">
+          <h1 class="page-title">Quản lý sản phẩm</h1>
+          <p class="page-subtitle">Quản lý và cập nhật danh sách sản phẩm của bạn</p>
+        </div>
+        <button class="btn-add-product" (click)="openAddProductModal()">
+          <span class="icon">+</span> Thêm sản phẩm mới
+        </button>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-label">Tổng sản phẩm</span>
+          <span class="stat-value">{{ products.length }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Danh mục</span>
+          <span class="stat-value">{{ allCategories.length }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Thương hiệu</span>
+          <span class="stat-value">{{ brands.length }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Đang hiển thị</span>
+          <span class="stat-value">{{ filteredProducts.length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="search-box">
+        <input type="text" class="search-input" placeholder="🔍 Tìm kiếm sản phẩm theo tên hoặc ID..."
+          [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()">
+      </div>
+
+      <div class="filter-controls">
+        <select class="filter-select" [(ngModel)]="selectedCategoryFilter" (ngModelChange)="onFilterChange()">
+          <option value="">Tất cả danh mục</option>
+          <option *ngFor="let cat of allCategories" [value]="cat.id">{{ cat.name }}</option>
+        </select>
+
+        <select class="filter-select" [(ngModel)]="selectedBrandFilter" (ngModelChange)="onFilterChange()">
+          <option value="">Tất cả thương hiệu</option>
+          <option *ngFor="let brand of brands" [value]="brand.id">{{ brand.name }}</option>
+        </select>
+
+        <button class="btn-reset" (click)="resetFilters()">↺ Đặt lại</button>
+      </div>
+    </div>
+
+    <div *ngIf="filteredProducts.length === 0" class="empty-state">
+      <div class="empty-icon">📦</div>
+      <h3>Không tìm thấy sản phẩm</h3>
+      <p>Hãy thêm sản phẩm mới hoặc điều chỉnh bộ lọc của bạn</p>
+      <button class="btn-add-product" (click)="openAddProductModal()">
+        + Thêm sản phẩm đầu tiên
+      </button>
+    </div>
+
+    <div class="products-table-container" *ngIf="filteredProducts.length > 0">
+      <table class="products-table">
+        <thead>
+          <tr>
+            <th>Tên sản phẩm</th>
+            <th>Danh mục</th>
+            <th>Thương hiệu</th>
+            <th>Giá</th>
+            <th>Tồn kho</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filteredProducts" class="product-row">
+            <td class="product-name-cell">
+              <div class="product-info-inline">
+                <img [src]="'http://localhost:3000/images/products/' + p.image" 
+                     [alt]="p.name"
+                     (error)="$event.target.src='https://placehold.co/60x60?text='+p.name"
+                     class="product-thumbnail">
+                <div class="product-details">
+                  <div class="product-name">{{ p.name }}</div>
+                  <div class="product-sku">SKU: #{{ p.id }}</div>
+                </div>
+              </div>
+            </td>
+            <td>{{ p.category_name || 'N/A' }}</td>
+            <td>{{ p.brand_name || 'N/A' }}</td>
+            <td class="price-cell">
+              <div class="price-amount">
+                {{ (p.price_sale ? p.price_sale : (p.price || p.variants[0]?.price || 0)) | number }}₫
+              </div>
+              <div *ngIf="p.price_sale" class="original-price-small">
+                {{ (p.price || p.variants[0]?.price || 0) | number }}₫
+              </div>
+            </td>
+            <td class="stock-cell" [class.low-stock]="(p.variants[0]?.quantity ?? 0) < 10">
+              {{ p.variants[0]?.quantity || 0 }}
+            </td>
+            <td class="action-cell">
+              <button class="action-btn edit-btn" (click)="editProduct(p)" title="Chỉnh sửa">✏️ Sửa</button>
+              <button class="action-btn view-btn" (click)="viewProductDetail(p)" title="Xem chi tiết">👁️ Xem</button>
+              <button class="action-btn delete-btn" (click)="deleteProduct(p.id)" title="Xóa">🗑️ Xóa</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ editingProduct ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới' }}</h2>
+      <button class="close-btn" (click)="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-tabs">
+        <button class="tab-btn" [class.active]="activeTab === 'info'" (click)="activeTab = 'info'">
+          📝 Thông tin cơ bản
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'variants'" (click)="activeTab = 'variants'">
+          📦 Biến thể thêm ({{ newProduct.variants.length > 1 ? newProduct.variants.length - 1 : 0 }})
+        </button>
+      </div>
+
+      <div class="tab-content" *ngIf="activeTab === 'info'">
+        <h4 class="section-title">📝 Thông tin cơ bản</h4>
+
+        <div class="form-group">
+          <label>Tên sản phẩm <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="newProduct.name" placeholder="VD: Nike Air Max 270" class="form-control">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Danh mục cha <span class="required">*</span></label>
+            <select [(ngModel)]="selectedParentCategory" (ngModelChange)="onParentCategoryChange($event)"
+              class="form-control">
+              <option [value]="null">-- Chọn danh mục cha --</option>
+              <option *ngFor="let cat of parentCategories" [value]="cat.id">{{ cat.name }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>
+              Danh mục con <span class="required">*</span>
+              <span *ngIf="isLoadingSubCategories" class="loading-text">...</span>
+            </label>
+            <select [(ngModel)]="newProduct.category_id" (ngModelChange)="onSubCategoryChange($event)" [disabled]="!selectedParentCategory" class="form-control">
+              <option [value]="null">-- Chọn danh mục con --</option>
+              <option *ngFor="let cat of subCategories" [value]="cat.id">{{ cat.name }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Thương hiệu <span class="required">*</span></label>
+            <select [(ngModel)]="newProduct.brand_id" class="form-control">
+              <option [value]="null">-- Chọn thương hiệu --</option>
+              <option *ngFor="let brand of brands" [value]="brand.id">{{ brand.name }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Mô tả sản phẩm</label>
+          <textarea [(ngModel)]="newProduct.describ" placeholder="Mô tả..." rows="3" class="form-control"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Tải ảnh <span class="required">*</span></label>
+          <div class="file-upload" [class.drag-over]="isDragOver" (dragover)="onDragOver($event)" (drop)="onDrop($event)"
+            (dragleave)="onDragLeave($event)" (click)="fileInput.click()">
+            <input type="file" multiple accept="image/*" (change)="onFileSelected($event)" class="file-input" #fileInput>
+            <div class="upload-icon">📸</div>
+            <span class="file-label">Chọn ảnh hoặc kéo thả vào đây</span>
+            <div class="file-count" *ngIf="selectedFiles.length > 0">✅ {{ selectedFiles.length }} ảnh</div>
+          </div>
+        </div>
+
+        <div class="variant-section">
+          <h5 class="variant-title">📦 Biến thể mặc định</h5>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Màu sắc</label>
+              <select [(ngModel)]="newProduct.variants[0].color_id" class="form-control">
+                <option [value]="null">-- Màu --</option>
+                <option *ngFor="let color of colors" [value]="color.id">{{ color.name }}</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Chọn kích thước (có thể chọn nhiều)</label>
+            <div class="size-selector">
+              <button *ngFor="let size of sizes" 
+                type="button"
+                class="size-btn"
+                [class.selected]="isSizeSelected(0, size.id)"
+                (click)="toggleSizeSelection(0, size.id)">
+                {{ size.size }}
+              </button>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Giá gốc *</label>
+              <input type="number" [(ngModel)]="newProduct.variants[0].price" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Giá bán (Sale)</label>
+              <input type="number" [(ngModel)]="newProduct.variants[0].price_sale" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Số lượng kho *</label>
+            <input type="number" [(ngModel)]="newProduct.variants[0].quantity" class="form-control">
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" *ngIf="activeTab === 'variants'">
+        <div class="section-header">
+          <h4 class="section-title">📦 Biến thể thêm</h4>
+          <button type="button" class="btn-add-variant" (click)="addVariant()">+ Thêm</button>
+        </div>
+        <div class="variants-list">
+          <div class="variant-card" *ngFor="let variant of newProduct.variants.slice(1); let i = index">
+            <div class="variant-header">
+              <h5>Biến thể {{ i + 2 }}</h5>
+              <button type="button" class="btn-remove-variant" (click)="removeVariant(i + 1)">✕</button>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Màu sắc</label>
+                <select [(ngModel)]="newProduct.variants[i + 1].color_id" class="form-control">
+                  <option [value]="null">-- Màu --</option>
+                  <option *ngFor="let color of colors" [value]="color.id">{{ color.name }}</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Chọn kích thước (có thể chọn nhiều)</label>
+              <div class="size-selector">
+                <button *ngFor="let size of sizes" 
+                  type="button"
+                  class="size-btn"
+                  [class.selected]="isSizeSelected(i + 1, size.id)"
+                  (click)="toggleSizeSelection(i + 1, size.id)">
+                  {{ size.size }}
+                </button>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Giá gốc *</label>
+                <input type="number" [(ngModel)]="newProduct.variants[i + 1].price" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Giá bán (Sale)</label>
+                <input type="number" [(ngModel)]="newProduct.variants[i + 1].price_sale" class="form-control">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Số lượng kho *</label>
+              <input type="number" [(ngModel)]="newProduct.variants[i + 1].quantity" class="form-control">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeModal()">Hủy</button>
+      <button class="btn-submit" (click)="submitProduct()" [disabled]="isSubmitting">
+        {{ isSubmitting ? '⏳...' : (editingProduct ? '💾 Cập nhật' : '✅ Thêm mới') }}
+      </button>
+    </div>
+  </div>
+</div>

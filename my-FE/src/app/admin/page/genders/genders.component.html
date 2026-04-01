@@ -1,0 +1,171 @@
+<div class="genders-container">
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1 class="title">🔄 Quản lý Giới Tính</h1>
+    <button class="btn-add" (click)="openAddGenderModal()">➕ Thêm giới tính mới</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="icon">📊</div>
+      <div class="label">Tổng Giới Tính</div>
+      <div class="value">{{ gendersList.length }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">✅</div>
+      <div class="label">Đang Hoạt Động</div>
+      <div class="value">{{ activeGendersCount }}</div>
+    </div>
+  </div>
+
+  <!-- ERROR MESSAGE -->
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <!-- FILTER SECTION -->
+  <div class="filter-section">
+    <div class="filter-header">
+      <div class="search-box">
+        <input 
+          type="text" 
+          placeholder="Tìm kiếm giới tính..."
+          [(ngModel)]="searchText" 
+          (ngModelChange)="onSearchChange()"
+        >
+      </div>
+      <button class="btn-reset" (click)="resetFilters()" *ngIf="searchText">↺ Đặt lại</button>
+    </div>
+  </div>
+
+  <!-- TABLE CONTAINER -->
+  <div class="table-container">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner">⏳</div>
+      <div class="message">Đang tải dữ liệu...</div>
+    </div>
+
+    <!-- Genders List -->
+    <div *ngIf="!isLoading && filteredGenders.length > 0" class="genders-table">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Icon</th>
+            <th>Tên Giới Tính</th>
+            <th>Code</th>
+            <th>Mô Tả</th>
+            <th>Trạng Thái</th>
+            <th>Thao Tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let gender of filteredGenders">
+            <td><span class="id-badge">#{{ gender.id }}</span></td>
+            <td><span class="icon-display">{{ gender.icon }}</span></td>
+            <td><strong>{{ gender.name }}</strong></td>
+            <td><code class="code-badge">{{ gender.code }}</code></td>
+            <td>{{ gender.description || '—' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="gender.status">
+                {{ getStatusLabel(gender.status) }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-action edit" title="Sửa" (click)="editGender(gender)">✏️</button>
+                <button class="btn-action delete" title="Xóa" (click)="deleteGender(gender.id)">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && filteredGenders.length === 0" class="empty-state">
+      <div class="spinner">📦</div>
+      <div class="message">Không tìm thấy giới tính nào</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5 class="modal-title">{{ editingGender ? '✏️ Chỉnh sửa Giới Tính' : '➕ Thêm Giới Tính Mới' }}</h5>
+      <button type="button" class="modal-close" (click)="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Name -->
+      <div class="form-group">
+        <label>Tên Giới Tính</label>
+        <input 
+          type="text" 
+          [(ngModel)]="newGender.name" 
+          placeholder="Vd: Nam, Nữ, Unisex..."
+          class="form-control"
+        >
+      </div>
+
+      <!-- Code -->
+      <div class="form-group">
+        <label>Code</label>
+        <input 
+          type="text" 
+          [(ngModel)]="newGender.code" 
+          placeholder="Vd: male, female, unisex..."
+          class="form-control"
+        >
+        <small>Code sẽ được dùng trong database, không có khoảng trắng</small>
+      </div>
+
+      <!-- Icon -->
+      <div class="form-group">
+        <label>Icon (Emoji)</label>
+        <input 
+          type="text" 
+          [(ngModel)]="newGender.icon" 
+          placeholder="Vd: 👨, 👩, 🔄"
+          class="form-control"
+        >
+        <small>Chọn 1 emoji để hiển thị</small>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>Mô Tả</label>
+        <textarea 
+          [(ngModel)]="newGender.description" 
+          placeholder="Nhập mô tả giới tính..."
+          class="form-control"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <!-- Status -->
+      <div class="form-group">
+        <label>Trạng Thái</label>
+        <select [(ngModel)]="newGender.status" class="form-control">
+          <option value="active">✅ Hoạt động</option>
+          <option value="inactive">❌ Ẩn</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeModal()">Hủy</button>
+      <button 
+        class="btn-save" 
+        (click)="saveGender()" 
+        [disabled]="!newGender.name || !newGender.code || isSubmitting"
+      >
+        {{ isSubmitting ? '⏳ Đang xử lý...' : (editingGender ? '💾 Cập nhật' : '➕ Thêm mới') }}
+      </button>
+    </div>
+  </div>
+</div>

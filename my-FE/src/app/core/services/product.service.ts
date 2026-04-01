@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { Product } from '../models';
 import { FEATURED_PRODUCT } from '../constants';
 import { IProductOperations } from '../interfaces/service.interface';
@@ -13,6 +14,9 @@ import { IProductOperations } from '../interfaces/service.interface';
   providedIn: 'root'
 })
 export class ProductService implements IProductOperations {
+  private apiUrl = 'http://localhost:3000/api/admin';
+  
+  constructor(private http: HttpClient) {}
   
   /**
    * Lấy featured product
@@ -42,8 +46,8 @@ export class ProductService implements IProductOperations {
    * Lấy danh sách products
    * TODO: Kết nối với API thực tế
    */
-  getProducts(): Observable<Product[]> {
-    return of([FEATURED_PRODUCT]);
+  getProducts(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/all-products`);
   }
 
   /**
@@ -55,9 +59,124 @@ export class ProductService implements IProductOperations {
   }
 
   /**
+   * Lấy sản phẩm gợi ý (recommended products)
+   */
+  getRecommendedProducts(limit: number = 4): Observable<Product[]> {
+    return of([]);
+  }
+
+  /**
    * Format giá tiền
    */
   formatPrice(price: string): string {
     return price;
+  }
+
+  // ========== SIZE GUIDE METHODS ==========
+  /**
+   * Get size guide image for a category
+   */
+  getSizeGuideByCategory(categoryId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/sizes/category/${categoryId}/guide`);
+  }
+
+  /**
+   * Upload size guide for a category
+   */
+  uploadSizeGuideByCategory(categoryId: number, formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/sizes/category/${categoryId}/upload`, formData);
+  }
+
+  /**
+   * Delete size guide for a category
+   */
+  deleteSizeGuideByCategory(categoryId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/sizes/category/${categoryId}/guide`);
+  }
+
+  // ========== ADMIN PRODUCT METHODS ==========
+  /**
+   * Get all categories
+   */
+  getCategories(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/categories`);
+  }
+
+  /**
+   * Get parent categories (Nam/Nữ)
+   */
+  getParentCategories(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/categories/parents`);
+  }
+
+  /**
+   * Get sub categories by parent ID
+   */
+  getSubCategories(parentId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/categories/children/${parentId}`);
+  }
+
+  /**
+   * Get all brands
+   */
+  getBrands(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/brands`);
+  }
+
+  /**
+   * Get all colors
+   */
+  getColors(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/colors`);
+  }
+
+  /**
+   * Get all sizes
+   */
+  getSizes(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/sizes`);
+  }
+
+  /**
+   * Get sizes by gender
+   */
+  getSizesByGender(gender: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/sizes?gender=${gender}`);
+  }
+
+  /**
+   * Add new product
+   */
+  addProduct(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/add-product`, formData);
+  }
+
+  /**
+   * Update product
+   */
+  updateProduct(id: number, formData: FormData): Observable<any> {
+    return this.http.put(`${this.apiUrl}/products/${id}`, formData);
+  }
+
+  /**
+   * Delete product
+   */
+  deleteProduct(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/products/${id}`);
+  }
+
+  // ========== DASHBOARD METHODS ==========
+  /**
+   * Get top selling products
+   */
+  getTopSellingProducts(limit: number = 5): Observable<any> {
+    return this.http.get(`${this.apiUrl}/dashboard/top-selling-products?limit=${limit}`);
+  }
+
+  /**
+   * Get recent orders
+   */
+  getRecentOrders(limit: number = 10): Observable<any> {
+    return this.http.get(`${this.apiUrl}/dashboard/recent-orders?limit=${limit}`);
   }
 }

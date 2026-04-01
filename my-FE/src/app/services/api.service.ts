@@ -7,9 +7,11 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = environment.apiUrl;
+  // Thành dòng này:
+  private apiUrl = 'http://localhost:3000/api'; 
 
   constructor(private http: HttpClient) {}
+  // ... các hàm bên dưới giữ nguyên
 
   // Lấy token từ localStorage
   private getAuthHeaders(): HttpHeaders {
@@ -20,13 +22,26 @@ export class ApiService {
     });
   }
 
-  // ============ AUTH ENDPOINTS ============
+  // ============ AUTH ENDPOINTS (USER) ============
   register(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/register`, data);
   }
 
   login(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/login`, data);
+  }
+
+  // ============ ADMIN AUTH ENDPOINTS ============
+  adminLogin(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/admin-login`, data);
+  }
+
+  adminVerifyToken(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/verify`, {}, { headers: this.getAuthHeaders() });
+  }
+
+  adminLogout(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/admin-logout`, {}, { headers: this.getAuthHeaders() });
   }
 
   // ============ CART ENDPOINTS ============
@@ -157,17 +172,41 @@ export class ApiService {
   // ============ VOUCHER ENDPOINTS ============
   getVouchers(): Observable<any> {
     return this.http.get(
-      `${this.apiUrl}/vouchers`,
+      `${this.apiUrl}/admin/vouchers`,
       { headers: this.getAuthHeaders() }
     );
   }
 
   // ============ PRODUCT ENDPOINTS ============
   getProducts(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/products`);
+    return this.http.get(`${this.apiUrl}/admin/all-products`);
   }
 
   getProductById(productId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/products/${productId}`);
+    return this.http.get(`${this.apiUrl}/admin/products/${productId}`);
+  }
+
+  // ============ ADMIN USER ENDPOINTS ============
+  getAllUsers(): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/admin/users`,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  // ============ ADMIN REVIEW ENDPOINTS ============
+  getAllReviews(): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/reviews`,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  // ============ ADMIN ORDER ENDPOINTS ============
+  getAllOrders(): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/admin/orders`,
+      { headers: this.getAuthHeaders() }
+    );
   }
 }

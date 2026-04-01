@@ -64,12 +64,19 @@ export class BannerComponent implements OnInit {
   onAddToCart(): void {
     const currentProduct = this.product();
     if (currentProduct) {
-      this.cartService.addProductToCart(
-        currentProduct,
-        1,
-        this.selectedColor()
-      );
-      console.log('Product added to cart:', currentProduct.title);
+      this.cartService.addItem({
+        id: `${currentProduct.id || Date.now()}_${this.selectedColor()}`,
+        product: {
+          id: currentProduct.id || String(Date.now()),
+          title: currentProduct.title,
+          imageUrl: currentProduct.imageUrl || '/assets/images/products/default.jpg',
+          brand: currentProduct.brand
+        },
+        selectedColor: this.selectedColor() || currentProduct.colors?.[0] || 'Default',
+        selectedSize: 40, // Default size
+        quantity: 1,
+        price: parseFloat(currentProduct.price.replace(/[^\d]/g, ''))
+      });
       // TODO: Show notification or feedback to user
     }
   }

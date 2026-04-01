@@ -1,0 +1,124 @@
+<div class="color-container">
+  <div class="color-wrapper">
+  
+    <!-- HEADER -->
+    <div class="header-section">
+      <div class="header-content">
+        <div class="header-info">
+          <h1 class="page-title">🎨 Quản lý Màu Sắc</h1>
+          <p class="page-subtitle">Quản lý danh sách màu sắc cho sản phẩm</p>
+        </div>
+        <button class="btn-add-new" (click)="openAddColorModal()">
+          <span class="icon">+</span> Thêm màu mới
+        </button>
+      </div>
+
+      <!-- STATISTICS -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-label">Tổng màu</span>
+          <span class="stat-value">{{ colors.length }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Đang hiển thị</span>
+          <span class="stat-value">{{ filteredColors.length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="filter-section">
+      <div class="search-box">
+        <input 
+          type="text" 
+          class="search-input"
+          placeholder="🔍 Tìm kiếm màu sắc..."
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange()"
+        >
+      </div>
+      <button class="btn-reset" (click)="resetFilters()" *ngIf="searchQuery">↺ Đặt lại</button>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div *ngIf="filteredColors.length === 0" class="empty-state">
+      <div class="empty-icon">🎨</div>
+      <h3>Không tìm thấy màu sắc</h3>
+      <p>Hãy thêm màu sắc mới để bắt đầu</p>
+      <button class="btn-add-new" (click)="openAddColorModal()">
+        + Thêm màu đầu tiên
+      </button>
+    </div>
+
+    <!-- COLORS GRID -->
+    <div class="colors-grid">
+      <div class="color-card" *ngFor="let color of filteredColors">
+        <div class="color-preview-wrapper">
+          <div class="color-preview" [style.backgroundColor]="color.hex_code || '#cccccc'"></div>
+        </div>
+        
+        <div class="color-info">
+          <h3 class="color-name">{{ color.name }}</h3>
+          <p class="color-code">{{ color.hex_code }}</p>
+        </div>
+
+        <div class="color-actions">
+          <button class="action-btn edit-btn" (click)="editColor(color)" title="Chỉnh sửa">
+            ✏️ Sửa
+          </button>
+          <button class="action-btn delete-btn" (click)="deleteColor(color.id)" title="Xóa">
+            🗑️ Xóa
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD/EDIT COLOR MODAL -->
+<div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content modal-md" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">{{ editingColor ? '✏️ Chỉnh sửa Màu Sắc' : '➕ Thêm Màu Sắc Mới' }}</h2>
+      <button class="close-btn" (click)="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tên màu <span class="required">*</span></label>
+        <input 
+          type="text" 
+          [(ngModel)]="newColor.name" 
+          placeholder="VD: Đen, Trắng, Xanh..."
+          class="form-control"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Mã màu HEX <span class="required">*</span></label>
+        <div class="color-input-wrapper">
+          <input 
+            type="color" 
+            [(ngModel)]="newColor.hex_code" 
+            class="color-picker"
+          >
+          <input 
+            type="text" 
+            [(ngModel)]="newColor.hex_code" 
+            placeholder="#000000"
+            class="form-control hex-input"
+          >
+        </div>
+        <div class="color-preview-large" [style.backgroundColor]="newColor.hex_code || '#cccccc'"></div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeModal()">Hủy</button>
+      <button class="btn-submit" (click)="submitColor()" [disabled]="isSubmitting || !newColor.name || !newColor.hex_code">
+        {{ isSubmitting ? '⏳ Đang lưu...' : (editingColor ? '💾 Cập nhật' : '✅ Thêm mới') }}
+      </button>
+    </div>
+  </div>
+</div>

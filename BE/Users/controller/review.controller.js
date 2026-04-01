@@ -1,6 +1,70 @@
 const reviewService = require('../service/review.service');
+const OrderReview = require('../model/Review.model');
+const OrderDetail = require('../model/OrderDetail.model');
+const Order = require('../model/Order.model');
+const User = require('../model/user.model');
+const ProductVariant = require('../model/ProductVariant.model');
 
 class ReviewController {
+  // Lấy tất cả reviews (cho admin)
+  async getAllReviews(req, res) {
+    try {
+      const reviews = await OrderReview.findAll({
+        include: [
+          {
+            model: OrderDetail,
+            as: 'order_detail',
+            attributes: ['id', 'variant_id', 'order_id'],
+            include: [
+              {
+                model: ProductVariant,
+                attributes: ['id', 'product_id'],
+                as: 'variant'
+              },
+              {
+                model: Order,
+                attributes: ['id', 'user_id'],
+                as: 'order',
+                include: [
+                  {
+                    model: User,
+                    attributes: ['id', 'name'],
+                    as: 'user'
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        order: [['created_at', 'DESC']],
+        attributes: ['id', 'rating', 'comment', 'created_at', 'status']
+      });
+
+      const formattedReviews = reviews.map(review => ({
+        id: review.id,
+        rating: review.rating,
+        comment: review.comment,
+        created_at: review.created_at,
+        status: review.status,
+        productId: review.order_detail?.variant?.product_id,
+        variantId: review.order_detail?.variant?.id,
+        customerName: review.order_detail?.order?.user?.name
+      }));
+
+      res.status(200).json({
+        success: true,
+        message: 'Lấy danh sách đánh giá thành công',
+        data: formattedReviews
+      });
+    } catch (err) {
+      console.error('getAllReviews error:', err);
+      res.status(500).json({
+        success: false,
+        message: err.message
+      });
+    }
+  }
+
   // Tạo đánh giá
   async create(req, res) {
     try {

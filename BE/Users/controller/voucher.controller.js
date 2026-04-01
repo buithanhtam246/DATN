@@ -1,7 +1,7 @@
 const voucherService = require('../service/voucher.service');
 
 class VoucherController {
-  // Lấy danh sách voucher có sẵn
+  // Lấy danh sách voucher có sẵn (Khớp với màn hình bạn đang hiển thị)
   async getAvailable(req, res) {
     try {
       const vouchers = await voucherService.getAvailableVouchers();
@@ -19,7 +19,7 @@ class VoucherController {
     }
   }
 
-  // Kiểm tra voucher
+  // Kiểm tra voucher khi khách hàng áp dụng mã
   async checkVoucher(req, res) {
     try {
       const { code, totalPrice } = req.body || {};
@@ -60,7 +60,7 @@ class VoucherController {
     }
   }
 
-  // Lấy chi tiết voucher
+  // Lấy chi tiết một voucher cụ thể qua mã code
   async getDetail(req, res) {
     try {
       const { code } = req.params;
@@ -94,16 +94,45 @@ class VoucherController {
     }
   }
 
-  // Tạo voucher mới
+  // Tạo voucher mới (Đã chạy thành công theo xác nhận của bạn)
   async create(req, res) {
     try {
       const result = await voucherService.createVoucher(req.body);
-
       res.status(201).json(result);
     } catch (err) {
       res.status(400).json({
         success: false,
         message: err.message
+      });
+    }
+  }
+
+  /**
+   * HÀM XÓA VOUCHER (MỚI BỔ SUNG)
+   * Giải quyết lỗi 404 Not Found trong Console log của bạn
+   */
+  async deleteVoucher(req, res) {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng cung cấp ID voucher để xóa'
+        });
+      }
+
+      const result = await voucherService.deleteVoucher(id);
+
+      res.status(200).json({
+        success: true,
+        message: 'Xóa voucher thành công',
+        data: result
+      });
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        message: err.message || 'Lỗi hệ thống khi xóa voucher'
       });
     }
   }
