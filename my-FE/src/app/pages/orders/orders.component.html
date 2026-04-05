@@ -6,9 +6,10 @@
     <p>Xin chào, {{user?.name}} !</p>
 
     <ul>
-      <li><a routerLink="/account">Thông tin tài khoản</a></li>
-      <li class="active"><a routerLink="/orders">Lịch sử đơn hàng</a></li>
-      <li><a routerLink="/change-password">Đổi mật khẩu</a></li>
+      <li routerLinkActive="active"><a routerLink="/account">Thông tin tài khoản</a></li>
+      <li routerLinkActive="active"><a routerLink="/orders">Lịch sử đơn hàng</a></li>
+      <li routerLinkActive="active"><a routerLink="/addresses">Quản lý địa chỉ</a></li>
+      <li routerLinkActive="active"><a routerLink="/change-password">Đổi mật khẩu</a></li>
     </ul>
   </div>
 
@@ -53,12 +54,16 @@
             
             <div *ngFor="let item of order.items; trackBy: trackByItemId" class="item-row">
               <div class="col-product">
-                <!-- Placeholder cho hình ảnh sản phẩm (khi products module ready) -->
+                <!-- Hiển thị hình ảnh variant sản phẩm -->
                 <div class="product-placeholder">
-                  <img *ngIf="item.image" [src]="item.image" [alt]="item.product_name" class="product-image">
+                  <img *ngIf="item.image" [src]="getImageUrl(item.image)" [alt]="item.product_name" class="product-image">
                   <div *ngIf="!item.image" class="no-image-icon">📦</div>
                 </div>
-                <span class="product-name">{{item.product_name}}</span>
+                <div class="product-details">
+                  <span class="product-name">{{item.product_name}}</span>
+                  <span class="product-variant" *ngIf="item.color_name">{{item.color_name}}</span>
+                  <span class="product-size" *ngIf="item.size_id"> / Size {{item.size_id}}</span>
+                </div>
               </div>
               <span class="col-quantity">x{{item.quantity}}</span>
               <span class="col-price">{{item.price | currency:'VND':'symbol':'1.0-0'}}</span>
@@ -75,9 +80,13 @@
               <div *ngFor="let item of order.items; trackBy: trackByItemId" class="review-item">
                 <div class="review-header">
                   <div class="review-product-info">
-                    <img *ngIf="item.image" [src]="item.image" [alt]="item.product_name" class="review-product-img">
+                    <img *ngIf="item.image" [src]="getImageUrl(item.image)" [alt]="item.product_name" class="review-product-img">
                     <div *ngIf="!item.image" class="review-product-placeholder">📦</div>
-                    <span class="review-product">{{item.product_name}}</span>
+                    <div class="review-product-text">
+                      <span class="review-product">{{item.product_name}}</span>
+                      <span class="review-product-variant" *ngIf="item.color_name">{{item.color_name}}</span>
+                      <span class="review-product-size" *ngIf="item.size_id"> / Size {{item.size_id}}</span>
+                    </div>
                   </div>
                   <div class="review-actions">
                     <button 
@@ -173,7 +182,7 @@
             </div>
           </div>
           <div class="order-actions">
-            <button class="btn-detail">Xem chi tiết</button>
+            <button class="btn-detail" [routerLink]="['/order-detail', order.id]">Xem chi tiết</button>
           </div>
         </div>
 

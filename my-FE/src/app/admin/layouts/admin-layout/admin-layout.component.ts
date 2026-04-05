@@ -29,10 +29,10 @@ export class AdminLayoutComponent {
     { label: 'Đơn hàng', route: '/admin/orders', icon: 'fa-solid fa-cart-shopping' },
     { label: 'Người dùng', route: '/admin/users', icon: 'fa-solid fa-user' },
     { label: 'Thương hiệu', route: '/admin/brands', icon: 'fa-solid fa-tag' },
+    { label: 'Banner', route: '/admin/banners', icon: 'fa-solid fa-images' },
     { label: 'Danh mục', route: '/admin/categories', icon: 'fa-solid fa-list' },
     { label: 'Màu sắc', route: '/admin/colors', icon: 'fa-solid fa-palette' },
     { label: 'Kích thước', route: '/admin/sizes', icon: 'fa-solid fa-ruler' },
-    { label: 'Hướng Dẫn Size', route: '/admin/size-guide-settings', icon: 'fa-solid fa-image' },
     { label: 'Đánh giá', route: '/admin/reviews', icon: 'fa-solid fa-star' },
     { label: 'Voucher', route: '/admin/vouchers', icon: 'fa-solid fa-ticket' }
   ];

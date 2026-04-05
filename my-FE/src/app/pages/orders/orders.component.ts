@@ -226,4 +226,21 @@ export class OrdersComponent implements OnInit {
 	trackByItemId(index: number, item: any): any {
 		return item.id;
 	}
+
+	getImageUrl(imagePath: string): string {
+		if (!imagePath) return '';
+		
+		// Nếu đã là URL đầy đủ thì trả về ngay
+		if (imagePath.startsWith('http')) {
+			return imagePath;
+		}
+		
+		// Nếu chứa uploads hoặc public thì thêm domain
+		if (imagePath.includes('uploads') || imagePath.includes('public')) {
+			return `http://localhost:3000/${imagePath}`;
+		}
+		
+		// Mặc định thêm /images/products/
+		return `http://localhost:3000/images/products/${imagePath}`;
+	}
 }

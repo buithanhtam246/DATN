@@ -120,9 +120,9 @@ class CartController {
         });
       }
 
-      // Kiểm tra variant có tồn tại
+      // Kiểm tra variant có tồn tại và lấy số lượng tồn kho
       const variant = await sequelize.sequelize.query(
-        `SELECT id, product_id FROM variant WHERE id = ?`,
+        `SELECT id, product_id, quantity as available_quantity FROM variant WHERE id = ?`,
         {
           replacements: [variant_id],
           type: sequelize.sequelize.QueryTypes.SELECT
@@ -133,6 +133,14 @@ class CartController {
         return res.status(404).json({
           success: false,
           message: 'Variant not found'
+        });
+      }
+
+      // Kiểm tra tồn kho có đủ không
+      if (variant[0].available_quantity < quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Số lượng không đủ! Yêu cầu: ${quantity}, Tồn kho: ${variant[0].available_quantity}`
         });
       }
 
@@ -254,6 +262,7 @@ class CartController {
         });
       }
 
+      // Xóa sản phẩm khỏi giỏ
       await cartItem.destroy();
 
       return res.status(200).json({
@@ -340,6 +349,31 @@ class CartController {
       });
     } catch (error) {
       console.error('Error in getCartTotal:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  // Hoàn lại tồn kho khi người dùng xóa sản phẩm khỏi giỏ hàng (từ localStorage)
+  async restoreInventory(req, res) {
+    try {
+      const { variant_id, quantity } = req.body;
+
+      if (!variant_id || !quantity) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields: variant_id, quantity'
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'No inventory restore needed before checkout'
+      });
+    } catch (error) {
+      console.error('Error in restoreInventory:', error);
       return res.status(500).json({
         success: false,
         message: error.message

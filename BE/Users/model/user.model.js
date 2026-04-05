@@ -43,6 +43,12 @@ const User = sequelize.sequelize.define('users', {
   otp_expires: {
     type: DataTypes.DATE,
     allowNull: true
+  },
+
+  status: {
+    type: DataTypes.ENUM('active', 'blocked'),
+    allowNull: true,
+    defaultValue: 'active'
   }
   
 

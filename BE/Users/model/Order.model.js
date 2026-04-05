@@ -31,6 +31,10 @@ const Order = sequelize.sequelize.define('orders', {
     type: DataTypes.INTEGER,
     allowNull: true
   },
+  payment_method: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
   voucher_id: {
     type: DataTypes.INTEGER,
     allowNull: true
@@ -41,6 +45,10 @@ const Order = sequelize.sequelize.define('orders', {
   },
   delivery: {
     type: DataTypes.STRING(100),
+    allowNull: true
+  },
+  delivery_address: {
+    type: DataTypes.STRING(500),
     allowNull: true
   },
   create_at: {

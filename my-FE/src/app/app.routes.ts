@@ -8,9 +8,11 @@ import { AccountComponent } from './pages/account/account.component';
 import { AddressesComponent } from './pages/addresses/addresses.component';
 import { ChangePasswordComponent } from './pages/change-password/change-password.component';
 import { OrdersComponent } from './pages/orders/orders.component';
+import { OrderDetailComponent } from './pages/order-detail/order-detail.component';
 import { CartComponent } from './pages/cart/cart.component';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
 import { ProductsListComponent } from './pages/products-list/products-list.component';
+import { ProductDetailComponent } from './products-detail/product-detail.component';
 import { adminRoutes } from './admin/admin.routes';
 
 
@@ -40,6 +42,7 @@ export const routes: Routes = [
           {  path: 'addresses',  component: AddressesComponent},
           {path: 'change-password',component: ChangePasswordComponent},
           { path: 'orders',component: OrdersComponent},
+          { path: 'order-detail/:id', component: OrderDetailComponent },
           { path: 'cart', component: CartComponent },
           { path: 'checkout', component: CheckoutComponent },
           { 
@@ -47,8 +50,11 @@ export const routes: Routes = [
             component: ProductsListComponent,
             title: 'Sản Phẩm - GoodShoes'
           },
-          
-      // Add more routes here
+          {
+            path: 'products/:id',
+            component: ProductDetailComponent,
+            title: 'Chi tiết sản phẩm - GoodShoes'
+          },
       // {
       //   path: 'products',
       //   loadComponent: () => import('./pages/products/products.component').then(m => m.ProductsComponent),

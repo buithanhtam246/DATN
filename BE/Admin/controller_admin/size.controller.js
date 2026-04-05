@@ -7,15 +7,10 @@ const fs = require('fs');
 // Lấy tất cả kích thước
 exports.getSizes = async (req, res) => {
     try {
-        const { gender } = req.query;
-        let query = "SELECT id, size, gender, image_url, created_at, updated_at FROM size ORDER BY gender, size ASC";
-        
-        if (gender) {
-            query = `SELECT id, size, gender, image_url, created_at, updated_at FROM size WHERE gender = ? ORDER BY size ASC`;
-        }
+        const query = "SELECT id, size, category_id, created_at, updated_at FROM size ORDER BY category_id, size ASC";
         
         const data = await sequelize.query(query, {
-            replacements: gender ? [gender] : [],
+            replacements: [],
             type: sequelize.QueryTypes.SELECT
         });
         res.status(200).json(data);
@@ -24,30 +19,34 @@ exports.getSizes = async (req, res) => {
     }
 };
 
-// Lấy size guide (ảnh hướng dẫn) theo gender
-exports.getSizeGuideByGender = async (req, res) => {
+// Lấy sizes theo category
+exports.getSizesByCategory = async (req, res) => {
     try {
-        const { gender } = req.params;
-
-        // Validate gender
-        if (!['male', 'female'].includes(gender)) {
-            return res.status(400).json({ message: "Giới tính phải là 'male' hoặc 'female'" });
+        const { categoryId } = req.params;
+        
+        if (!categoryId) {
+            return res.status(400).json({ message: "Vui lòng cung cấp categoryId" });
         }
-
-        // Lấy hình ảnh hướng dẫn size cho gender này
-        const results = await sequelize.query(
-            "SELECT gender, image_url FROM size WHERE gender = ? AND image_url IS NOT NULL LIMIT 1",
+        
+        const data = await sequelize.query(
+            "SELECT id, size, category_id, created_at, updated_at FROM size WHERE category_id = ? ORDER BY size ASC",
             {
-                replacements: [gender],
+                replacements: [categoryId],
                 type: sequelize.QueryTypes.SELECT
             }
         );
         
-        if (results.length > 0) {
-            res.status(200).json(results[0]);
-        } else {
-            res.status(200).json({ gender: gender, image_url: null });
-        }
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi lấy sizes của danh mục: " + error.message });
+    }
+};
+
+// Lấy size guide (ảnh hướng dẫn) theo gender - DEPRECATED, use getSizeGuideByCategory instead
+exports.getSizeGuideByGender = async (req, res) => {
+    try {
+        // This endpoint is deprecated. Use getSizeGuideByCategory instead
+        return res.status(200).json({ message: "Không có guide theo gender. Hãy sử dụng category guide.", image_url: null });
     } catch (error) {
         res.status(500).json({ message: "Lỗi lấy hướng dẫn size: " + error.message });
     }
@@ -56,10 +55,10 @@ exports.getSizeGuideByGender = async (req, res) => {
 // Thêm kích thước mới
 exports.addSize = async (req, res) => {
     try {
-        const { size, gender } = req.body;
+        const { size, category_id } = req.body;
 
-        if (!size || !gender) {
-            return res.status(400).json({ message: "Vui lòng cung cấp kích thước và giới tính" });
+        if (!size || !category_id) {
+            return res.status(400).json({ message: "Vui lòng cung cấp kích thước và danh mục" });
         }
 
         // Validate size is number
@@ -68,32 +67,43 @@ exports.addSize = async (req, res) => {
             return res.status(400).json({ message: "Kích thước phải là số từ 1 đến 60" });
         }
 
-        // Validate gender
-        if (!['male', 'female'].includes(gender)) {
-            return res.status(400).json({ message: "Giới tính phải là 'male' hoặc 'female'" });
+        // Check if category exists (should be parent category)
+        const categoryExists = await sequelize.query(
+            "SELECT id FROM categories WHERE id = ? AND parent_id IS NULL",
+            {
+                replacements: [category_id],
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+
+        if (categoryExists.length === 0) {
+            return res.status(404).json({ message: "Danh mục cha không tồn tại" });
         }
 
-        // Check duplicate (size + gender)
-        const exists = await sequelize.query("SELECT id FROM size WHERE size = ? AND gender = ?", {
-            replacements: [sizeNum, gender],
-            type: sequelize.QueryTypes.SELECT
-        });
+        // Check duplicate (size + category)
+        const exists = await sequelize.query(
+            "SELECT id FROM size WHERE size = ? AND category_id = ?",
+            {
+                replacements: [sizeNum, category_id],
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
 
         if (exists.length > 0) {
-            return res.status(400).json({ message: "Kích thước này đã tồn tại cho giới tính được chọn" });
+            return res.status(400).json({ message: "Kích thước này đã tồn tại cho danh mục được chọn" });
         }
 
         // Insert new size
         const result = await sequelize.query(
-            "INSERT INTO size (size, gender, created_at, updated_at) VALUES (?, ?, NOW(), NOW())",
+            "INSERT INTO size (size, category_id, created_at, updated_at) VALUES (?, ?, NOW(), NOW())",
             {
-                replacements: [sizeNum, gender],
+                replacements: [sizeNum, category_id],
                 type: sequelize.QueryTypes.INSERT
             }
         );
 
         const newId = result[0];
-        const newSize = await sequelize.query("SELECT id, size, gender, image_url, created_at, updated_at FROM size WHERE id = ?", {
+        const newSize = await sequelize.query("SELECT id, size, category_id, created_at, updated_at FROM size WHERE id = ?", {
             replacements: [newId],
             type: sequelize.QueryTypes.SELECT
         });
@@ -108,10 +118,10 @@ exports.addSize = async (req, res) => {
 exports.updateSize = async (req, res) => {
     try {
         const { id } = req.params;
-        const { size, gender } = req.body;
+        const { size } = req.body;
 
-        if (!size || !gender) {
-            return res.status(400).json({ message: "Vui lòng cung cấp kích thước và giới tính" });
+        if (!size) {
+            return res.status(400).json({ message: "Vui lòng cung cấp kích thước" });
         }
 
         // Validate size is number
@@ -120,13 +130,8 @@ exports.updateSize = async (req, res) => {
             return res.status(400).json({ message: "Kích thước phải là số từ 1 đến 60" });
         }
 
-        // Validate gender
-        if (!['male', 'female'].includes(gender)) {
-            return res.status(400).json({ message: "Giới tính phải là 'male' hoặc 'female'" });
-        }
-
         // Check if size exists
-        const sizeExists = await sequelize.query("SELECT id FROM size WHERE id = ?", {
+        const sizeExists = await sequelize.query("SELECT id, category_id FROM size WHERE id = ?", {
             replacements: [id],
             type: sequelize.QueryTypes.SELECT
         });
@@ -135,30 +140,32 @@ exports.updateSize = async (req, res) => {
             return res.status(404).json({ message: "Kích thước không tồn tại" });
         }
 
+        const category_id = sizeExists[0].category_id;
+
         // Check duplicate (excluding current size)
         const duplicate = await sequelize.query(
-            "SELECT id FROM size WHERE size = ? AND gender = ? AND id != ?",
+            "SELECT id FROM size WHERE size = ? AND category_id = ? AND id != ?",
             {
-                replacements: [sizeNum, gender, id],
+                replacements: [sizeNum, category_id, id],
                 type: sequelize.QueryTypes.SELECT
             }
         );
 
         if (duplicate.length > 0) {
-            return res.status(400).json({ message: "Kích thước này đã tồn tại cho giới tính được chọn" });
+            return res.status(400).json({ message: "Kích thước này đã tồn tại cho danh mục được chọn" });
         }
 
         // Update size
         await sequelize.query(
-            "UPDATE size SET size = ?, gender = ?, updated_at = NOW() WHERE id = ?",
+            "UPDATE size SET size = ?, updated_at = NOW() WHERE id = ?",
             {
-                replacements: [sizeNum, gender, id],
+                replacements: [sizeNum, id],
                 type: sequelize.QueryTypes.UPDATE
             }
         );
 
         const updated = await sequelize.query(
-            "SELECT id, size, gender, image_url, created_at, updated_at FROM size WHERE id = ?",
+            "SELECT id, size, category_id, created_at, updated_at FROM size WHERE id = ?",
             {
                 replacements: [id],
                 type: sequelize.QueryTypes.SELECT
@@ -176,8 +183,8 @@ exports.uploadSizeGuide = async (req, res) => {
     try {
         const { gender } = req.params;
 
-        if (!gender || !['male', 'female'].includes(gender)) {
-            return res.status(400).json({ message: "Giới tính phải là 'male' hoặc 'female'" });
+        if (!gender || !['male', 'female', 'unisex'].includes(gender)) {
+            return res.status(400).json({ message: "Giới tính phải là 'male', 'female', hoặc 'unisex'" });
         }
 
         if (!req.file) {
@@ -188,7 +195,7 @@ exports.uploadSizeGuide = async (req, res) => {
 
         // Check if guide image already exists for this gender
         const existing = await sequelize.query(
-            "SELECT id FROM size WHERE gender = ? AND image_url IS NOT NULL LIMIT 1",
+            "SELECT id FROM size WHERE gender = ? AND COALESCE(size_image_url, image_url) IS NOT NULL LIMIT 1",
             {
                 replacements: [gender],
                 type: sequelize.QueryTypes.SELECT
@@ -198,7 +205,7 @@ exports.uploadSizeGuide = async (req, res) => {
         if (existing.length > 0) {
             // Delete old image
             const oldImage = existing[0];
-            const query = "SELECT image_url FROM size WHERE id = ?";
+            const query = "SELECT COALESCE(size_image_url, image_url) as image_url FROM size WHERE id = ?";
             const [oldImageData] = await sequelize.query(query, {
                 replacements: [oldImage.id],
                 type: sequelize.QueryTypes.SELECT
@@ -213,7 +220,7 @@ exports.uploadSizeGuide = async (req, res) => {
 
             // Update with new image
             await sequelize.query(
-                "UPDATE size SET image_url = ?, updated_at = NOW() WHERE id = ?",
+                "UPDATE size SET size_image_url = ?, updated_at = NOW() WHERE id = ?",
                 {
                     replacements: [imageUrl, oldImage.id],
                     type: sequelize.QueryTypes.UPDATE
@@ -234,7 +241,7 @@ exports.uploadSizeGuide = async (req, res) => {
             }
 
             await sequelize.query(
-                "UPDATE size SET image_url = ?, updated_at = NOW() WHERE id = ?",
+                "UPDATE size SET size_image_url = ?, updated_at = NOW() WHERE id = ?",
                 {
                     replacements: [imageUrl, firstSize[0].id],
                     type: sequelize.QueryTypes.UPDATE
@@ -255,7 +262,7 @@ exports.uploadSizeGuide = async (req, res) => {
 exports.getAllSizeGuides = async (req, res) => {
     try {
         const guides = await sequelize.query(
-            "SELECT DISTINCT gender, image_url FROM size WHERE image_url IS NOT NULL",
+            "SELECT DISTINCT gender, COALESCE(size_image_url, image_url) as image_url FROM size WHERE COALESCE(size_image_url, image_url) IS NOT NULL",
             {
                 type: sequelize.QueryTypes.SELECT
             }
@@ -272,13 +279,13 @@ exports.deleteSizeGuide = async (req, res) => {
     try {
         const { gender } = req.params;
 
-        if (!gender || !['male', 'female'].includes(gender)) {
-            return res.status(400).json({ message: "Giới tính phải là 'male' hoặc 'female'" });
+        if (!gender || !['male', 'female', 'unisex'].includes(gender)) {
+            return res.status(400).json({ message: "Giới tính phải là 'male', 'female', hoặc 'unisex'" });
         }
 
         // Find the size record with image_url for this gender
         const guide = await sequelize.query(
-            "SELECT id, image_url FROM size WHERE gender = ? AND image_url IS NOT NULL LIMIT 1",
+            "SELECT id, COALESCE(size_image_url, image_url) as image_url FROM size WHERE gender = ? AND COALESCE(size_image_url, image_url) IS NOT NULL LIMIT 1",
             {
                 replacements: [gender],
                 type: sequelize.QueryTypes.SELECT
@@ -299,7 +306,7 @@ exports.deleteSizeGuide = async (req, res) => {
 
         // Clear image_url from database
         await sequelize.query(
-            "UPDATE size SET image_url = NULL, updated_at = NOW() WHERE id = ?",
+            "UPDATE size SET size_image_url = NULL, updated_at = NOW() WHERE id = ?",
             {
                 replacements: [guide[0].id],
                 type: sequelize.QueryTypes.UPDATE
@@ -321,7 +328,7 @@ exports.deleteSize = async (req, res) => {
         const { id } = req.params;
 
         // Check if size exists
-        const size = await sequelize.query("SELECT id, image_url FROM size WHERE id = ?", {
+        const size = await sequelize.query("SELECT id, COALESCE(size_image_url, image_url) as image_url FROM size WHERE id = ?", {
             replacements: [id],
             type: sequelize.QueryTypes.SELECT
         });

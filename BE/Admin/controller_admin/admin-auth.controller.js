@@ -1,4 +1,5 @@
-const pool = require('../config/db');
+const { sequelize } = require('../../config/database');
+const User = require('../../Users/model/user.model');
 const bcryptUtil = require('../../Users/utils/bcrypt.util');
 const jwtUtil = require('../../Users/utils/jwt.util');
 
@@ -16,19 +17,16 @@ class AdminAuthController {
       }
 
       // Query database để tìm user với role = 'admin'
-      const [users] = await pool.query(
-        `SELECT id, name, email, password, role FROM user WHERE email = ? AND role = 'admin'`,
-        [email]
-      );
+      const user = await User.findOne({
+        where: { email, role: 'admin' }
+      });
 
-      if (users.length === 0) {
+      if (!user) {
         return res.status(401).json({
           success: false,
           message: 'Email admin không tồn tại hoặc không có quyền admin'
         });
       }
-
-      const user = users[0];
 
       // Kiểm tra mật khẩu
       const isMatch = await bcryptUtil.compare(password, user.password);
@@ -48,15 +46,6 @@ class AdminAuthController {
         },
         '2h'
       );
-
-      // Lưu log đăng nhập admin (optional)
-      const timestamp = new Date();
-      await pool.query(
-        `INSERT INTO admin_login_logs (admin_id, email, ip_address, created_at) VALUES (?, ?, ?, ?)`,
-        [user.id, user.email, req.ip || 'unknown', timestamp]
-      ).catch(() => {
-        // Bỏ qua nếu table không tồn tại
-      });
 
       return res.json({
         success: true,

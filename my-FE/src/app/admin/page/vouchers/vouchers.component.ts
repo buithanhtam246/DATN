@@ -1,6 +1,6 @@
 import { Component, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { VoucherService, Voucher } from '../../../services/Voucher.Service';
 
 @Component({
@@ -27,7 +27,45 @@ export class VouchersComponent implements OnInit {
       max_value: [null],
       start_date: ['', [Validators.required]],
       promotion_date: ['', [Validators.required]]
-    });
+    }, { validators: this.endDateAfterStartDate.bind(this) });
+  }
+
+  // Validator: ngày kết thúc phải sau ngày bắt đầu
+  endDateAfterStartDate(control: AbstractControl): ValidationErrors | null {
+    const startDate = control.get('start_date')?.value;
+    const endDate = control.get('promotion_date')?.value;
+
+    if (!startDate || !endDate) {
+      return null; // Không validate nếu chưa chọn cả hai
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (end <= start) {
+      control.get('promotion_date')?.setErrors({ 'endBeforeStart': true });
+      return { 'endBeforeStart': true };
+    } else {
+      // Xóa error nếu đã valid
+      const errors = control.get('promotion_date')?.errors;
+      if (errors && errors['endBeforeStart']) {
+        const { endBeforeStart, ...rest } = errors;
+        control.get('promotion_date')?.setErrors(Object.keys(rest).length > 0 ? rest : null);
+      }
+    }
+
+    return null;
+  }
+
+  // Check xem ngày bắt đầu đã được chọn chưa
+  isStartDateSelected(): boolean {
+    return !!this.voucherForm.get('start_date')?.value;
+  }
+
+  // Check xem có lỗi ngày kết thúc không
+  hasEndDateError(): boolean {
+    const endDateControl = this.voucherForm.get('promotion_date');
+    return !!(endDateControl?.errors?.['endBeforeStart'] && endDateControl?.touched);
   }
 
   ngOnInit() {
@@ -37,10 +75,19 @@ export class VouchersComponent implements OnInit {
   loadVouchers() {
     this.voucherService.getAllVouchers().subscribe({
       next: (res: any) => {
+        console.log('📋 API Response:', res);
         const data = res.data || res;
-        this.vouchers.set(Array.isArray(data) ? data : []);
+        console.log('📋 Data:', data);
+        const voucherList = Array.isArray(data) ? data : [];
+        console.log('📋 Voucher List:', voucherList);
+        // Map dữ liệu từ API (snake_case) sang camelCase
+        const mappedList = voucherList.map((v: any) => this.voucherService.mapVoucherData(v));
+        console.log('📋 Mapped List:', mappedList);
+        this.vouchers.set(mappedList);
       },
-      error: (err) => console.error('Lỗi tải danh sách:', err)
+      error: (err) => {
+        console.error('❌ Lỗi tải danh sách:', err);
+      }
     });
   }
 
@@ -49,7 +96,7 @@ export class VouchersComponent implements OnInit {
     if (this.voucherForm.valid) {
       this.voucherService.createVoucher(this.voucherForm.value).subscribe({
         next: () => {
-          this.loadVouchers(); // Tải lại để lấy ID mới từ server
+          this.loadVouchers(); // Tải lại để lấy dữ liệu mới từ server
           this.showModal.set(false);
           this.voucherForm.reset({ promotion_type: 'percentage', quantity: 1 });
         },
@@ -113,7 +160,8 @@ export class VouchersComponent implements OnInit {
   filteredVouchers = computed(() => {
     const query = this.searchQuery().toLowerCase();
     return this.vouchers().filter(v => 
-      v.code?.toLowerCase().includes(query) || v.name?.toLowerCase().includes(query)
+      (v.code?.toLowerCase().includes(query) || false) || 
+      (v.name?.toLowerCase().includes(query) || false)
     );
   });
 }

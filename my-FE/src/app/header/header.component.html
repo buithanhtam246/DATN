@@ -10,7 +10,7 @@
     <!-- Navigation Menu -->
     <nav class="nav-menu">
       <ul>
-        @for (item of menuItems; track item.label) {
+        @for (item of menuItems(); track item.label) {
           <li><a [href]="item.link">{{ item.label }}</a></li>
         }
       </ul>

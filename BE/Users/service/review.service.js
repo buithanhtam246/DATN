@@ -70,12 +70,23 @@ class ReviewService {
     
     const { rows, count } = await reviewRepository.findByVariantId(variantId, limit, offset);
 
+    // Map reviews to include customer name
+    const mappedReviews = rows.map(review => ({
+      id: review.id,
+      rating: review.rating,
+      comment: review.comment,
+      created_at: review.created_at,
+      status: review.status,
+      customerName: review.order_detail?.order?.user?.name || 'Ẩn danh',
+      order_detail_id: review.order_detail_id
+    }));
+
     const stats = await reviewRepository.getReviewStats(variantId);
 
     return {
       success: true,
       data: {
-        reviews: rows,
+        reviews: mappedReviews,
         pagination: {
           current_page: page,
           limit,

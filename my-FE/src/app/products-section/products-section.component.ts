@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { ProductService } from '../core/services';
@@ -6,6 +6,7 @@ import { ProductService } from '../core/services';
 interface ProductItem {
   id: string;
   title: string;
+  brand: string;
   category: string;
   price: string;
   imageUrl: string;
@@ -28,27 +29,100 @@ interface ProductItem {
 export class ProductsSectionComponent implements OnInit {
   private productService = inject(ProductService);
   private router = inject(Router);
-  products: ProductItem[] = [];
+  products = signal<ProductItem[]>([]);
 
   ngOnInit(): void {
     this.loadProducts();
   }
 
   private loadProducts(): void {
-    // Load all products from JSON via ProductService for home page
-    this.productService.getProducts().subscribe(data => {
-      console.log('Total products loaded from JSON:', data.length);
-      // Display all products (8 items from JSON, or more if added)
-      this.products = data.map((p: any) => ({
-        id: p.id || '',
-        title: p.title,
-        category: p.category || p.brand || 'Giày',
-        price: p.price,
-        imageUrl: p.imageUrl || ''
-      }));
-      console.log('Products displayed on home page:', this.products.length);
-      console.log('First product:', this.products[0]);
+    // Load top-selling products for homepage
+    this.productService.getTopSellingProducts(8).subscribe({
+      next: (response: any) => {
+        const productList = response?.data || [];
+
+        if (!Array.isArray(productList) || productList.length === 0) {
+          this.loadFallbackProducts();
+          return;
+        }
+        
+        // Map backend fields to frontend fields
+        const mappedProducts = productList.map((p: any) => {
+          const variantSalePrice = Number(p?.price_sale || 0);
+          const variantBasePrice = Number(p?.price || 0);
+          const productSalePrice = Number(p?.price_sale || 0);
+          const productBasePrice = Number(p?.price || 0);
+
+          const price =
+            (variantSalePrice > 0 ? variantSalePrice : 0) ||
+            (variantBasePrice > 0 ? variantBasePrice : 0) ||
+            (productSalePrice > 0 ? productSalePrice : 0) ||
+            (productBasePrice > 0 ? productBasePrice : 0) ||
+            0;
+          const imageUrl = p.image || '';
+          
+          return {
+            id: p.id?.toString() || '',
+            title: p.name || 'Sản phẩm',
+            brand: p.brand_name || 'Thương hiệu',
+            category: p.category_name || 'Danh mục',
+            price: this.formatPrice(price),
+            imageUrl: this.buildImageUrl(imageUrl)
+          };
+        }).slice(0, 8);
+        
+        // Update signal instead of direct assignment
+        this.products.set(mappedProducts);
+        console.log('Products displayed on home page:', mappedProducts.length);
+        console.log('First product:', mappedProducts[0]);
+      },
+      error: (error) => {
+        this.loadFallbackProducts();
+      }
     });
+  }
+
+  private loadFallbackProducts(): void {
+    this.productService.getProducts().subscribe({
+      next: (response: any) => {
+        const productList = response.data || response || [];
+
+        const mappedProducts = productList.map((p: any) => {
+          const firstVariant = p.variants && p.variants.length > 0 ? p.variants[0] : null;
+          const variantSalePrice = Number(firstVariant?.price_sale || 0);
+          const variantBasePrice = Number(firstVariant?.price || 0);
+          const price = (variantSalePrice > 0 ? variantSalePrice : 0) || (variantBasePrice > 0 ? variantBasePrice : 0) || 0;
+
+          return {
+            id: p.id?.toString() || '',
+            title: p.name || 'Sản phẩm',
+            brand: p.brand_name || 'Thương hiệu',
+            category: p.category_name || 'Danh mục',
+            price: this.formatPrice(price),
+            imageUrl: this.buildImageUrl(firstVariant?.image || p.image || '')
+          };
+        }).slice(0, 8);
+
+        this.products.set(mappedProducts);
+      },
+      error: () => {
+        this.products.set([]);
+      }
+    });
+  }
+
+  private formatPrice(price: any): string {
+    if (!price || Number(price) <= 0) return '0 đ';
+    const num = parseFloat(price);
+    return num.toLocaleString('vi-VN') + ' đ';
+  }
+
+  private buildImageUrl(imagePath: string): string {
+    if (!imagePath) return 'assets/placeholder.png';
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http')) return imagePath;
+    // Images are stored in /public/images/products/ directory
+    return `http://localhost:3000/public/images/products/${imagePath}`;
   }
 
   navigateToProducts(): void {

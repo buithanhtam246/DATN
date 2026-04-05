@@ -3,8 +3,8 @@ const router = express.Router();
 const reviewController = require('../controller/review.controller');
 const { authMiddleware, adminMiddleware } = require('../middleware/auth.middleware');
 
-// Lấy tất cả reviews (cho admin)
-router.get('/', authMiddleware, adminMiddleware, reviewController.getAllReviews.bind(reviewController));
+// Lấy tất cả reviews (trang quản lý đánh giá)
+router.get('/', authMiddleware, reviewController.getAllReviews.bind(reviewController));
 
 // Tạo đánh giá (require authentication)
 router.post('/create', authMiddleware, reviewController.create.bind(reviewController));
@@ -20,5 +20,8 @@ router.put('/update/:review_id', authMiddleware, reviewController.update.bind(re
 
 // Xóa đánh giá (require authentication)
 router.delete('/delete/:review_id', authMiddleware, reviewController.delete.bind(reviewController));
+
+// Cập nhật trạng thái đánh giá (Admin only)
+router.put('/:review_id/status', authMiddleware, adminMiddleware, reviewController.updateStatus.bind(reviewController));
 
 module.exports = router;

@@ -7,6 +7,7 @@ module.exports = (sequelize) => {
         brand_id: { type: DataTypes.INTEGER, allowNull: true },
         name: { type: DataTypes.STRING(200), allowNull: true },
         image: { type: DataTypes.TEXT, allowNull: true },
+        images: { type: DataTypes.JSON, allowNull: true }, // JSON array of image filenames
         describ: { type: DataTypes.TEXT, allowNull: true },
         date_add: { 
             type: DataTypes.DATE, 

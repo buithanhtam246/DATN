@@ -31,7 +31,10 @@ class OrderHistoryController {
 
       // If no orders, return empty array
       if (orders.length === 0) {
-        orders = [];
+        return res.status(200).json({
+          success: true,
+          data: []
+        });
       }
 
       // Lấy chi tiết sản phẩm cho từng đơn hàng
@@ -40,10 +43,13 @@ class OrderHistoryController {
         try {
           const orderDetails = await sequelize.sequelize.query(
             `SELECT od.id, od.order_id, od.quantity, od.price, od.variant_id,
-                    v.id as variant_id, v.product_id, p.name as product_name, p.image
+                    v.id as variant_id, v.product_id, v.image as variant_image, v.color_id, v.size_id,
+                    p.name as product_name, p.image as product_image,
+                    c.name as color_name
              FROM order_details od
              LEFT JOIN variant v ON od.variant_id = v.id
              LEFT JOIN products p ON v.product_id = p.id
+             LEFT JOIN color c ON v.color_id = c.id
              WHERE od.order_id = ?`,
             {
               replacements: [order.id],
@@ -51,7 +57,12 @@ class OrderHistoryController {
             }
           );
           console.log('Order details result for order', order.id, ':', orderDetails);
-          order.items = orderDetails || [];
+          
+          // Xử lý dữ liệu: sử dụng variant_image nếu có, nếu không thì dùng product_image
+          order.items = (orderDetails || []).map(item => ({
+            ...item,
+            image: item.variant_image || item.product_image
+          }));
           order.canReview = order.status === 'delivered';
           console.log('Order', order.id, 'has', order.items.length, 'items');
         } catch (detailError) {
@@ -98,12 +109,11 @@ class OrderHistoryController {
       // Lấy chi tiết các sản phẩm trong đơn hàng
       const orderDetails = await sequelize.sequelize.query(
         `SELECT od.id, od.order_id, od.quantity, od.price, od.variant_id,
-                v.id as variant_id, v.product_id, p.name as product_name, p.image,
-                or.id as review_id, or.rating, or.comment, or.created_at as review_date, or.status as review_status
+                v.id as variant_id, v.product_id, v.color_id, v.size_id, v.image as variant_image,
+                p.name as product_name, p.image as product_image
          FROM order_details od
          LEFT JOIN variant v ON od.variant_id = v.id
          LEFT JOIN products p ON v.product_id = p.id
-         LEFT JOIN order_reviews or ON od.id = or.order_detail_id
          WHERE od.order_id = ?`,
         {
           replacements: [orderId],

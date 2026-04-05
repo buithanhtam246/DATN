@@ -1,19 +1,18 @@
 const db = require("../config/db");
 
-// Lấy danh mục cấp 1 (Nam/Nữ)
+// Lấy danh mục cấp 1 (Nam/Nữ/Trẻ em/Unisex)
 exports.getParentCategories = async () => {
     let connection;
     try {
         console.log("📍 Service: Lấy danh mục cấp 1...");
         connection = await db.getConnection();
         
-        const sql = `SELECT id, name, gender, status FROM categories WHERE parent_id IS NULL ORDER BY id`;
+        const sql = `SELECT id, name, status FROM categories WHERE parent_id IS NULL ORDER BY id`;
         const [rows] = await connection.query(sql);
         
         return rows.map(cat => ({
             id: cat.id,
             name: cat.name,
-            gender: cat.gender,
             status: cat.status === 1 ? 'active' : 'inactive',
             children: []
         }));
@@ -32,14 +31,13 @@ exports.getSubCategories = async (parentId) => {
         console.log("📍 Service: Lấy danh mục con của parent:", parentId);
         connection = await db.getConnection();
         
-        const sql = `SELECT id, parent_id, name, gender, status FROM categories WHERE parent_id = ? ORDER BY id`;
+        const sql = `SELECT id, parent_id, name, status FROM categories WHERE parent_id = ? ORDER BY id`;
         const [rows] = await connection.query(sql, [parentId]);
         
         return rows.map(cat => ({
             id: cat.id,
             parent_id: cat.parent_id,
             name: cat.name,
-            gender: cat.gender,
             status: cat.status === 1 ? 'active' : 'inactive'
         }));
     } catch (error) {
@@ -58,11 +56,11 @@ exports.getAllCategories = async () => {
         connection = await db.getConnection();
         
         // Lấy danh mục cấp 1
-        const parentSql = `SELECT id, name, gender, status FROM categories WHERE parent_id IS NULL ORDER BY id`;
+        const parentSql = `SELECT id, name, status FROM categories WHERE parent_id IS NULL ORDER BY id`;
         const [parents] = await connection.query(parentSql);
         
         // Lấy tất cả danh mục cấp 2
-        const childSql = `SELECT id, parent_id, name, gender, status FROM categories WHERE parent_id IS NOT NULL ORDER BY parent_id, id`;
+        const childSql = `SELECT id, parent_id, name, status FROM categories WHERE parent_id IS NOT NULL ORDER BY parent_id, id`;
         const [children] = await connection.query(childSql);
         
         // Kết hợp parent + children
@@ -70,7 +68,6 @@ exports.getAllCategories = async () => {
             const parentCategory = {
                 id: parent.id,
                 name: parent.name,
-                gender: parent.gender,
                 status: parent.status === 1 ? 'active' : 'inactive',
                 isParent: true,
                 children: children
@@ -79,7 +76,6 @@ exports.getAllCategories = async () => {
                         id: child.id,
                         parent_id: child.parent_id,
                         name: child.name,
-                        gender: child.gender,
                         status: child.status === 1 ? 'active' : 'inactive',
                         isParent: false
                     }))
@@ -96,21 +92,20 @@ exports.getAllCategories = async () => {
     }
 };
 
-// Tạo danh mục cấp 1 (Nam/Nữ)
-exports.createParentCategory = async (name, gender, status) => {
+// Tạo danh mục cấp 1 (Nam/Nữ/Trẻ em/Unisex)
+exports.createParentCategory = async (name, status) => {
     let connection;
     try {
         console.log("📍 Service: Thêm danh mục cấp 1...");
         connection = await db.getConnection();
         
         const statusValue = status === 'active' ? 1 : 0;
-        const sql = `INSERT INTO categories (parent_id, gender, name, status) VALUES (NULL, ?, ?, ?)`;
-        const [result] = await connection.query(sql, [gender, name, statusValue]);
+        const sql = `INSERT INTO categories (parent_id, name, status) VALUES (NULL, ?, ?)`;
+        const [result] = await connection.query(sql, [name, statusValue]);
         
         return {
             id: result.insertId,
             name: name,
-            gender: gender,
             status: status,
             isParent: true,
             children: []
@@ -124,21 +119,20 @@ exports.createParentCategory = async (name, gender, status) => {
 };
 
 // Tạo danh mục cấp 2 (con)
-exports.createSubCategory = async (parentId, name, gender, status) => {
+exports.createSubCategory = async (parentId, name, status) => {
     let connection;
     try {
         console.log("📍 Service: Thêm danh mục cấp 2...");
         connection = await db.getConnection();
         
         const statusValue = status === 'active' ? 1 : 0;
-        const sql = `INSERT INTO categories (parent_id, gender, name, status) VALUES (?, ?, ?, ?)`;
-        const [result] = await connection.query(sql, [parentId, gender, name, statusValue]);
+        const sql = `INSERT INTO categories (parent_id, name, status) VALUES (?, ?, ?)`;
+        const [result] = await connection.query(sql, [parentId, name, statusValue]);
         
         return {
             id: result.insertId,
             parent_id: parentId,
             name: name,
-            gender: gender,
             status: status,
             isParent: false
         };
@@ -151,20 +145,19 @@ exports.createSubCategory = async (parentId, name, gender, status) => {
 };
 
 // Cập nhật danh mục
-exports.updateCategory = async (id, name, gender, status) => {
+exports.updateCategory = async (id, name, status) => {
     let connection;
     try {
         console.log("📍 Service: Cập nhật danh mục ID:", id);
         connection = await db.getConnection();
         
         const statusValue = status === 'active' ? 1 : 0;
-        const sql = `UPDATE categories SET name = ?, gender = ?, status = ? WHERE id = ?`;
-        const [result] = await connection.query(sql, [name, gender, statusValue, id]);
+        const sql = `UPDATE categories SET name = ?, status = ? WHERE id = ?`;
+        const [result] = await connection.query(sql, [name, statusValue, id]);
         
         return {
             id: id,
             name: name,
-            gender: gender,
             status: status
         };
     } catch (error) {

@@ -29,7 +29,7 @@ class OrderController {
           }
         ],
         order: [['create_at', 'DESC']],
-        attributes: ['id', 'user_id', 'total_price', 'delivery_cost', 'status', 'create_at']
+        attributes: ['id', 'user_id', 'total_price', 'delivery_cost', 'status', 'create_at', 'payment_method']
       });
 
       const formattedOrders = orders.map(order => ({
@@ -40,6 +40,7 @@ class OrderController {
         totalPrice: order.total_price,
         deliveryCost: order.delivery_cost,
         status: order.status,
+        paymentMethod: order.payment_method,
         productCount: order.orderDetails?.length || 0,
         created_at: order.create_at
       }));

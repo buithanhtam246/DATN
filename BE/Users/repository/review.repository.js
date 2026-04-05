@@ -1,5 +1,7 @@
 const Review = require('../model/Review.model');
 const OrderDetail = require('../model/OrderDetail.model');
+const Order = require('../model/Order.model');
+const User = require('../model/user.model');
 const { sequelize } = require('../../config/database');
 
 class ReviewRepository {
@@ -38,18 +40,37 @@ class ReviewRepository {
   // Lấy tất cả đánh giá của một sản phẩm (variant)
   async findByVariantId(variantId, limit = 10, offset = 0) {
     return await Review.findAndCountAll({
+      attributes: ['id', 'order_detail_id', 'rating', 'comment', 'created_at', 'status'],
       include: [
         {
           model: OrderDetail,
           as: 'order_detail',
           where: { variant_id: variantId },
-          attributes: ['id', 'variant_id', 'quantity', 'price']
+          attributes: ['id', 'order_id'],
+          required: true,
+          include: [
+            {
+              model: Order,
+              as: 'order',
+              attributes: ['id', 'user_id'],
+              include: [
+                {
+                  model: User,
+                  as: 'user',
+                  attributes: ['id', 'name']
+                }
+              ]
+            }
+          ]
         }
       ],
       where: { status: 1 },
       limit,
       offset,
-      order: [['created_at', 'DESC']]
+      order: [[sequelize.literal('`order_reviews`.`created_at`'), 'DESC']],
+      subQuery: false,
+      distinct: true,
+      raw: false
     });
   }
 
@@ -86,24 +107,26 @@ class ReviewRepository {
   async getReviewStats(variantId) {
     const result = await Review.findAll({
       attributes: [
-        [sequelize.fn('COUNT', sequelize.col('id')), 'total_reviews'],
-        [sequelize.fn('AVG', sequelize.col('rating')), 'avg_rating'],
-        [sequelize.fn('SUM', sequelize.literal('CASE WHEN rating = 5 THEN 1 ELSE 0 END')), 'count_5star'],
-        [sequelize.fn('SUM', sequelize.literal('CASE WHEN rating = 4 THEN 1 ELSE 0 END')), 'count_4star'],
-        [sequelize.fn('SUM', sequelize.literal('CASE WHEN rating = 3 THEN 1 ELSE 0 END')), 'count_3star'],
-        [sequelize.fn('SUM', sequelize.literal('CASE WHEN rating = 2 THEN 1 ELSE 0 END')), 'count_2star'],
-        [sequelize.fn('SUM', sequelize.literal('CASE WHEN rating = 1 THEN 1 ELSE 0 END')), 'count_1star']
+        [sequelize.fn('COUNT', sequelize.col('order_reviews.id')), 'total_reviews'],
+        [sequelize.fn('AVG', sequelize.col('order_reviews.rating')), 'avg_rating'],
+        [sequelize.fn('SUM', sequelize.literal('CASE WHEN order_reviews.rating = 5 THEN 1 ELSE 0 END')), 'count_5star'],
+        [sequelize.fn('SUM', sequelize.literal('CASE WHEN order_reviews.rating = 4 THEN 1 ELSE 0 END')), 'count_4star'],
+        [sequelize.fn('SUM', sequelize.literal('CASE WHEN order_reviews.rating = 3 THEN 1 ELSE 0 END')), 'count_3star'],
+        [sequelize.fn('SUM', sequelize.literal('CASE WHEN order_reviews.rating = 2 THEN 1 ELSE 0 END')), 'count_2star'],
+        [sequelize.fn('SUM', sequelize.literal('CASE WHEN order_reviews.rating = 1 THEN 1 ELSE 0 END')), 'count_1star']
       ],
       include: [
         {
           model: OrderDetail,
           as: 'order_detail',
           where: { variant_id: variantId },
-          attributes: []
+          attributes: [],
+          required: true
         }
       ],
       where: { status: 1 },
-      raw: true
+      raw: true,
+      subQuery: false
     });
     return result[0] || null;
   }

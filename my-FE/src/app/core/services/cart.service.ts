@@ -1,6 +1,8 @@
 import { Injectable, signal, computed } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Product } from '../models';
 import { ICartOperations, IStatefulService } from '../interfaces/service.interface';
+import { Observable } from 'rxjs';
 
 /**
  * Interface cho cart item
@@ -21,7 +23,7 @@ export interface CartItem {
   providedIn: 'root'
 })
 export class CartService implements ICartOperations, IStatefulService<CartItem[]> {
-  // Sử dụng signal cho reactive state management
+  private apiUrl = 'http://localhost:3000/api';
   private cartItems = signal<CartItem[]>([]);
   
   // Computed values
@@ -29,6 +31,8 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
   public readonly itemCount = computed(() => 
     this.cartItems().reduce((total, item) => total + item.quantity, 0)
   );
+
+  constructor(private http: HttpClient) {}
 
   /**
    * Thêm sản phẩm vào giỏ hàng
@@ -165,5 +169,17 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
       const price = parseFloat(item.product.price.replace(/[^\d]/g, ''));
       return total + (price * item.quantity);
     }, 0);
+  }
+
+  /**
+   * Thêm sản phẩm vào giỏ hàng qua API (Backend)
+   * Sẽ giảm tồn kho trong database
+   */
+  addToCartAPI(cartId: number, variantId: number, quantity: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/cart/add`, {
+      cart_id: cartId,
+      variant_id: variantId,
+      quantity: quantity
+    });
   }
 }

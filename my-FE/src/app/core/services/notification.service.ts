@@ -12,7 +12,6 @@ export class NotificationService {
   public successMessage$ = this.successMessageSubject.asObservable();
 
   showError(message: string, duration: number = 3000) {
-    console.log('NotificationService.showError called with:', message);
     this.errorMessageSubject.next(message);
     if (duration > 0) {
       setTimeout(() => {
@@ -22,7 +21,6 @@ export class NotificationService {
   }
 
   showSuccess(message: string, duration: number = 3000) {
-    console.log('NotificationService.showSuccess called with:', message);
     this.successMessageSubject.next(message);
     if (duration > 0) {
       setTimeout(() => {

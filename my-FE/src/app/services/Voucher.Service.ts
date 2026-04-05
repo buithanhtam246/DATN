@@ -33,4 +33,23 @@ export class VoucherService {
   deleteVoucher(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
+
+  // Map API response để convert snake_case thành camelCase
+  mapVoucherData(apiData: any): Voucher {
+    console.log('🔄 Mapping voucher:', apiData);
+    const mapped: Voucher = {
+      id: apiData.id,
+      code: apiData.code_voucher || apiData.code,
+      name: apiData.name_voucher || apiData.name,
+      discountType: (apiData.promotion_type === 'percentage' || apiData.discountType === 'percentage') ? 'percentage' : 'fixed',
+      discountValue: apiData.value_reduced || apiData.discountValue,
+      maxValue: apiData.max_value || apiData.maxValue,
+      minimumOrder: apiData.minimum_order || apiData.minimumOrder || 0,
+      quantity: apiData.quantity,
+      startDate: apiData.start_date || apiData.startDate,
+      endDate: apiData.promotion_date || apiData.endDate
+    };
+    console.log('✅ Mapped result:', mapped);
+    return mapped;
+  }
 }

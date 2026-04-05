@@ -1,5 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { ProductService } from '../core/services';
+
+interface BrandItem {
+  id?: number;
+  name: string;
+  logo?: string;
+  filterValue: string;
+}
 
 /**
  * Brands Component
@@ -12,26 +21,45 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-brands',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './brands.component.html',
   styleUrl: './brands.component.scss'
 })
-export class BrandsComponent {
-  public readonly brands = [
+export class BrandsComponent implements OnInit {
+  private productService = inject(ProductService);
+
+  public brands: BrandItem[] = [
     {
       name: 'ADIDAS',
       logo: '/assets/images/brands/adidas-logo.png',
-      url: '/brands/adidas'
+      filterValue: 'adidas'
     },
     {
       name: 'NIKE',
       logo: '/assets/images/brands/nike-logo.png',
-      url: '/brands/nike'
+      filterValue: 'nike'
     },
     {
       name: 'JORDAN',
       logo: '/assets/images/brands/jordan-logo.png',
-      url: '/brands/jordan'
+      filterValue: 'jordan'
     }
   ];
+
+  ngOnInit(): void {
+    this.productService.getBrands().subscribe({
+      next: (response: any) => {
+        const apiBrands = response?.data || response || [];
+        if (!Array.isArray(apiBrands) || apiBrands.length === 0) return;
+
+        this.brands = apiBrands.map((brand: any) => ({
+          id: brand.id,
+          name: (brand.name || '').toUpperCase(),
+          filterValue: brand.id?.toString() || (brand.name || '').toLowerCase()
+        }));
+      },
+      error: () => {
+      }
+    });
+  }
 }

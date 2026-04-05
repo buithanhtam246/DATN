@@ -122,8 +122,10 @@ const validateAddress = (req, res, next) => {
   if (receiver_name.trim().length < 2) {
     return res.status(400).json({ message: 'Tên người nhận không hợp lệ' });
   }
-  if (receiver_phone.trim().length < 8) {
-    return res.status(400).json({ message: 'Số điện thoại không hợp lệ' });
+  // SDT phải đúng 10 số
+  const phoneRegex = /^\d{10}$/;
+  if (!phoneRegex.test(receiver_phone.trim())) {
+    return res.status(400).json({ message: 'Số điện thoại phải là 10 chữ số' });
   }
   next();
 };

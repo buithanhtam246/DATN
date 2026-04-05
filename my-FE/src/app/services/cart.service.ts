@@ -69,6 +69,15 @@ export class CartService {
     return this.apiService.getCartTotal(cartId);
   }
 
+  getCartId(): number | null {
+    return this.cartId.value;
+  }
+
+  setCartId(cartId: number): void {
+    localStorage.setItem('cartId', cartId.toString());
+    this.cartId.next(cartId);
+  }
+
   private loadCart() {
     this.getCart();
   }

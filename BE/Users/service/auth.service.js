@@ -3,6 +3,7 @@ const bcryptUtil = require('../utils/bcrypt.util');
 const jwtUtil = require('../utils/jwt.util');
 const emailUtil = require('../utils/email.util');
 const addressService = require('./address.service');
+const Cart = require('../model/Cart.model');
 
 class AuthService {
   async register(data) {
@@ -103,12 +104,30 @@ class AuthService {
     const isMatch = await bcryptUtil.compare(password, user.password);
     if (!isMatch) throw new Error('Sai mật khẩu');
 
+    // Kiểm tra trạng thái tài khoản
+    if (user.status === 'blocked') {
+      throw new Error('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên');
+    }
+
     // Tạo JWT token
     const token = jwtUtil.generateToken({
       id: user.id,
       email: user.email,
       role: user.role
     });
+
+    // Kiểm tra xem user đã có giỏ hàng chưa
+    let userCart = await Cart.findOne({
+      where: { user_id: user.id }
+    });
+
+    // Nếu chưa có, tạo giỏ hàng mới
+    if (!userCart) {
+      userCart = await Cart.create({
+        user_id: user.id,
+        status: 1
+      });
+    }
 
     // Trả về user response mà không có password.  Include default
     // address as convenience.
@@ -124,7 +143,8 @@ class AuthService {
         phone: userWithoutPassword.phone,
         role: userWithoutPassword.role,
         default_address: defaultAddr || null
-      }
+      },
+      cart_id: userCart.id
     };
   }
 

@@ -5,7 +5,7 @@ const { sequelize } = require('../../config/database');
  */
 exports.getTopSellingProducts = async (req, res) => {
     try {
-        const { limit = 5 } = req.query;
+        const { limit = 8 } = req.query;
 
         const data = await sequelize.query(`
             SELECT 
@@ -13,16 +13,18 @@ exports.getTopSellingProducts = async (req, res) => {
                 p.name,
                 p.image,
                 p.brand_id,
+                p.category_id,
                 (SELECT name FROM brand WHERE id = p.brand_id LIMIT 1) as brand_name,
-                pv.price,
-                pv.price_sale,
-                COUNT(od.id) as total_sold,
+                (SELECT name FROM categories WHERE id = p.category_id LIMIT 1) as category_name,
+                MIN(v.price) as price,
+                MIN(CASE WHEN v.price_sale > 0 THEN v.price_sale ELSE NULL END) as price_sale,
+                COUNT(DISTINCT od.id) as total_sold,
                 SUM(od.quantity) as total_quantity,
                 SUM(od.quantity * od.price) as total_revenue
             FROM order_details od
-            JOIN product_variant pv ON od.product_variant_id = pv.id
-            JOIN products p ON pv.product_id = p.id
-            GROUP BY p.id, p.name, p.image, p.brand_id, pv.price, pv.price_sale
+            JOIN variant v ON od.variant_id = v.id
+            JOIN products p ON v.product_id = p.id
+            GROUP BY p.id, p.name, p.image, p.brand_id, p.category_id
             ORDER BY total_sold DESC, total_revenue DESC
             LIMIT ?
         `, {
@@ -30,11 +32,17 @@ exports.getTopSellingProducts = async (req, res) => {
             type: sequelize.QueryTypes.SELECT
         });
 
-        res.status(200).json(data || []);
+        console.log('✅ Top selling products:', data);
+        res.status(200).json({
+            success: true,
+            data: data || []
+        });
     } catch (error) {
-        console.error('Error getting top selling products:', error);
-        // Return empty array if table doesn't exist or no data
-        res.status(200).json([]);
+        console.error('❌ Error getting top selling products:', error);
+        res.status(200).json({
+            success: false,
+            data: []
+        });
     }
 };
 
@@ -87,24 +95,30 @@ exports.getRecentOrders = async (req, res) => {
         const data = await sequelize.query(`
             SELECT 
                 o.id,
-                o.order_number,
-                (SELECT CONCAT(first_name, ' ', last_name) FROM users WHERE id = o.user_id LIMIT 1) as customer_name,
+                o.id as order_number,
+                (SELECT COALESCE(name, 'N/A') FROM users WHERE id = o.user_id LIMIT 1) as customer_name,
                 o.total_price,
                 o.status,
-                o.created_at,
-                o.updated_at
-            FROM order o
-            ORDER BY o.created_at DESC
+                o.create_at as created_at,
+                o.create_at as updated_at
+            FROM orders o
+            ORDER BY o.create_at DESC
             LIMIT ?
         `, {
             replacements: [parseInt(limit)],
             type: sequelize.QueryTypes.SELECT
         });
 
-        res.status(200).json(data || []);
+        console.log('✅ Recent orders:', data);
+        res.status(200).json({
+            success: true,
+            data: data || []
+        });
     } catch (error) {
-        console.error('Error getting recent orders:', error);
-        // Return empty array if table doesn't exist or no data
-        res.status(200).json([]);
+        console.error('❌ Error getting recent orders:', error);
+        res.status(200).json({
+            success: false,
+            data: []
+        });
     }
 };

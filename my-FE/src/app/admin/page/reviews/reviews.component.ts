@@ -12,7 +12,7 @@ interface Review {
   rating: number;
   comment: string;
   created_at?: string;
-  status: 'pending' | 'approved' | 'rejected'; // Bỏ dấu ? để strict hơn
+  status: 'approved' | 'hidden'; // Chỉ 2 status: approved (1) và hidden (0)
 }
 
 @Component({
@@ -85,32 +85,57 @@ export class ReviewsComponent implements OnInit {
   });
 
   pendingReviewsCount = computed(() => {
-    return this.reviews().filter(r => r.status === 'pending').length;
+    // Không có pending status nữa vì database chỉ lưu 0/1
+    // Đếm những review mới (chưa xử lý) - có thể dùng created_at
+    return 0; 
   });
 
   getStars(rating: number): string[] {
     return Array(5).fill('').map((_, i) => i < rating ? '⭐' : '☆');
   }
 
-  approveReview(review: Review) {
-    // Logic cập nhật trạng thái
-    this.reviews.update(items => 
-      items.map(r => r.id === review.id ? { ...r, status: 'approved' as const } : r)
-    );
-    this.notificationService.showSuccess('Đã duyệt đánh giá');
-  }
-
-  rejectReview(review: Review) {
-    this.reviews.update(items => 
-      items.map(r => r.id === review.id ? { ...r, status: 'rejected' as const } : r)
-    );
-    this.notificationService.showSuccess('Đã từ chối đánh giá');
-  }
-
   deleteReview(id: number) {
     if (confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
-      this.reviews.update(items => items.filter(r => r.id !== id));
-      this.notificationService.showSuccess('Đã xóa đánh giá');
+      this.apiService.deleteReview(id).subscribe({
+        next: (res) => {
+          this.reviews.update(items => items.filter(r => r.id !== id));
+          this.notificationService.showSuccess('Đã xóa đánh giá');
+        },
+        error: (err) => {
+          console.error('Error deleting review:', err);
+          this.notificationService.showError('Lỗi xóa đánh giá');
+        }
+      });
     }
+  }
+
+  hideReview(review: Review) {
+    this.apiService.updateReviewStatus(review.id, 0).subscribe({
+      next: (res) => {
+        this.reviews.update(items => 
+          items.map(r => r.id === review.id ? { ...r, status: 'hidden' } : r)
+        );
+        this.notificationService.showSuccess('Đã ẩn đánh giá');
+      },
+      error: (err) => {
+        console.error('Error hiding review:', err);
+        this.notificationService.showError('Lỗi ẩn đánh giá');
+      }
+    });
+  }
+
+  unhideReview(review: Review) {
+    this.apiService.updateReviewStatus(review.id, 1).subscribe({
+      next: (res) => {
+        this.reviews.update(items => 
+          items.map(r => r.id === review.id ? { ...r, status: 'approved' } : r)
+        );
+        this.notificationService.showSuccess('Đã hiển thị đánh giá');
+      },
+      error: (err) => {
+        console.error('Error unhiding review:', err);
+        this.notificationService.showError('Lỗi hiển thị đánh giá');
+      }
+    });
   }
 }

@@ -69,16 +69,18 @@
             <th>Tên sản phẩm</th>
             <th>Danh mục</th>
             <th>Thương hiệu</th>
+            <th>Màu</th>
+            <th>Kích cỡ</th>
             <th>Giá</th>
             <th>Tồn kho</th>
             <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of filteredProducts" class="product-row">
+          <tr *ngFor="let p of filteredProducts; trackBy: trackById" class="product-row">
             <td class="product-name-cell">
               <div class="product-info-inline">
-                <img [src]="'http://localhost:3000/images/products/' + p.image" 
+                <img [src]="normalizeProductImageUrl(p.image)" 
                      [alt]="p.name"
                      (error)="$event.target.src='https://placehold.co/60x60?text='+p.name"
                      class="product-thumbnail">
@@ -90,11 +92,27 @@
             </td>
             <td>{{ p.category_name || 'N/A' }}</td>
             <td>{{ p.brand_name || 'N/A' }}</td>
+            <td class="colors-cell">
+              <div class="color-badges">
+                <span *ngFor="let v of getUniqueColors(p)" 
+                      class="color-badge" 
+                      [style.backgroundColor]="v.color_code || '#000000'"
+                      [title]="v.color_name"
+                      class="color-swatch">
+                  {{ v.color_name }}
+                </span>
+              </div>
+            </td>
+            <td class="sizes-cell">
+              <div class="size-list">
+                <span *ngFor="let size of getUniqueSizes(p)" class="size-badge">{{ size }}</span>
+              </div>
+            </td>
             <td class="price-cell">
               <div class="price-amount">
-                {{ (p.price_sale ? p.price_sale : (p.price || p.variants[0]?.price || 0)) | number }}₫
+                {{ getDisplayedPrice(p.variants[0]?.price || p.price || 0, p.price_sale) | number }}₫
               </div>
-              <div *ngIf="p.price_sale" class="original-price-small">
+              <div *ngIf="hasValidSalePrice(p.variants[0]?.price || p.price || 0, p.price_sale)" class="original-price-small">
                 {{ (p.price || p.variants[0]?.price || 0) | number }}₫
               </div>
             </td>
@@ -183,6 +201,34 @@
             <span class="file-label">Chọn ảnh hoặc kéo thả vào đây</span>
             <div class="file-count" *ngIf="selectedFiles.length > 0">✅ {{ selectedFiles.length }} ảnh</div>
           </div>
+
+          <!-- Image Previews -->
+          <div class="image-previews" *ngIf="selectedFiles.length > 0">
+            <div class="preview-title">Ảnh đã chọn (ảnh đầu tiên sẽ là ảnh đại diện):</div>
+            <div class="preview-grid">
+              <div *ngFor="let file of selectedFiles; let i = index" class="preview-item">
+                <img [src]="selectedFilePreviews[i]" [alt]="file.name" class="preview-img">
+                <div class="preview-overlay">
+                  <span *ngIf="i === 0" class="primary-badge">🌟 Đại diện</span>
+                  <div class="preview-actions">
+                    <button
+                      type="button"
+                      (click)="setPrimaryImage(i)"
+                      class="btn-set-primary"
+                      [class.is-primary]="i === 0"
+                      [disabled]="i === 0"
+                      [title]="i === 0 ? 'Đây là ảnh đại diện' : 'Đặt làm ảnh đại diện'">
+                      {{ i === 0 ? 'Đại diện' : 'Đặt đại diện' }}
+                    </button>
+                    <button type="button" (click)="removeImage(i)" class="btn-remove" title="Xóa ảnh">
+                      <span>✕</span>
+                    </button>
+                  </div>
+                </div>
+                <p class="preview-filename">{{ file.name }}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="variant-section">
@@ -190,7 +236,10 @@
           <div class="form-row">
             <div class="form-group">
               <label>Màu sắc</label>
-              <select [(ngModel)]="newProduct.variants[0].color_id" class="form-control">
+              <select
+                [(ngModel)]="newProduct.variants[0].color_id"
+                (ngModelChange)="onVariantColorChange(0, $event)"
+                class="form-control">
                 <option [value]="null">-- Màu --</option>
                 <option *ngFor="let color of colors" [value]="color.id">{{ color.name }}</option>
               </select>
@@ -198,9 +247,9 @@
           </div>
           
           <div class="form-group">
-            <label>Chọn kích thước (có thể chọn nhiều)</label>
-            <div class="size-selector">
-              <button *ngFor="let size of sizes" 
+            <label>Chọn kích thước (có thể chọn nhiều) - {{ getAvailableSizesForVariant(0).length }} sizes available</label>
+            <div class="size-selector" *ngIf="modalSizes.length > 0; else noSizes">
+              <button *ngFor="let size of getAvailableSizesForVariant(0)" 
                 type="button"
                 class="size-btn"
                 [class.selected]="isSizeSelected(0, size.id)"
@@ -208,6 +257,9 @@
                 {{ size.size }}
               </button>
             </div>
+            <ng-template #noSizes>
+              <p style="color: red;">Không có kích thước nào. Hãy chọn danh mục cha trước.</p>
+            </ng-template>
           </div>
           
           <div class="form-row">
@@ -241,7 +293,10 @@
             <div class="form-row">
               <div class="form-group">
                 <label>Màu sắc</label>
-                <select [(ngModel)]="newProduct.variants[i + 1].color_id" class="form-control">
+                <select
+                  [(ngModel)]="newProduct.variants[i + 1].color_id"
+                  (ngModelChange)="onVariantColorChange(i + 1, $event)"
+                  class="form-control">
                   <option [value]="null">-- Màu --</option>
                   <option *ngFor="let color of colors" [value]="color.id">{{ color.name }}</option>
                 </select>
@@ -249,9 +304,9 @@
             </div>
             
             <div class="form-group">
-              <label>Chọn kích thước (có thể chọn nhiều)</label>
-              <div class="size-selector">
-                <button *ngFor="let size of sizes" 
+              <label>Chọn kích thước (có thể chọn nhiều) - {{ getAvailableSizesForVariant(i + 1).length }} sizes available</label>
+              <div class="size-selector" *ngIf="modalSizes.length > 0; else noSizes2">
+                <button *ngFor="let size of getAvailableSizesForVariant(i + 1)" 
                   type="button"
                   class="size-btn"
                   [class.selected]="isSizeSelected(i + 1, size.id)"
@@ -259,6 +314,9 @@
                   {{ size.size }}
                 </button>
               </div>
+              <ng-template #noSizes2>
+                <p style="color: red;">Không có kích thước nào. Hãy chọn danh mục cha trước.</p>
+              </ng-template>
             </div>
             
             <div class="form-row">
@@ -275,6 +333,42 @@
               <label>Số lượng kho *</label>
               <input type="number" [(ngModel)]="newProduct.variants[i + 1].quantity" class="form-control">
             </div>
+
+            <div class="form-group">
+              <label>📸 Hình ảnh biến thể</label>
+              <div class="image-upload-group">
+                <input type="file" 
+                  #variantFileInput
+                  (change)="onVariantImageSelected($event, i + 1)"
+                  multiple
+                  accept="image/*"
+                  style="display: none;">
+                <button type="button" 
+                  class="btn-upload-image"
+                  (click)="triggerVariantFileInput(i + 1)">
+                  📤 Chọn hình ảnh
+                </button>
+                <div *ngIf="newProduct.variants[i + 1].image_previews?.length" class="variant-image-previews">
+                  <div class="variant-preview-item" *ngFor="let preview of newProduct.variants[i + 1].image_previews; let imageIndex = index">
+                    <img [src]="preview" alt="Preview">
+                    <span class="primary-badge" *ngIf="imageIndex === 0">🌟 Đại diện</span>
+                    <div class="variant-preview-actions">
+                      <button
+                        type="button"
+                        class="btn-set-primary"
+                        [class.is-primary]="imageIndex === 0"
+                        [disabled]="imageIndex === 0"
+                        (click)="setVariantPrimaryImage(i + 1, imageIndex)">
+                        {{ imageIndex === 0 ? 'Đại diện' : 'Đặt đại diện' }}
+                      </button>
+                      <button type="button" 
+                        class="btn-remove-image"
+                        (click)="removeVariantImage(i + 1, imageIndex)">✕</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -285,6 +379,91 @@
       <button class="btn-submit" (click)="submitProduct()" [disabled]="isSubmitting">
         {{ isSubmitting ? '⏳...' : (editingProduct ? '💾 Cập nhật' : '✅ Thêm mới') }}
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
+  <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>📦 Chi tiết sản phẩm</h2>
+      <button class="btn-close" (click)="closeDetailModal()">✕</button>
+    </div>
+
+    <div class="detail-body" *ngIf="detailProduct">
+      <!-- Thông tin chính -->
+      <div class="detail-section">
+        <h3>Thông tin cơ bản</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Tên sản phẩm:</label>
+            <span>{{ detailProduct.name }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Danh mục:</label>
+            <span>{{ detailProduct.category_name || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Thương hiệu:</label>
+            <span>{{ detailProduct.brand_name || 'N/A' }}</span>
+          </div>
+          <div class="detail-item" *ngIf="detailProduct.image">
+            <label>Hình ảnh chính:</label>
+            <img [src]="normalizeProductImageUrl(detailProduct.image)" 
+              class="detail-image" alt="Product">
+          </div>
+        </div>
+        <div class="detail-item" *ngIf="detailProduct.describ">
+          <label>Mô tả:</label>
+          <p>{{ detailProduct.describ }}</p>
+        </div>
+      </div>
+
+      <!-- Biến thể -->
+      <div class="detail-section">
+        <h3>🎨 Biến thể sản phẩm ({{ detailProduct.variants.length }})</h3>
+        <div class="variants-table">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Hình ảnh</th>
+                <th>Màu</th>
+                <th>Kích cỡ</th>
+                <th>Giá gốc</th>
+                <th>Giá bán</th>
+                <th>Số lượng</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let group of getGroupedVariants(detailProduct)">
+                <td>
+                  <img *ngIf="group.image" 
+                    [src]="group.image" 
+                    class="variant-image" alt="Variant"
+                    onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-family=%22Arial%22 font-size=%2212%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                  <span *ngIf="!group.image" class="no-image">-</span>
+                </td>
+                <td>
+                  <span *ngIf="group.color_id" class="color-badge" [style.backgroundColor]="group.color_code">
+                    {{ group.color_name }}
+                  </span>
+                </td>
+                <td>
+                  <span>{{ group.sizes?.length ? group.sizes.join(', ') : '-' }}</span>
+                </td>
+                <td>{{ formatPriceRange(getGroupOriginalPrices(group)) }}</td>
+                <td>{{ formatPriceRange(getGroupDisplayedPrices(group)) }}</td>
+                <td>{{ group.quantity }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeDetailModal()">Đóng</button>
     </div>
   </div>
 </div>

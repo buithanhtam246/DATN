@@ -83,7 +83,7 @@ export class DashboardComponent implements OnInit {
         this.stats[3].value = (sizes.length || 0).toString();
 
         // Lấy top products từ API (dữ liệu bán hàng thực tế)
-        this.topProducts = (Array.isArray(results.topSellingProducts) ? results.topSellingProducts : [])
+        this.topProducts = (Array.isArray(results.topSellingProducts) ? results.topSellingProducts : (results.topSellingProducts?.data || []))
           .map((p: any) => ({
             name: p.name,
             sold: p.total_quantity || 0,
@@ -95,7 +95,7 @@ export class DashboardComponent implements OnInit {
           .slice(0, 5);
 
         // Lấy recent orders từ API
-        this.recentOrders = (Array.isArray(results.recentOrders) ? results.recentOrders : [])
+        this.recentOrders = (Array.isArray(results.recentOrders) ? results.recentOrders : (results.recentOrders?.data || []))
           .map((order: any) => ({
             id: order.order_number || order.id,
             customer: order.customer_name || 'N/A',

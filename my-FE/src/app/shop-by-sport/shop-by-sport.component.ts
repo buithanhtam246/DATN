@@ -1,8 +1,11 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { BannerService } from '../services/banner.service';
 
 interface Sport {
-  id: string;
+  id: number;
+  categoryId: number;
   name: string;
   imageUrl: string;
 }
@@ -23,10 +26,18 @@ interface Sport {
   styleUrl: './shop-by-sport.component.scss'
 })
 export class ShopBySportComponent implements OnInit {
+  private bannerService = inject(BannerService);
+  private router = inject(Router);
+
   sports: Sport[] = [];
   currentIndex = 0;
-  activeSportId = 'football';
+  activeSportId: number | null = null;
   itemsPerView = 3;
+  isDragging = false;
+
+  private dragStartX = 0;
+  private dragDeltaX = 0;
+  private readonly swipeThreshold = 60;
   
   get slideWidth(): number {
     return 100 / this.itemsPerView;
@@ -51,56 +62,55 @@ export class ShopBySportComponent implements OnInit {
     } else {
       this.itemsPerView = 3;
     }
+
+    this.clampCurrentIndex();
   }
 
   private loadSports(): void {
-    this.sports = [
-      {
-        id: 'running',
-        name: 'Running',
-        imageUrl: '/assets/images/running.jpg'
+    this.bannerService.getSportBanners().subscribe({
+      next: (response) => {
+        const raw = Array.isArray(response?.data) ? response.data : [];
+        const activeBanners = raw.filter((item: any) => item.status === 'active');
+
+        this.sports = activeBanners.map((item: any) => ({
+          id: Number(item.id),
+          categoryId: Number(item.category_id),
+          name: (item.category_name || 'Danh mục con').trim(),
+          imageUrl: this.getImageUrl(item.image_url)
+        }));
+
+        this.currentIndex = 0;
+        this.activeSportId = this.sports.length > 0 ? this.sports[0].id : null;
+        this.clampCurrentIndex();
       },
-      {
-        id: 'football',
-        name: 'Football',
-        imageUrl: '/assets/images/football.jpg'
-      },
-      {
-        id: 'basketball',
-        name: 'Basketball',
-        imageUrl: '/assets/images/basketball.jpg'
-      },
-      {
-        id: 'tennis',
-        name: 'Tennis',
-        imageUrl: '/assets/images/tennis.jpg'
-      },
-      {
-        id: 'golf',
-        name: 'Golf',
-        imageUrl: '/assets/images/golf.jpg'
-      },
-      {
-        id: 'gym',
-        name: 'Gym',
-        imageUrl: '/assets/images/gym.jpg'
-      },
-      {
-        id: 'skateboarding',
-        name: 'Skateboarding',
-        imageUrl: '/assets/images/skateboarding.jpg'
-      },
-      {
-        id: 'yoga',
-        name: 'Yoga',
-        imageUrl: '/assets/images/yoga.jpg'
+      error: () => {
+        this.sports = [];
+        this.currentIndex = 0;
+        this.activeSportId = null;
       }
-    ];
+    });
   }
 
-  selectSport(sportId: string): void {
-    this.activeSportId = sportId;
-    // TODO: Navigate to sport category page or filter products
+  openSportBanner(sport: Sport): void {
+    this.activeSportId = sport.id;
+
+    this.router.navigate(['/products'], {
+      queryParams: {
+        childCategory: sport.categoryId,
+        categoryId: sport.categoryId,
+        categoryName: sport.name
+      }
+    });
+  }
+
+  private getImageUrl(imageUrl: string): string {
+    if (!imageUrl) {
+      return '';
+    }
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    return `${this.bannerService.categoryBannerImgBaseUrl}${imageUrl}`;
   }
 
   previous(): void {
@@ -110,8 +120,81 @@ export class ShopBySportComponent implements OnInit {
   }
 
   next(): void {
-    if (this.currentIndex < this.sports.length - this.itemsPerView) {
+    if (this.currentIndex < this.maxIndex) {
       this.currentIndex++;
+    }
+  }
+
+  onTouchStart(event: TouchEvent): void {
+    if (event.touches.length === 0) {
+      return;
+    }
+    this.isDragging = true;
+    this.dragStartX = event.touches[0].clientX;
+    this.dragDeltaX = 0;
+  }
+
+  onTouchMove(event: TouchEvent): void {
+    if (!this.isDragging || event.touches.length === 0) {
+      return;
+    }
+    this.dragDeltaX = event.touches[0].clientX - this.dragStartX;
+  }
+
+  onTouchEnd(): void {
+    this.finishSwipe();
+  }
+
+  onMouseDown(event: MouseEvent): void {
+    this.isDragging = true;
+    this.dragStartX = event.clientX;
+    this.dragDeltaX = 0;
+  }
+
+  onMouseMove(event: MouseEvent): void {
+    if (!this.isDragging) {
+      return;
+    }
+    this.dragDeltaX = event.clientX - this.dragStartX;
+  }
+
+  onMouseUp(): void {
+    this.finishSwipe();
+  }
+
+  onMouseLeave(): void {
+    if (!this.isDragging) {
+      return;
+    }
+    this.finishSwipe();
+  }
+
+  private finishSwipe(): void {
+    if (!this.isDragging) {
+      return;
+    }
+
+    if (this.dragDeltaX <= -this.swipeThreshold) {
+      this.next();
+    } else if (this.dragDeltaX >= this.swipeThreshold) {
+      this.previous();
+    }
+
+    this.isDragging = false;
+    this.dragStartX = 0;
+    this.dragDeltaX = 0;
+  }
+
+  private get maxIndex(): number {
+    return Math.max(0, this.sports.length - this.itemsPerView);
+  }
+
+  private clampCurrentIndex(): void {
+    if (this.currentIndex > this.maxIndex) {
+      this.currentIndex = this.maxIndex;
+    }
+    if (this.currentIndex < 0) {
+      this.currentIndex = 0;
     }
   }
 }

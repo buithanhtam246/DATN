@@ -20,20 +20,6 @@
       </div>
     </div>
     <div class="stat-box">
-      <div class="stat-icon">👨</div>
-      <div class="stat-info">
-        <div class="stat-label">Nam</div>
-        <div class="stat-number">{{ sizesByGender.male.length }}</div>
-      </div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-icon">👩</div>
-      <div class="stat-info">
-        <div class="stat-label">Nữ</div>
-        <div class="stat-number">{{ sizesByGender.female.length }}</div>
-      </div>
-    </div>
-    <div class="stat-box">
       <div class="stat-icon">📐</div>
       <div class="stat-info">
         <div class="stat-label">Min - Max</div>
@@ -55,13 +41,15 @@
         >
       </div>
       
-      <select [(ngModel)]="activeTab" (ngModelChange)="applyFilters()" class="filter-select">
-        <option value="all">📊 Tất cả</option>
-        <option value="male">👨 Nam</option>
-        <option value="female">👩 Nữ</option>
+      <!-- Filter by parent category -->
+      <select [(ngModel)]="activeFilterCategory" (ngModelChange)="applyFilters()" class="filter-select">
+        <option [ngValue]="null">📊 Tất cả</option>
+        <option *ngFor="let category of filterCategories" [ngValue]="category.id">
+          {{ category.gender === 'male' ? '👨' : category.gender === 'female' ? '👩' : '📐' }} {{ category.name }}
+        </option>
       </select>
 
-      <button class="btn btn-reset" (click)="resetFilters()" *ngIf="searchText || activeTab !== 'all'">
+      <button class="btn btn-reset" (click)="resetFilters()" *ngIf="searchText || activeFilterCategory !== null">
         ↺ Đặt lại
       </button>
     </div>
@@ -73,7 +61,7 @@
         <tr>
           <th class="col-id">ID</th>
           <th class="col-size">Kích Thước</th>
-          <th class="col-gender">Giới Tính</th>
+          <th class="col-gender">Danh Mục</th>
           <th class="col-date">Ngày Tạo</th>
           <th class="col-actions">Thao Tác</th>
         </tr>
@@ -83,8 +71,8 @@
           <td><span class="id-badge">#{{ size.id }}</span></td>
           <td><span class="size-number">{{ size.size }}</span></td>
           <td>
-            <span class="gender-badge" [ngClass]="'gender-' + size.gender">
-              {{ size.gender === 'male' ? '👨 Nam' : '👩 Nữ' }}
+            <span class="category-badge">
+              {{ getCategoryById(size.category_id)?.name || 'Unknown' }}
             </span>
           </td>
           <td><span class="date-text">{{ size.created_at | date: 'dd/MM/yyyy' }}</span></td>
@@ -126,16 +114,17 @@
             <div *ngIf="parentCategories.length > 0" class="category-items">
               <div *ngFor="let category of parentCategories" class="category-item"
                 [class.selected]="selectedCategoryId === category.id" (click)="selectCategory(category)">
-                <span class="icon">{{ category.gender === 'male' ? '👨' : '👩' }}</span>
                 <span class="name">{{ category.name }}</span>
               </div>
+            </div>
+            <div *ngIf="parentCategories.length === 0" style="padding: 15px; text-align: center; color: #999;">
+              <p>Đang tải danh mục...</p>
             </div>
           </div>
         </div>
 
         <div *ngIf="selectedCategoryId" class="selected-category-info" style="margin-top: 15px;">
           <div class="category-card" style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
-            <span class="icon">{{ getCategoryById(selectedCategoryId)?.gender === 'male' ? '👨' : '👩' }}</span>
             <span class="name">{{ getCategoryName(selectedCategoryId) }}</span>
           </div>
           <button type="button" class="btn btn-primary w-100" style="margin-top: 10px;" (click)="selectCategoryForAdd()">
@@ -146,17 +135,45 @@
 
       <div class="step-size" *ngIf="editingSize || selectedCategoryForAdd">
         <div class="form-group">
+          <label class="form-label">Danh Mục Cha</label>
+          <div class="category-display" style="padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 15px;">
+            <span class="category-icon">
+              {{ selectedCategoryId ? getCategoryName(selectedCategoryId) : '' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="!editingSize">
+          <label class="form-label">Kích Thước (nhập nhiều size cách nhau bởi dấu phẩy)</label>
+          <input type="text" [(ngModel)]="newSize.sizeString" class="form-control" placeholder="VD: 35, 36, 37, 38, 39, 40" (ngModelChange)="parseSizes()">
+          <small style="color: #6c757d; margin-top: 5px;">💡 Nhập nhiều kích thước cách nhau bởi dấu phẩy để thêm cùng lúc</small>
+        </div>
+
+        <div class="form-group" *ngIf="editingSize">
           <label class="form-label">Kích Thước</label>
           <input type="number" [(ngModel)]="newSize.size" class="form-control" placeholder="VD: 42" min="0" max="50">
         </div>
 
+        <!-- Preview sizes to add -->
+        <div *ngIf="!editingSize && parsedSizes.length > 0" class="alert" style="background: #d4edda; border: 1px solid #c3e6cb; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+          <strong>✅ Sẽ thêm {{ parsedSizes.length }} kích thước:</strong>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+            <span *ngFor="let size of parsedSizes" style="background: white; padding: 4px 12px; border-radius: 4px; border: 1px solid #c3e6cb;">
+              {{ size }}
+            </span>
+          </div>
+        </div>
+
         <div class="existing-sizes" style="margin-top: 20px;">
-          <label class="form-label">📋 Size hiện có ({{ editingSize ? editingSize.gender : (selectedGenderForAdd === 'male' ? 'Nam' : 'Nữ') }})</label>
+          <label class="form-label">📋 Size hiện có ({{ getCategoryById(selectedCategoryId)?.name }})</label>
           <div class="sizes-list" style="max-height: 120px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 8px;">
             <div *ngIf="getExistingSizes().length > 0" class="size-items" style="display: flex; flex-wrap: wrap; gap: 5px;">
               <span *ngFor="let size of getExistingSizes()" class="size-tag" style="background: #e9ecef; padding: 2px 8px; border-radius: 4px; font-size: 12px;">
                 {{ size.size }}
               </span>
+            </div>
+            <div *ngIf="getExistingSizes().length === 0" style="color: #6c757d; font-size: 13px;">
+              Chưa có size nào cho danh mục này
             </div>
           </div>
         </div>
@@ -166,8 +183,8 @@
     <div class="modal-footer">
       <button type="button" class="btn btn-cancel" (click)="closeModal()">Hủy</button>
       <button *ngIf="editingSize || selectedCategoryForAdd" type="button" class="btn btn-primary" (click)="submitSize()" 
-        [disabled]="!newSize.size || isSubmitting">
-        {{ isSubmitting ? '⏳ Đang xử lý...' : (editingSize ? '💾 Cập nhật' : '➕ Thêm mới') }}
+        [disabled]="(editingSize && !newSize.size) || (!editingSize && parsedSizes.length === 0) || isSubmitting">
+        {{ isSubmitting ? '⏳ Đang xử lý...' : (editingSize ? '💾 Cập nhật' : (parsedSizes.length > 0 ? `➕ Thêm ${parsedSizes.length} size` : '➕ Thêm mới')) }}
       </button>
     </div>
   </div>

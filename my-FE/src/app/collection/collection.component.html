@@ -5,7 +5,6 @@
       <div class="collection-header">
         <div class="badges">
           <span class="badge">NEW COLLECTION</span>
-          <span class="badge badge-light">BESTSELLER</span>
         </div>
         
         <h2 class="collection-title">
@@ -27,40 +26,44 @@
           <span class="arrow">↗</span>
           COLLECTION
         </button>
-      </div>
-      
-      <!-- Navigation -->
-      <div class="slider-navigation">
-        <button class="nav-btn nav-prev" (click)="previousSlide()" aria-label="Previous">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
-        </button>
-        
-        <button class="nav-btn nav-next" (click)="nextSlide()" aria-label="Next">
-          NEXT
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </button>
-      </div>
-      
-      <!-- Dots Indicator -->
-      <div class="dots-indicator">
-        @for (item of [0, 1, 2]; track item) {
-          <button 
-            class="dot" 
-            [class.active]="currentSlide() === item"
-            (click)="goToSlide(item)"
-            [attr.aria-label]="'Go to slide ' + (item + 1)">
+
+        <div class="slider-navigation">
+          <button class="nav-btn nav-prev" (click)="previousSlide()" aria-label="Previous">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
           </button>
-        }
+
+          <button class="nav-btn nav-next" (click)="nextSlide()" aria-label="Next">
+            <span>NEXT</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="dots-indicator">
+          @for (item of getSlideIndexes(); track item) {
+            <button
+              class="dot"
+              [class.active]="currentSlide() === item"
+              (click)="goToSlide(item)"
+              [attr.aria-label]="'Go to slide ' + (item + 1)">
+            </button>
+          }
+        </div>
       </div>
     </div>
     
     <!-- Right Product Grid -->
     <div class="collection-right">
-      <div class="product-grid" [style.transform]="'translateX(-' + (currentSlide() * 100) + '%)'">
+      <div
+        #productTrack
+        class="product-track"
+        [class.dragging]="isDragging()"
+        (pointerdown)="onTrackPointerDown($event)"
+        (pointermove)="onTrackPointerMove($event)"
+        (pointerleave)="stopDragging()">
         @for (product of products(); track product.id) {
           <div class="product-item">
             <div class="product-header">
@@ -68,25 +71,20 @@
               <span class="product-price">{{ product.price }}</span>
             </div>
             
-            <h3 class="product-name">{{ product.title }}</h3>
+            <h3 class="product-name" (click)="viewProductDetail(product.id || '')">{{ product.title }}</h3>
             
-            <div class="product-image-container">
+            <div class="product-image-container" (click)="viewProductDetail(product.id || '')">
               <img [src]="product.imageUrl" [alt]="product.title" class="product-image" loading="lazy">
             </div>
-            
-            <div class="product-colors">
-              @for (color of product.colors; track color) {
-                <span class="color-dot" [style.background-color]="color"></span>
-              }
-            </div>
-            
+
             <div class="product-sizes">
+              <span class="size-label">Size:</span>
               @for (size of product.sizes; track size) {
                 <button class="size-btn">{{ size }}</button>
               }
             </div>
             
-            <button class="add-to-cart-btn">Thêm vào Giỏ</button>
+            <button class="add-to-cart-btn" (click)="viewProductDetail(product.id || '')">Xem chi tiết</button>
           </div>
         }
       </div>

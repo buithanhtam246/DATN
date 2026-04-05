@@ -95,16 +95,13 @@
       transition: all 0.2s;
       border-left: 4px solid transparent;
       
-      &.status-pending {
-        border-left-color: #f39c12;
-      }
-      
       &.status-approved {
         border-left-color: #27ae60;
       }
-      
-      &.status-rejected {
-        border-left-color: #e74c3c;
+
+      &.status-hidden {
+        border-left-color: #95a5a6;
+        opacity: 0.8;
       }
       
       &:hover {
@@ -115,52 +112,95 @@
         display: flex;
         justify-content: space-between;
         align-items: start;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        gap: 1rem;
         
         .review-product {
           display: flex;
           flex-direction: column;
-          gap: 0.25rem;
+          gap: 0.5rem;
           
-          strong {
-            font-size: 1.125rem;
+          .product-title {
+            font-size: 1.15rem;
             color: #2c3e50;
+            font-weight: 700;
           }
           
           .review-id {
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             color: #7f8c8d;
           }
         }
         
         .review-rating {
           display: flex;
-          gap: 0.125rem;
-          font-size: 1.25rem;
+          align-items: center;
+          gap: 0.75rem;
+          
+          .stars {
+            display: flex;
+            gap: 0.25rem;
+            font-size: 1.25rem;
+          }
+
+          .rating-text {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-weight: 500;
+            white-space: nowrap;
+          }
         }
       }
       
       .review-body {
-        margin-bottom: 1rem;
+        margin-bottom: 1.25rem;
         
         .review-meta {
           display: flex;
-          gap: 1.5rem;
-          margin-bottom: 0.75rem;
+          gap: 2rem;
+          margin-bottom: 1rem;
+          flex-wrap: wrap;
           
-          span {
-            font-size: 0.875rem;
+          .customer-info,
+          .date-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
             color: #7f8c8d;
+
+            .icon {
+              font-size: 1rem;
+            }
+
+            .name,
+            .date {
+              font-weight: 500;
+              color: #2c3e50;
+            }
           }
         }
         
-        .review-comment {
-          color: #2c3e50;
-          line-height: 1.6;
-          margin: 0;
-          padding: 1rem;
-          background: #f8f9fa;
-          border-radius: 8px;
+        .review-content {
+          .comment-title {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin: 0 0 0.75rem 0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+          }
+
+          .review-comment {
+            color: #2c3e50;
+            line-height: 1.7;
+            margin: 0;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #f8fbff 0%, #f5faff 100%);
+            border-left: 3px solid #3498db;
+            border-radius: 8px;
+            font-size: 0.95rem;
+          }
         }
       }
       
@@ -168,58 +208,82 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 1rem;
         
         .status-badge {
           display: inline-block;
-          padding: 0.375rem 0.875rem;
+          padding: 0.5rem 1rem;
           border-radius: 20px;
-          font-size: 0.8rem;
-          font-weight: 500;
-          
-          &.status-pending {
-            background: #fff3e0;
-            color: #f57c00;
-          }
+          font-size: 0.85rem;
+          font-weight: 600;
+          white-space: nowrap;
           
           &.status-approved {
             background: #e8f5e9;
             color: #388e3c;
           }
-          
-          &.status-rejected {
-            background: #ffebee;
-            color: #d32f2f;
+
+          &.status-hidden {
+            background: #ecf0f1;
+            color: #7f8c8d;
           }
         }
         
         .review-actions {
           display: flex;
           gap: 0.5rem;
+          flex-wrap: wrap;
           
           button {
-            padding: 0.5rem 1rem;
+            padding: 0.6rem 1.1rem;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.2s;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.25s;
             
             &.btn-approve {
-              background: #27ae60;
+              background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
               color: white;
+              box-shadow: 0 2px 6px rgba(39, 174, 96, 0.2);
               
               &:hover {
-                background: #229954;
+                box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+                transform: translateY(-2px);
               }
             }
             
             &.btn-reject {
-              background: #e74c3c;
+              background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
               color: white;
+              box-shadow: 0 2px 6px rgba(231, 76, 60, 0.2);
               
               &:hover {
-                background: #c0392b;
+                box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+                transform: translateY(-2px);
+              }
+            }
+
+            &.btn-hide {
+              background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+              color: white;
+              box-shadow: 0 2px 6px rgba(149, 165, 166, 0.2);
+              
+              &:hover {
+                box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
+                transform: translateY(-2px);
+              }
+            }
+
+            &.btn-unhide {
+              background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+              color: white;
+              box-shadow: 0 2px 6px rgba(52, 152, 219, 0.2);
+              
+              &:hover {
+                box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+                transform: translateY(-2px);
               }
             }
             

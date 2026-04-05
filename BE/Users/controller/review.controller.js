@@ -40,16 +40,24 @@ class ReviewController {
         attributes: ['id', 'rating', 'comment', 'created_at', 'status']
       });
 
-      const formattedReviews = reviews.map(review => ({
-        id: review.id,
-        rating: review.rating,
-        comment: review.comment,
-        created_at: review.created_at,
-        status: review.status,
-        productId: review.order_detail?.variant?.product_id,
-        variantId: review.order_detail?.variant?.id,
-        customerName: review.order_detail?.order?.user?.name
-      }));
+      const formattedReviews = reviews.map(review => {
+        // Map database status (0/1) to frontend status strings
+        let status = 'approved'; // Default: 1 = approved/visible
+        if (review.status === 0) {
+          status = 'hidden'; // 0 = hidden
+        }
+        
+        return {
+          id: review.id,
+          rating: review.rating,
+          comment: review.comment,
+          created_at: review.created_at,
+          status: status,
+          productId: review.order_detail?.variant?.product_id,
+          variantId: review.order_detail?.variant?.id,
+          customerName: review.order_detail?.order?.user?.name
+        };
+      });
 
       res.status(200).json({
         success: true,
@@ -162,6 +170,42 @@ class ReviewController {
       res.status(200).json(result);
     } catch (err) {
       res.status(400).json({
+        success: false,
+        message: err.message
+      });
+    }
+  }
+
+  // Cập nhật trạng thái hiển thị/ẩn đánh giá (Admin only)
+  async updateStatus(req, res) {
+    try {
+      const { review_id } = req.params;
+      const { status } = req.body;
+
+      if (status === undefined || status === null) {
+        return res.status(400).json({
+          success: false,
+          message: 'Status không được để trống'
+        });
+      }
+
+      const review = await OrderReview.findByPk(review_id);
+      if (!review) {
+        return res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy đánh giá'
+        });
+      }
+
+      await review.update({ status });
+
+      res.status(200).json({
+        success: true,
+        message: 'Cập nhật trạng thái đánh giá thành công',
+        data: review
+      });
+    } catch (err) {
+      res.status(500).json({
         success: false,
         message: err.message
       });

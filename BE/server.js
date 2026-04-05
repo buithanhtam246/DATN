@@ -57,9 +57,12 @@ Object.values(models).forEach(model => {
 // --- 4. TẤT CẢ ROUTERS (ĐẶT SAU MIDDLEWARE) ---
 app.use('/api/auth', require('./Users/router/auth.router'));
 app.use('/api/users', require('./Users/router/user.router'));
+app.use('/api/products', require('./Users/router/product.router'));
+app.use('/api/size-guides', require('./Users/router/size-guide.router'));
 app.use('/api/addresses', require('./Users/router/address.router'));
 app.use('/api/vouchers', require('./Users/router/voucher.router'));
 app.use('/api/cart', require('./Users/router/cart.router'));
+app.use('/api/payment-methods', require('./Users/router/paymentMethod.routes'));
 app.use('/api/orders', require('./Users/router/orderHistory.router'));
 app.use('/api/orders', require('./Users/router/order.routes'));
 app.use('/api/reviews', require('./Users/router/review.router'));
@@ -75,13 +78,14 @@ app.use('/api/admin/orders', require('./Admin/router_admin/order.admin.router'))
 app.use('/api/admin/vouchers', require('./Admin/router_admin/voucher.admin.router'));
 app.use('/api/admin/users', require('./Admin/router_admin/user.admin.routes'));
 app.use('/api/admin/dashboard', require('./Admin/router_admin/dashboard.routes'));
+app.use('/api/admin/banners', require('./Admin/router_admin/banner.routes'));
 app.use('/api/admin', require('./Admin/router_admin/product.routes'));
-app.use('/images/products', express.static('public/images/products'));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Thêm dòng này nếu bạn muốn truy cập ngắn gọn hơn cho ảnh sản phẩm
+// --- STATIC FILES ROUTES (PHẢI ĐẶT TRƯỚC API ROUTES) ---
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/images/products', express.static(path.join(__dirname, 'public/images/products')));
-// --- 5. KHỞ(I CHẠY ---
+
+// --- 5. KHỞI CHẠY ---
 const startServer = async () => {
     try {
         await testConnection();

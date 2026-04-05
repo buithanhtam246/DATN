@@ -20,6 +20,7 @@ export class SizeGuidesComponent implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   parentCategories: Category[] = [];
+  allCategories: Category[] = []; // Includes both parent and children
   filteredCategories: Category[] = [];
   categoryGuides: Map<number, SizeGuide> = new Map();
 
@@ -45,17 +46,30 @@ export class SizeGuidesComponent implements OnInit {
   }
 
   /**
-   * Load parent categories
+   * Load parent categories and their children
    */
   loadCategories(): void {
-    this.categoryService.getParentCategories().subscribe({
+    this.categoryService.getAllCategories().subscribe({
       next: (data: any) => {
-        this.parentCategories = data;
+        // Get all categories (parent + children)
+        const allData = Array.isArray(data) ? data : (data?.data ? data.data : []);
+        this.parentCategories = allData;
+        
+        // Flatten to get all categories (parent + children)
+        this.allCategories = [];
+        allData.forEach((parent: Category) => {
+          this.allCategories.push(parent);
+          if (parent.children && Array.isArray(parent.children)) {
+            this.allCategories.push(...parent.children);
+          }
+        });
+        
         this.applyFilters();
         this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.error('Lỗi tải danh mục:', err);
+        this.allCategories = [];
         alert('❌ Lỗi tải danh mục');
       }
     });
@@ -65,36 +79,45 @@ export class SizeGuidesComponent implements OnInit {
    * Load all size guides for categories
    */
   loadAllGuides(): void {
-    this.parentCategories.forEach((category) => {
-      if (category.id) {
-        this.productService.getSizeGuideByCategory(category.id).subscribe({
-          next: (res: any) => {
-            if (res && res.image_url) {
-              this.categoryGuides.set(category.id!, {
-                category_id: category.id!,
-                image_url: res.image_url
-              });
+    // Use allCategories instead of parentCategories
+    setTimeout(() => {
+      const categories = Array.isArray(this.allCategories) ? this.allCategories : [];
+      categories.forEach((category) => {
+        if (category.id) {
+          this.productService.getSizeGuideByCategory(category.id).subscribe({
+            next: (res: any) => {
+              if (res && res.image_url) {
+                this.categoryGuides.set(category.id!, {
+                  category_id: category.id!,
+                  image_url: res.image_url
+                });
+              }
+              this.cdr.detectChanges();
+            },
+            error: (err) => {
+              // Guide doesn't exist, which is fine
+              console.log(`Không có guide cho category ${category.id}`);
             }
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            // Guide doesn't exist, which is fine
-            console.log(`Không có guide cho category ${category.id}`);
-          }
-        });
-      }
-    });
+          });
+        }
+      });
+    }, 500); // Wait for categories to load
   }
 
   /**
-   * Apply search filter
+   * Apply search filter - Only show parent categories
    */
   applyFilters(): void {
+    // Filter only parent categories (without parent_id)
+    const parentCategories = Array.isArray(this.allCategories) 
+      ? this.allCategories.filter(cat => !cat.parent_id)
+      : [];
+    
     if (!this.searchText.trim()) {
-      this.filteredCategories = [...this.parentCategories];
+      this.filteredCategories = [...parentCategories];
     } else {
       const searchLower = this.searchText.toLowerCase();
-      this.filteredCategories = this.parentCategories.filter((category) =>
+      this.filteredCategories = parentCategories.filter((category) =>
         category.name?.toLowerCase().includes(searchLower)
       );
     }

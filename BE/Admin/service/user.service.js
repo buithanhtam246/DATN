@@ -9,7 +9,7 @@ exports.getAllUsers = async () => {
         console.log("✅ Service: Kết nối DB thành công");
         
         const sql = `
-            SELECT id, name, email, phone, role 
+            SELECT id, name, email, phone, role, status 
             FROM users 
             ORDER BY id DESC
         `;
@@ -23,7 +23,8 @@ exports.getAllUsers = async () => {
             name: user.name,
             email: user.email,
             phone: user.phone,
-            role: user.role
+            role: user.role,
+            status: user.status
         }));
         
         console.log("📤 Service: Trả về kết quả");
@@ -53,7 +54,7 @@ exports.getUserById = async (id) => {
         const user = rows[0];
         return {
             ...user,
-            status: user.status === 1 ? 'active' : 'inactive'
+            status: user.status || 'active'
         };
     } catch (error) {
         console.error("❌ Lỗi Service User - getUserById:", error.message);
@@ -70,9 +71,10 @@ exports.updateUser = async (id, userData) => {
     try {
         connection = await db.getConnection();
         const { name, email, phone, address, status } = userData;
+        const nextStatus = status === 'blocked' ? 'blocked' : 'active';
         
         const sql = `UPDATE users SET name = ?, email = ?, phone = ?, address = ?, status = ? WHERE id = ?`;
-        const [result] = await connection.query(sql, [name, email, phone, address, status || 1, id]);
+        const [result] = await connection.query(sql, [name, email, phone, address, nextStatus, id]);
         
         if (result.affectedRows === 0) {
             return null;
@@ -99,6 +101,50 @@ exports.deleteUser = async (id) => {
         return result.affectedRows > 0;
     } catch (error) {
         console.error("❌ Lỗi Service User - deleteUser:", error.message);
+        throw error;
+    } finally {
+        if (connection) {
+            await connection.release();
+        }
+    }
+};
+
+exports.lockUser = async (id) => {
+    let connection;
+    try {
+        connection = await db.getConnection();
+        const sql = `UPDATE users SET status = 'blocked' WHERE id = ?`;
+        const [result] = await connection.query(sql, [id]);
+        
+        if (result.affectedRows === 0) {
+            return null;
+        }
+        
+        return await exports.getUserById(id);
+    } catch (error) {
+        console.error("❌ Lỗi Service User - lockUser:", error.message);
+        throw error;
+    } finally {
+        if (connection) {
+            await connection.release();
+        }
+    }
+};
+
+exports.unlockUser = async (id) => {
+    let connection;
+    try {
+        connection = await db.getConnection();
+        const sql = `UPDATE users SET status = 'active' WHERE id = ?`;
+        const [result] = await connection.query(sql, [id]);
+        
+        if (result.affectedRows === 0) {
+            return null;
+        }
+        
+        return await exports.getUserById(id);
+    } catch (error) {
+        console.error("❌ Lỗi Service User - unlockUser:", error.message);
         throw error;
     } finally {
         if (connection) {

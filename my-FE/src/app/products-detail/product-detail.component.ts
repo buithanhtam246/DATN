@@ -1,9 +1,20 @@
 
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, viewChild, ElementRef, ChangeDetectionStrategy, ChangeDetectorRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductService, CartService } from '../core/services';
+import { CartService as CartApiService } from '../services/cart.service';
+import { ApiService } from '../services/api.service';
 import { Product } from '../core/models';
+import { environment } from '../../environments/environment';
+
+interface Review {
+  id: number;
+  rating: number;
+  comment: string;
+  customerName?: string;
+  created_at?: string;
+}
 
 interface Variant {
   id: number;
@@ -13,6 +24,9 @@ interface Variant {
   size?: Size;
   price: number;
   priceSale?: number;
+  image?: string;
+    images?: string[];
+  quantity: number;
 }
 
 interface Color {
@@ -32,10 +46,20 @@ interface DisplaySize {
     bangSize: string;
 }
 
+interface ColorVariantPreview {
+    id: number;
+    name: string;
+    imageUrl: string;
+    colorCode: string;
+    isOutOfStock: boolean;
+}
+
 interface ProductWithVariants extends Product {
   variants: Variant[];
   minPrice?: number;
   minPriceSale?: number;
+    imagesByColor?: Record<string, string[]>;
+    mainColorId?: number;
 }
 
 @Component({
@@ -50,6 +74,11 @@ export class ProductDetailComponent implements OnInit {
     private router = inject(Router);
     private productService = inject(ProductService);
     private cartService = inject(CartService);
+    private cartApiService = inject(CartApiService);
+    private apiService = inject(ApiService);
+    private cdr = inject(ChangeDetectorRef);
+    
+    productTitleRef = viewChild<ElementRef>('productTitleRef');
 
     // States
     public product = signal<ProductWithVariants | null>(null);
@@ -65,11 +94,65 @@ export class ProductDetailComponent implements OnInit {
     public showSizeGuideModal = signal<boolean>(false);
     public sizeGuideImage = signal<string | null>(null);
     public isLoadingGuide = signal<boolean>(false);
+    public reviews = signal<Review[]>([]);
+    public isReviewsLoading = signal<boolean>(false);
+    public sizeLookup = signal<Record<number, string>>({});
     
     // Zoom trạng thái hover trên ảnh chính
     public isImageHovering = signal<boolean>(false);
     public zoomOrigin = signal<string>('50% 50%');
     public readonly zoomScale = 2.2;
+    
+    // Image transition animation
+    public imageOpacity = signal<number>(1);
+    
+    // Signal lưu ảnh được hiển thị
+    public displayedImage = signal<string>('');
+
+    // Constructor - setup effects
+    constructor() {
+        // Trigger change detection khi currentImageIndex thay đổi
+        effect(() => {
+            const variantImg = this.variantImage();
+            const currentImg = this.currentImage();
+            const newImage = currentImg || variantImg || '';
+            console.log('📸 Effect triggered - setting displayedImage to:', newImage);
+            this.displayedImage.set(newImage);
+            this.cdr.markForCheck();
+        });
+    }
+
+    private resolveProductImageUrl(imageName?: string | null): string {
+        if (!imageName) return '';
+
+        const raw = String(imageName).trim();
+        if (!raw) return '';
+
+        if (raw.startsWith('http://') || raw.startsWith('https://')) {
+            return raw;
+        }
+
+        if (raw.includes('/public/images/products/') || raw.includes('/images/products/')) {
+            return raw;
+        }
+
+        return `http://localhost:3000/public/images/products/${raw}`;
+    }
+
+    private normalizeImageKey(imageUrl?: string | null): string {
+        if (!imageUrl) return '';
+
+        const raw = String(imageUrl).trim();
+        if (!raw) return '';
+
+        const marker = '/public/images/products/';
+        const markerIndex = raw.indexOf(marker);
+        if (markerIndex >= 0) {
+            return raw.substring(markerIndex + marker.length).toLowerCase();
+        }
+
+        return (raw.split('/').pop() || raw).toLowerCase();
+    }
 
     // Computed data
     public activeColorObj = computed(() => {
@@ -81,27 +164,94 @@ export class ProductDetailComponent implements OnInit {
     });
 
     // Ảnh hiện tại dựa trên currentImageIndex
+    public galleryImages = computed<string[]>(() => {
+        const p = this.product();
+        if (!p) return [];
+
+        const baseImages = Array.isArray(p.images) ? p.images.filter((image) => !!image) : [];
+        const selectedColor = this.selectedColorId();
+
+        if (!selectedColor) {
+            const uniqueBaseImages = Array.from(new Set(baseImages));
+            return uniqueBaseImages.length > 0 ? uniqueBaseImages : (p.imageUrl ? [p.imageUrl] : []);
+        }
+
+        const colorVariantImages = p.variants
+            .filter((variant: Variant) => variant.colorId === selectedColor)
+            .flatMap((variant: Variant) => {
+                const variantImages = Array.isArray(variant.images) && variant.images.length > 0
+                    ? variant.images
+                    : (variant.image ? [variant.image] : []);
+                return variantImages.filter((image) => !!image);
+            });
+
+        const colorImagesFromProduct = Array.isArray(p.imagesByColor?.[String(selectedColor)])
+            ? p.imagesByColor![String(selectedColor)].filter((image) => !!image)
+            : [];
+
+        const isMainColor = p.mainColorId !== undefined && p.mainColorId !== null && selectedColor === p.mainColorId;
+
+        const colorImages = Array.from(new Set([
+            ...colorVariantImages,
+            ...colorImagesFromProduct
+        ].filter((image) => !!image)));
+
+        if (colorImages.length > 0) {
+            if (isMainColor) {
+                const mergedWithCommon = Array.from(new Set([
+                    ...colorImages,
+                    ...baseImages
+                ].filter((image) => !!image)));
+                return mergedWithCommon.length > 0 ? mergedWithCommon : colorImages;
+            }
+
+            return colorImages;
+        }
+
+        const uniqueBaseImages = Array.from(new Set(baseImages));
+        return uniqueBaseImages.length > 0 ? uniqueBaseImages : (p.imageUrl ? [p.imageUrl] : []);
+    });
+
     public currentImage = computed(() => {
         const p = this.product();
         const index = this.currentImageIndex();
-        if (!p || !p.images || p.images.length === 0) {
+        const images = this.galleryImages();
+
+        if (!p || images.length === 0) {
             return p?.imageUrl || '';
         }
-        return p.images[index] || p.images[0];
+
+        return images[index] || images[0];
     });
 
-    // Danh sách màu cố định (4 màu)
-    public displayColors = computed(() => {
+    // Danh sách biến thể màu kèm ảnh đại diện
+    public colorVariants = computed<ColorVariantPreview[]>(() => {
         const p = this.product();
         if (!p || !p.variants) return [];
-        
-        // Lấy tối đa 4 màu unique từ variants
-        const uniqueColors = new Map<number, Color>();
+
+        const fallbackImage = p.images?.[0] || p.imageUrl || '';
+        const uniqueColors = new Map<number, ColorVariantPreview>();
+
         p.variants.forEach((v: Variant) => {
-            if (v.color && uniqueColors.size < 4 && !uniqueColors.has(v.colorId)) {
-                uniqueColors.set(v.colorId, v.color);
+            if (!v.color || uniqueColors.has(v.colorId)) {
+                return;
             }
+
+            const totalQuantityByColor = p.variants
+                .filter((variant: Variant) => variant.colorId === v.colorId)
+                .reduce((sum: number, variant: Variant) => sum + (variant.quantity || 0), 0);
+
+            uniqueColors.set(v.colorId, {
+                id: v.colorId,
+                name: v.color.name || `Màu ${v.colorId}`,
+                imageUrl: (Array.isArray(v.images) && v.images.length > 0
+                    ? v.images[0]
+                    : (p.imagesByColor?.[String(v.colorId)]?.[0] || v.image)) || fallbackImage,
+                colorCode: v.color.tableColor || '#f5f5f5',
+                isOutOfStock: totalQuantityByColor <= 0
+            });
         });
+
         return Array.from(uniqueColors.values());
     });
 
@@ -112,14 +262,26 @@ export class ProductDetailComponent implements OnInit {
 
         const uniqueSizes = new Map<number, string>();
         p.variants.forEach((v: Variant) => {
-            if (v.sizeId && v.size?.bangSize && !uniqueSizes.has(v.sizeId)) {
-                uniqueSizes.set(v.sizeId, v.size.bangSize);
+            if (!v.sizeId || uniqueSizes.has(v.sizeId)) {
+                return;
             }
+
+            const label = this.getVariantSizeLabel(v);
+            if (!label) {
+                return;
+            }
+
+            uniqueSizes.set(v.sizeId, label);
         });
 
         return Array.from(uniqueSizes.entries())
             .map(([id, bangSize]) => ({ id, bangSize }))
-            .sort((a, b) => parseInt(a.bangSize, 10) - parseInt(b.bangSize, 10));
+            .sort((a, b) => {
+                const aNum = Number.parseFloat(a.bangSize);
+                const bNum = Number.parseFloat(b.bangSize);
+                const bothNumeric = !Number.isNaN(aNum) && !Number.isNaN(bNum);
+                return bothNumeric ? aNum - bNum : a.bangSize.localeCompare(b.bangSize);
+            });
     });
 
     // Check xem size có available cho màu đã chọn không
@@ -128,8 +290,12 @@ export class ProductDetailComponent implements OnInit {
         const cId = this.selectedColorId();
         if (!p || !cId) return false;
 
-        // Tìm variant có màu và size này
-        return p.variants.some((v: Variant) => v.colorId === cId && v.sizeId === sizeId);
+        // Size khả dụng khi tồn tại biến thể đúng màu + size và còn tồn kho
+        return p.variants.some((v: Variant) =>
+            v.colorId === cId &&
+            v.sizeId === sizeId &&
+            Number(v.quantity || 0) > 0
+        );
     }
 
     public currentVariantPrice = computed(() => {
@@ -150,14 +316,126 @@ export class ProductDetailComponent implements OnInit {
         return { price: p.minPrice || 0, salePrice: p.minPriceSale };
     });
 
+    // Lấy image của variant được chọn
+    public variantImage = computed(() => {
+        const p = this.product();
+        const cId = this.selectedColorId();
+        const sId = this.selectedSizeId();
+
+        if (!p || !cId || !sId) return undefined;
+
+        // Tìm variant có màu và size này
+        const variant = p.variants.find((v: Variant) => v.colorId === cId && v.sizeId === sId);
+        return variant?.image;
+    });
+
+    // Lấy ảnh hiển thị - ưu tiên variant image, nếu không có thì dùng current image
+    public displayImage = computed(() => {
+        // Nếu người dùng chọn cả màu và size, hiển thị ảnh variant
+        const variantImg = this.variantImage();
+        if (variantImg) {
+            return variantImg;
+        }
+        // Nếu không, hiển thị ảnh từ thumbnail được chọn
+        return this.currentImage();
+    });
+
+    // Lấy số lượng tồn kho của variant được chọn
+    public availableQuantity = computed(() => {
+        const p = this.product();
+        const cId = this.selectedColorId();
+        const sId = this.selectedSizeId();
+
+        if (!p || !cId || !sId) return 0;
+
+        // Tìm variant có màu và size này
+        const variant = p.variants.find((v: Variant) => v.colorId === cId && v.sizeId === sId);
+        return variant?.quantity || 0;
+    });
+
+    public shouldDimProductImages = computed(() => {
+        const p = this.product();
+        if (!p || !p.variants || p.variants.length === 0) {
+            return false;
+        }
+
+        const selectedColorId = this.selectedColorId();
+        const selectedSizeId = this.selectedSizeId();
+
+        if (selectedColorId && selectedSizeId) {
+            const selectedVariant = p.variants.find(
+                (variant: Variant) => variant.colorId === selectedColorId && variant.sizeId === selectedSizeId
+            );
+            return (selectedVariant?.quantity || 0) <= 0;
+        }
+
+        if (selectedColorId) {
+            const totalColorStock = p.variants
+                .filter((variant: Variant) => variant.colorId === selectedColorId)
+                .reduce((sum: number, variant: Variant) => sum + (variant.quantity || 0), 0);
+            return totalColorStock <= 0;
+        }
+
+        const totalProductStock = p.variants.reduce(
+            (sum: number, variant: Variant) => sum + (variant.quantity || 0),
+            0
+        );
+        return totalProductStock <= 0;
+    });
+
     ngOnInit(): void {
+        this.loadSizeLookup();
+
         // Lắng nghe thay đổi ID trên URL
         this.route.paramMap.subscribe(params => {
             const idParam = params.get('id');
+            console.log('🔗 Route param id:', idParam);
             if (idParam) {
-                this.loadProductDetails(parseInt(idParam, 10));
+                const idNumber = parseInt(idParam, 10);
+                console.log('🔗 Parsed ID:', idNumber);
+                this.loadProductDetails(idNumber);
             }
         });
+    }
+
+    private loadSizeLookup(): void {
+        this.productService.getSizes().subscribe({
+            next: (response: any) => {
+                const rawSizes = Array.isArray(response)
+                    ? response
+                    : (Array.isArray(response?.data) ? response.data : []);
+
+                const lookup = rawSizes.reduce((acc: Record<number, string>, item: any) => {
+                    const id = Number(item?.id);
+                    const sizeValue = item?.size;
+
+                    if (Number.isFinite(id) && sizeValue !== undefined && sizeValue !== null) {
+                        acc[id] = String(sizeValue).trim();
+                    }
+
+                    return acc;
+                }, {});
+
+                this.sizeLookup.set(lookup);
+            },
+            error: () => {
+                this.sizeLookup.set({});
+            }
+        });
+    }
+
+    private getVariantSizeLabel(variant: Variant): string {
+        const directLabel = (variant.size?.bangSize || '').toString().trim();
+        if (directLabel) {
+            return directLabel;
+        }
+
+        const lookupLabel = this.sizeLookup()[variant.sizeId];
+        if (lookupLabel) {
+            return lookupLabel;
+        }
+
+        return variant.sizeId ? String(variant.sizeId) : '';
     }
 
     private loadProductDetails(id: number): void {
@@ -165,46 +443,288 @@ export class ProductDetailComponent implements OnInit {
         // Cuộn lên đầu trang mỗi lần đổi sản phẩm
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        this.productService.getProductById(id.toString()).subscribe(p => {
-            if (p) {
-                this.product.set(p as ProductWithVariants);
-                this.currentImageIndex.set(0); // Reset ảnh về đầu
-                this.quantity.set(1); // Reset số lượng
-
-                // Auto select first color
-                const productWithVariants = p as ProductWithVariants;
-                if (productWithVariants.variants && productWithVariants.variants.length > 0) {
-                    const uniqueColorIds = [...new Set(productWithVariants.variants.map((v: Variant) => v.colorId))];
-                    if (uniqueColorIds.length > 0) {
-                        const firstColorId = uniqueColorIds[0] as number;
-                        this.selectColor(firstColorId);
+        this.productService.getProductById(id.toString()).subscribe({
+            next: (response: any) => {
+                console.log('📦 API Response:', response);
+                
+                // API trả về { success, message, data: product }
+                const p = response.data || response;
+                
+                console.log('📊 Product data:', p);
+                console.log('📊 Variants:', p?.variants);
+                console.log('📊 Images:', p?.images);
+                
+                if (p) {
+                    // Xử lý images array - chuyển thành full URLs
+                    let imagesArray: string[] = [];
+                    
+                    // Nếu API trả về images (JSON array)
+                    if (p.images) {
+                        try {
+                            // Nếu images là string, parse nó
+                            const parsedImages = typeof p.images === 'string' ? JSON.parse(p.images) : p.images;
+                            if (Array.isArray(parsedImages)) {
+                                imagesArray = parsedImages.map((img: string) => 
+                                    this.resolveProductImageUrl(img)
+                                ).filter((img: string) => !!img);
+                            }
+                        } catch (e) {
+                            console.warn('Failed to parse images:', e);
+                            // Fallback: sử dụng ảnh chính
+                            if (p.image) {
+                                const fallbackImage = this.resolveProductImageUrl(p.image);
+                                imagesArray = fallbackImage ? [fallbackImage] : [];
+                            }
+                        }
+                    } else if (p.image) {
+                        // Fallback: nếu không có images, dùng image chính
+                        const fallbackImage = this.resolveProductImageUrl(p.image);
+                        imagesArray = fallbackImage ? [fallbackImage] : [];
                     }
-                }
-                this.isLoading.set(false);
 
-                // Load related products
-                this.productService.getRecommendedProducts(4).subscribe((related: Product[]) => {
-                    this.relatedProducts.set(related as ProductWithVariants[]);
-                });
-            } else {
-                // Xử lý Not Found
+                    let imagesByColor: Record<string, string[]> = {};
+                    const rawImagesByColor = p.images_by_color;
+
+                    if (rawImagesByColor) {
+                        let parsedByColor = rawImagesByColor;
+                        if (typeof parsedByColor === 'string') {
+                            try {
+                                parsedByColor = JSON.parse(parsedByColor);
+                            } catch {
+                                parsedByColor = {};
+                            }
+                        }
+
+                        if (parsedByColor && typeof parsedByColor === 'object') {
+                            imagesByColor = Object.entries(parsedByColor).reduce((acc: Record<string, string[]>, [colorKey, value]) => {
+                                const imageList = Array.isArray(value) ? value : [];
+                                const normalized = imageList
+                                    .map((image) => this.resolveProductImageUrl(image as string))
+                                    .filter((image) => !!image);
+
+                                if (normalized.length > 0) {
+                                    acc[colorKey] = Array.from(new Set(normalized));
+                                }
+
+                                return acc;
+                            }, {});
+                        }
+                    }
+
+                    const normalizedProductImageKey = this.normalizeImageKey(this.resolveProductImageUrl(p.image));
+                    const mainVariant = (p.variants || []).find((variant: any) => {
+                        const candidateImages = Array.isArray(variant.images) && variant.images.length > 0
+                            ? variant.images
+                            : (variant.image ? [variant.image] : []);
+
+                        return candidateImages.some((image: string) => this.normalizeImageKey(this.resolveProductImageUrl(image)) === normalizedProductImageKey);
+                    });
+
+                    const mainColorId = mainVariant?.color_id ?? (p.variants?.[0]?.color_id ?? null);
+                    
+                    // Map dữ liệu từ API sang component data
+                    const productData: ProductWithVariants = {
+                        ...p,
+                        title: p.title || p.name,  // Map name → title nếu title không có
+                        imageUrl: this.resolveProductImageUrl(p.image),
+                        images: imagesArray.length > 0 ? imagesArray : [this.resolveProductImageUrl(p.image)].filter((img: string) => !!img),
+                        imagesByColor,
+                        mainColorId,
+                        variants: (p.variants || []).map((v: any) => {
+                            const rawVariantImages = Array.isArray(v.images)
+                                ? v.images
+                                : (typeof v.images === 'string'
+                                    ? (() => {
+                                        try {
+                                            const parsed = JSON.parse(v.images);
+                                            return Array.isArray(parsed) ? parsed : [v.images];
+                                        } catch {
+                                            return [v.images];
+                                        }
+                                    })()
+                                    : []);
+
+                            const normalizedVariantImages = rawVariantImages
+                                .map((image: string) => this.resolveProductImageUrl(image))
+                                .filter((image: string) => !!image);
+
+                            const normalizedPrimaryVariantImage = this.resolveProductImageUrl(v.image) || '';
+                            const mergedVariantImages = Array.from(new Set([
+                                ...normalizedVariantImages,
+                                ...([normalizedPrimaryVariantImage].filter((image: string) => !!image))
+                            ]));
+
+                            return {
+                                id: v.id,
+                                colorId: v.color_id,
+                                sizeId: v.size_id,
+                                price: parseFloat(v.price),
+                                priceSale: v.price_sale ? parseFloat(v.price_sale) : undefined,
+                                quantity: v.quantity || 0,
+                                image: normalizedPrimaryVariantImage || mergedVariantImages[0] || undefined,
+                                images: mergedVariantImages,
+                                color: {
+                                    id: v.color_id,
+                                    tableColor: v.color_code || '#000000',
+                                    name: v.color_name || 'Unknown Color'
+                                },
+                                size: {
+                                    id: v.size_id,
+                                    bangSize: (v.size_name ?? v.size ?? v.bang_size ?? '').toString().trim()
+                                }
+                            };
+                        })
+                    };
+                    
+                    // Tính giá min/max
+                    if (productData.variants.length > 0) {
+                        const prices = productData.variants.map(v => v.price);
+                        const salePrices = productData.variants.filter(v => v.priceSale).map(v => v.priceSale!);
+                        productData.minPrice = Math.min(...prices);
+                        productData.minPriceSale = salePrices.length > 0 ? Math.min(...salePrices) : undefined;
+                    }
+                    
+                    this.product.set(productData);
+                    console.log('✅ Product set:', productData);
+                    console.log('🎨 Color Variants:', this.colorVariants());
+                    console.log('📏 Display Sizes:', this.displaySizes());
+                    this.currentImageIndex.set(0);
+                    this.quantity.set(1);
+
+                    // Auto select first color
+                    if (productData.variants && productData.variants.length > 0) {
+                        const uniqueColorIds = [...new Set(productData.variants.map((v: Variant) => v.colorId))];
+                        if (uniqueColorIds.length > 0) {
+                            const firstColorId = uniqueColorIds[0] as number;
+                            this.selectColor(firstColorId);
+                        }
+                    }
+                    this.isLoading.set(false);
+
+                    // Load size guide based on product category parent
+                    this.loadSizeGuide(productData);
+
+                    // Load related products: cùng danh mục con + mới nhất
+                    const currentCategoryId = Number((productData as any).category_id || 0);
+                    const currentProductId = Number(productData.id || 0);
+
+                    this.productService.getRecommendedProducts(8, currentCategoryId, currentProductId).subscribe((relatedResponse: any) => {
+                        const relatedList = relatedResponse.data || relatedResponse || [];
+
+                        const mappedList = relatedList
+                            .map((relatedProduct: any) => {
+                                const variants = Array.isArray(relatedProduct.variants) ? relatedProduct.variants : [];
+                                const variantPrices = variants
+                                    .map((variant: any) => Number(variant.price || 0))
+                                    .filter((price: number) => price > 0);
+                                const minVariantPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : 0;
+
+                                const resolvedImage = this.resolveProductImageUrl(relatedProduct.image)
+                                    || relatedProduct.imageUrl
+                                    || '/assets/placeholder.png';
+
+                                return {
+                                    ...relatedProduct,
+                                    title: relatedProduct.title || relatedProduct.name || 'Sản phẩm',
+                                    brand: relatedProduct.brand || relatedProduct.brand_name || 'Thương hiệu',
+                                    price: relatedProduct.price || minVariantPrice || 0,
+                                    imageUrl: resolvedImage
+                                };
+                            })
+                            .filter((relatedProduct: any) => Number(relatedProduct.id) !== currentProductId)
+                            .slice(0, 4);
+
+                        this.relatedProducts.set(mappedList as ProductWithVariants[]);
+                    });
+
+                    // Load reviews for this variant
+                    if (productData.variants && productData.variants.length > 0) {
+                        const firstVariant = productData.variants[0];
+                        this.loadReviews(firstVariant.id);
+                    }
+                } else {
+                    this.isLoading.set(false);
+                    this.router.navigate(['/products']);
+                }
+            },
+            error: (err) => {
+                console.error('Error loading product:', err);
                 this.isLoading.set(false);
                 this.router.navigate(['/products']);
             }
         });
     }
 
+    // Load size guide image based on product's parent category
+    private loadSizeGuide(product: ProductWithVariants): void {
+        // Get parent category ID from product
+        // parent_id comes from categories table via API
+        const parentId = (product as any).parent_id;
+        
+        console.log('🔍 Loading size guide - parent_id:', parentId, 'product:', product.title);
+        
+        if (!parentId) {
+            console.log('⚠️ No parent category found for product, trying with category_id');
+            // Fallback: if no parent_id, use category_id as is
+            const categoryId = (product as any).category_id;
+            if (!categoryId) {
+                console.log('❌ No category_id found either');
+                return;
+            }
+            this.loadGuideForCategory(categoryId);
+            return;
+        }
+
+        this.loadGuideForCategory(parentId);
+    }
+
+    private loadGuideForCategory(categoryId: number): void {
+        console.log('📍 Fetching size guide for category:', categoryId);
+        this.isLoadingGuide.set(true);
+        
+        this.productService.getSizeGuideByCategory(categoryId).subscribe({
+            next: (res: any) => {
+                console.log('✅ Size guide response:', res);
+                if (res && res.data && res.data.image_url) {
+                    const baseUrl = environment.apiUrl.replace('/api', '');
+                    const imageUrl = `${baseUrl}/uploads/size-guides/${res.data.image_url}`;
+                    this.sizeGuideImage.set(imageUrl);
+                    console.log('✅ Size guide loaded:', imageUrl);
+                } else {
+                    console.log('⚠️ No image_url in response');
+                    this.sizeGuideImage.set(null);
+                }
+                this.isLoadingGuide.set(false);
+                this.cdr.markForCheck();
+            },
+            error: (err) => {
+                console.log('❌ Error loading size guide:', err);
+                this.sizeGuideImage.set(null);
+                this.isLoadingGuide.set(false);
+                this.cdr.markForCheck();
+            }
+        });
+    }
+
     // Actions
     selectColor(colorId: number): void {
+        const previousSizeId = this.selectedSizeId();
+
         this.selectedColorId.set(colorId);
+        this.currentImageIndex.set(0);
 
-        // Reset size chọn trước đó do mỗi màu có thể có kho size khác nhau
-        this.selectedSizeId.set(null);
+        // Giữ size đã chọn nếu size đó vẫn còn ở màu mới
+        if (previousSizeId && this.isSizeAvailable(previousSizeId)) {
+            this.selectedSizeId.set(previousSizeId);
+        } else {
+            // Auto-select size đầu tiên có sẵn
+            const firstAvailableSize = this.displaySizes().find(s => this.isSizeAvailable(s.id));
+            this.selectedSizeId.set(firstAvailableSize ? firstAvailableSize.id : null);
+        }
 
-        // Auto-select size đầu tiên có sẵn
-        const firstAvailableSize = this.displaySizes().find(s => this.isSizeAvailable(s.id));
-        if (firstAvailableSize) {
-            this.selectedSizeId.set(firstAvailableSize.id);
+        const nextImages = this.galleryImages();
+        if (nextImages.length > 0) {
+            this.displayedImage.set(nextImages[0]);
         }
     }
 
@@ -228,6 +748,23 @@ export class ProductDetailComponent implements OnInit {
 
     toggleDelivery(): void {
         this.isDeliveryOpen.set(!this.isDeliveryOpen());
+    }
+
+    loadReviews(variantId: number): void {
+        this.isReviewsLoading.set(true);
+        this.apiService.getProductReviews(variantId).subscribe({
+            next: (response: any) => {
+                if (response.success && response.data && response.data.reviews) {
+                    this.reviews.set(response.data.reviews);
+                }
+                this.isReviewsLoading.set(false);
+            },
+            error: (err) => {
+                console.error('Error loading reviews:', err);
+                this.reviews.set([]);
+                this.isReviewsLoading.set(false);
+            }
+        });
     }
 
     toggleReviews(): void {
@@ -274,12 +811,45 @@ export class ProductDetailComponent implements OnInit {
     }
 
     selectImage(index: number): void {
-        const p = this.product();
-        if (!p || !p.images) return;
+        const images = this.galleryImages();
+        console.log('🖼️ selectImage called:', index);
+        console.log('🖼️ gallery images:', images);
+        console.log('🖼️ gallery images length:', images.length);
+        
+        if (!images.length) {
+            console.warn('❌ No gallery images');
+            return;
+        }
         
         // Đảm bảo index hợp lệ
-        if (index >= 0 && index < p.images.length) {
-            this.currentImageIndex.set(index);
+        if (index >= 0 && index < images.length) {
+            console.log('✅ Index valid, setting opacity to 0');
+            // Fade out
+            this.imageOpacity.set(0);
+            
+            // Delay để fade out hoàn thành, sau đó đổi ảnh
+            setTimeout(() => {
+                console.log('✅ Setting currentImageIndex to:', index);
+                this.currentImageIndex.set(index);
+                
+                // Get the new image URL
+                const newImage = images[index];
+                console.log('✅ New image:', newImage);
+                this.displayedImage.set(newImage);
+                
+                // Also update DOM directly
+                const imgElement = document.querySelector('.main-img') as HTMLImageElement;
+                if (imgElement) {
+                    imgElement.src = newImage;
+                    console.log('✅ Updated IMG src directly');
+                }
+                
+                // Fade in
+                console.log('✅ Setting opacity to 1');
+                this.imageOpacity.set(1);
+            }, 150);
+        } else {
+            console.warn('❌ Index invalid:', index, 'length:', images.length);
         }
     }
 
@@ -289,6 +859,22 @@ export class ProductDetailComponent implements OnInit {
 
     decrementQuantity(): void {
         this.quantity.update(q => (q > 1 ? q - 1 : 1));
+    }
+
+    onQuantityInput(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const parsedValue = Number(input.value);
+
+        if (!Number.isFinite(parsedValue)) {
+            this.quantity.set(1);
+            return;
+        }
+
+        this.quantity.set(Math.max(1, Math.floor(parsedValue)));
+    }
+
+    canIncrementQuantity(): boolean {
+        return this.quantity() < this.availableQuantity();
     }
 
     onImageEnter(): void {
@@ -326,39 +912,108 @@ export class ProductDetailComponent implements OnInit {
             return;
         }
 
-        // Call API (hoặc Service)
         const selectedSizeId = this.selectedSizeId();
+        const selectedColorId = this.selectedColorId();
         const priceInfo = this.currentVariantPrice();
+        const availableStock = this.availableQuantity();
+        const requestedQuantity = this.quantity();
 
         const selectedVariant = p.variants.find(
-            (v: Variant) => v.colorId === this.selectedColorId() && v.sizeId === selectedSizeId
+            (v: Variant) => v.colorId === selectedColorId && v.sizeId === selectedSizeId
         );
-        const selectedColor =
-            selectedVariant?.color?.name ||
-            selectedVariant?.color?.tableColor ||
-            this.activeColorObj()?.name ||
-            this.activeColorObj()?.tableColor ||
-            '';
-        const selectedSizeValue = Number.parseInt(selectedVariant?.size?.bangSize || '', 10);
-        const cartSize = Number.isNaN(selectedSizeValue) ? (selectedSizeId || 0) : selectedSizeValue;
+
+        if (!selectedVariant) {
+            alert('Biến thể sản phẩm không tồn tại!');
+            return;
+        }
+
+        // Kiểm tra số lượng có đủ không
+        if (requestedQuantity > availableStock) {
+            alert(`Số lượng không đủ!\nSố lượng yêu cầu: ${requestedQuantity}\nTồn kho: ${availableStock}`);
+            return;
+        }
+
+        // Gọi API backend để thêm vào giỏ và giảm tồn kho
+        const cartId = this.cartApiService.getCartId();
         
-        const cartItem = {
-            id: `${p.id}_${this.selectedColorId()}_${selectedSizeId}`,
-            product: {
-                id: p.id || '',
-                title: p.title,
-                imageUrl: p.imageUrl || '',
-                brand: p.brand
+        if (!cartId) {
+            alert('Không tìm thấy giỏ hàng. Vui lòng đăng nhập hoặc tạo giỏ hàng mới!');
+            return;
+        }
+
+        const addToCartRequest = this.cartApiService.addToCart(selectedVariant.id, requestedQuantity);
+        
+        if (!addToCartRequest) {
+            alert('Không thể thêm vào giỏ hàng!');
+            return;
+        }
+
+        addToCartRequest.subscribe({
+            next: (response: any) => {
+                if (response.success) {
+                    // Chuẩn bị dữ liệu để lưu vào localStorage
+                    const selectedColor =
+                        selectedVariant?.color?.name ||
+                        selectedVariant?.color?.tableColor ||
+                        this.activeColorObj()?.name ||
+                        this.activeColorObj()?.tableColor ||
+                        '';
+                    const selectedSizeValue = Number.parseInt(selectedVariant?.size?.bangSize || '', 10);
+                    const cartSize = Number.isNaN(selectedSizeValue) ? (selectedSizeId || 0) : selectedSizeValue;
+                    
+                    // Get variant image if available
+                    const variantImage = selectedVariant?.image || p.imageUrl;
+                    
+                    // Lấy tên từ product.title
+                    let productName = p.title || 'Sản phẩm không tên';
+                    if (!p.title && this.productTitleRef()) {
+                        const headingText = this.productTitleRef()?.nativeElement?.textContent?.trim();
+                        productName = headingText || 'Sản phẩm không tên';
+                    }
+                    
+                    const priceInfo = this.currentVariantPrice();
+                    
+                    const cartItem = {
+                        id: `${p.id}_${selectedColorId}_${selectedSizeId}`,
+                        variant_id: selectedVariant.id,
+                        name: productName,
+                        price: priceInfo.price,
+                        priceSale: priceInfo.salePrice,
+                        image: variantImage,
+                        color: selectedColor,
+                        size: cartSize,
+                        quantity: requestedQuantity
+                    };
+                    
+                    // Lưu vào localStorage
+                    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                    const existingIndex = cart.findIndex((item: any) => item.id === cartItem.id);
+                    
+                    if (existingIndex > -1) {
+                        cart[existingIndex].quantity += cartItem.quantity;
+                    } else {
+                        cart.push(cartItem);
+                    }
+                    
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    
+                    alert('Đã thêm sản phẩm vào giỏ hàng!');
+                    this.quantity.set(1); // Reset quantity
+                    
+                    // Reload product details để cập nhật tồn kho từ backend
+                    const productId = this.product()?.id;
+                    if (productId) {
+                        this.loadProductDetails(parseInt(productId.toString(), 10));
+                    }
+                } else {
+                    alert('Lỗi: ' + (response.message || 'Không thể thêm vào giỏ hàng'));
+                }
             },
-            selectedColor,
-            selectedSize: cartSize,
-            quantity: this.quantity(),
-            price: priceInfo.salePrice || priceInfo.price,
-            originalPrice: priceInfo.salePrice ? priceInfo.price : undefined
-        };
-        
-        this.cartService.addItem(cartItem);
-        alert('Đã thêm sản phẩm vào giỏ hàng!');
+            error: (error: any) => {
+                console.error('Error adding to cart:', error);
+                alert('Lỗi: ' + (error.error?.message || 'Không thể thêm vào giỏ hàng'));
+            }
+        });
     }
 
     // Utilities

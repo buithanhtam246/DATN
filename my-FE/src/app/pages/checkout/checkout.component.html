@@ -1,46 +1,338 @@
 <div class="checkout-container">
-  <h2>THANH TOÁN</h2>
+  <h1 class="page-title">THANH TOÁN</h1>
 
   <div *ngIf="cart.length === 0" class="empty-cart">
     <p>Giỏ hàng trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán.</p>
     <button routerLink="/cart">Quay lại giỏ hàng</button>
   </div>
 
-  <div *ngIf="cart.length > 0">
-    <h3>Thông tin giao hàng</h3>
+  <div *ngIf="cart.length > 0" class="checkout-content">
+    <!-- Left Side: Shipping Info Form -->
+    <div class="shipping-section">
+      <h3 class="section-title">THÔNG TIN GIAO HÀNG</h3>
 
-    <div class="form-group">
-      <label>Họ tên:</label>
-      <input type="text" placeholder="Nhập họ tên" [(ngModel)]="fullName" required>
-    </div>
-
-    <div class="form-group">
-      <label>Số điện thoại:</label>
-      <input type="tel" placeholder="Nhập số điện thoại" [(ngModel)]="phone" required>
-    </div>
-
-    <div class="form-group">
-      <label>Địa chỉ:</label>
-      <input type="text" placeholder="Nhập địa chỉ giao hàng" [(ngModel)]="address" required>
-    </div>
-
-    <h3>Tóm tắt đơn hàng</h3>
-    <div class="order-summary">
-      <div *ngFor="let item of cart" class="cart-item">
-        <span>{{item.name}} x {{item.quantity}}</span>
-        <span>{{item.price * item.quantity | number}} đ</span>
+      <div class="form-group">
+        <label>Họ và Tên</label>
+        <input 
+          type="text" 
+          placeholder="Phạm Nhật Vương" 
+          [(ngModel)]="fullName" 
+          class="form-control"
+          required>
       </div>
-      <div class="total">
-        <strong>Tổng cộng: {{totalAmount | number}} đ</strong>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input 
+          type="email" 
+          placeholder="goodshoes.datn@gmail.com" 
+          [(ngModel)]="email" 
+          class="form-control"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label>Địa chỉ</label>
+        <!-- Danh sách địa chỉ đã lưu -->
+        <div class="saved-addresses" *ngIf="addresses && addresses.length > 0">
+          <div class="addresses-list">
+            <div *ngFor="let addr of addresses; trackBy: trackByAddressId" 
+              class="address-item"
+              [class.selected]="selectedAddressId === addr.id"
+              (click)="toggleAddressSelect(addr)">
+              <input type="checkbox" 
+                [checked]="selectedAddressId === addr.id"
+                (change)="toggleAddressSelect(addr)">
+              <div class="address-info">
+                <div class="address-text-wrapper">
+                  <span class="address-text">{{addr.full_address}}</span>
+                  <span class="address-type" *ngIf="addr.is_default">(Mặc định)</span>
+                </div>
+                <div class="address-detail" *ngIf="addr.receiver_name || addr.receiver_phone">
+                  <small>{{addr.receiver_name}} | {{addr.receiver_phone}}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-add-address" (click)="toggleAddNewAddress()">
+            + Thêm địa chỉ khác
+          </button>
+        </div>
+
+        <!-- Form thêm địa chỉ mới -->
+        <div class="new-address-form" *ngIf="showAddNewAddress">
+          <h4>Thêm Địa Chỉ Mới</h4>
+          
+          <div class="form-group-inline">
+            <div class="form-group">
+              <label>Tên Người Nhận</label>
+              <input 
+                type="text" 
+                placeholder="Nhập tên người nhận" 
+                [(ngModel)]="newAddressName"
+                (change)="updateNewAddress()"
+                class="form-control"
+                required>
+            </div>
+            
+            <div class="form-group">
+              <label>Số Điện Thoại *</label>
+              <input 
+                type="text" 
+                placeholder="Nhập số điện thoại (10 số)" 
+                [(ngModel)]="newAddressPhone"
+                (change)="validateNewAddressPhone()"
+                (input)="validateNewAddressPhone()"
+                class="form-control"
+                [class.error]="newAddressPhoneError"
+                required>
+              <span class="error-message" *ngIf="newAddressPhoneError">
+                {{ newAddressPhoneError }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Các select cho tỉnh/quận/phường -->
+          <div class="form-group-inline">
+            <div class="form-group">
+              <label>Tỉnh/Thành Phố</label>
+              <select 
+                [(ngModel)]="newAddressProvince"
+                (change)="onProvinceChange(newAddressProvince)"
+                class="form-control"
+                required>
+                <option value="">Chọn tỉnh/thành phố</option>
+                <option *ngFor="let prov of provinces" [value]="prov">{{prov}}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Quận/Huyện</label>
+              <select 
+                [(ngModel)]="newAddressDistrict"
+                (change)="onDistrictChange(newAddressDistrict)"
+                class="form-control"
+                [disabled]="!newAddressProvince"
+                required>
+                <option value="">Chọn quận/huyện</option>
+                <option *ngFor="let dist of districts" [value]="dist">{{dist}}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-inline">
+            <div class="form-group">
+              <label>Phường/Xã</label>
+              <select 
+                [(ngModel)]="newAddressWard"
+                (change)="onWardChange(newAddressWard)"
+                class="form-control"
+                [disabled]="!newAddressDistrict"
+                required>
+                <option value="">Chọn phường/xã</option>
+                <option *ngFor="let ward of wards" [value]="ward">{{ward}}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Địa Chỉ Chi Tiết</label>
+              <input 
+                type="text" 
+                placeholder="Số nhà, tên đường" 
+                [(ngModel)]="newAddressText"
+                (change)="updateNewAddress()"
+                class="form-control"
+                required>
+            </div>
+          </div>
+
+          <div class="button-group-inline">
+            <button type="button" class="btn-cancel" (click)="toggleAddNewAddress()">
+              Hủy
+            </button>
+            <button type="button" class="btn-save" (click)="addNewAddress()" [disabled]="isAddingAddress || !isNewAddressPhoneValid">
+              <span *ngIf="isAddingAddress">Đang thêm...</span>
+              <span *ngIf="!isAddingAddress">Lưu Địa Chỉ</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Form nhập địa chỉ đơn giản (nếu không có địa chỉ đã lưu) -->
+        <div class="manual-address-form" *ngIf="addresses.length === 0 && !showAddNewAddress">
+          <div class="form-group">
+            <label>Tên Người Nhận *</label>
+            <input 
+              type="text" 
+              placeholder="Nhập tên người nhận" 
+              [(ngModel)]="manualAddressName"
+              (change)="updateManualAddress()"
+              class="form-control"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label>Số Điện Thoại *</label>
+            <input 
+              type="tel" 
+              placeholder="Nhập số điện thoại" 
+              [(ngModel)]="manualAddressPhone"
+              (change)="updateManualAddress()"
+              class="form-control"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label>Địa Chỉ Chi Tiết *</label>
+            <input 
+              type="text" 
+              placeholder="Số nhà, tên đường, tỉnh/thành phố, quận/huyện, phường/xã" 
+              [(ngModel)]="manualAddressText"
+              (change)="updateManualAddress()"
+              class="form-control"
+              required>
+          </div>
+        </div>
+        
+        <!-- Hiển thị địa chỉ đã chọn (nếu có) -->
+        <div class="address-form-wrapper" *ngIf="selectedAddressId && addresses.length > 0">
+          <input 
+            type="text" 
+            placeholder="Nhập địa chỉ giao hàng" 
+            [(ngModel)]="address" 
+            class="form-control"
+            disabled>
+        </div>
+      </div>
+
+      <!-- Voucher Section -->
+      <div class="voucher-section">
+        <h4 class="section-title">Mã Voucher</h4>
+        <div class="voucher-input-group" *ngIf="!appliedVoucher">
+          <input 
+            type="text" 
+            placeholder="Nhập mã voucher"
+            [(ngModel)]="voucherCode"
+            class="form-control voucher-input"
+            [disabled]="isApplyingVoucher">
+          <button 
+            type="button" 
+            class="btn-apply-voucher"
+            (click)="applyVoucher()"
+            [disabled]="isApplyingVoucher || !voucherCode.trim()">
+            <span *ngIf="isApplyingVoucher">Đang kiểm tra...</span>
+            <span *ngIf="!isApplyingVoucher">Áp dụng</span>
+          </button>
+        </div>
+
+        <!-- Hiển thị voucher đã áp dụng -->
+        <div class="voucher-applied" *ngIf="appliedVoucher">
+          <div class="voucher-info">
+            <span class="voucher-code">{{ appliedVoucher.code }}</span>
+            <span class="voucher-name">{{ appliedVoucher.name }}</span>
+            <span class="voucher-discount">-{{ appliedVoucher.discountAmount | number:'1.0-0' }}đ</span>
+          </div>
+          <button 
+            type="button" 
+            class="btn-remove-voucher"
+            (click)="removeVoucher()">
+            Xóa
+          </button>
+        </div>
+
+        <!-- Hiển thị thông báo -->
+        <div *ngIf="voucherMessage" class="voucher-message" [class.error]="!appliedVoucher">
+          {{ voucherMessage }}
+        </div>
+      </div>
+
+      <!-- Ghi Chú Đơn Hàng -->
+      <div class="notes-section">
+        <h4 class="section-title">📝 Ghi Chú Đơn Hàng</h4>
+        <textarea 
+          [(ngModel)]="orderNote"
+          placeholder="Nhập ghi chú cho đơn hàng (tuỳ chọn)"
+          class="form-control notes-input"
+          rows="3"></textarea>
+      </div>
+
+      <div class="shipping-methods">
+        <h4 class="section-title">Phương thức thanh toán</h4>
+        <select 
+          [(ngModel)]="selectedShippingMethod"
+          class="form-control"
+          required>
+          <option value="">Chọn phương thức</option>
+          @for (method of paymentMethods; track method.id) {
+            <option [value]="method.name">{{ method.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-back" (click)="goBack()">Hủy</button>
+        <button 
+          class="btn-place-order" 
+          (click)="checkout()"
+          [disabled]="isLoading || !fullName || !address || !email || !selectedShippingMethod || !(selectedAddressId || manualAddressPhone || newAddressPhone)">
+          <span *ngIf="isLoading">Đang xử lý...</span>
+          <span *ngIf="!isLoading">Đặt hàng</span>
+        </button>
       </div>
     </div>
 
-    <button
-      (click)="checkout()"
-      [disabled]="isLoading || !fullName || !phone || !address"
-      class="checkout-btn">
-      <span *ngIf="isLoading">Đang xử lý...</span>
-      <span *ngIf="!isLoading">Đặt hàng</span>
-    </button>
+    <!-- Right Side: Order Summary -->
+    <div class="summary-section">
+      <h3 class="section-title">TỔNG HÓA ĐƠN</h3>
+
+      <div class="summary-content">
+        <div class="summary-row">
+          <span>Tổng giá sản phẩm</span>
+          <span class="price">{{ subtotal | number:'1.0-0' }}đ</span>
+        </div>
+
+        <div class="summary-row">
+          <span>Phí giao hàng</span>
+          <span class="price">{{ shippingFee | number:'1.0-0' }}đ</span>
+        </div>
+        <div class="shipping-info">
+          <small *ngIf="address && address.includes('Hồ Chí Minh')">TP. Hồ Chí Minh: 15,000đ</small>
+          <small *ngIf="address && !address.includes('Hồ Chí Minh')">Tỉnh khác: 30,000đ</small>
+        </div>
+
+        <div *ngIf="appliedVoucher" class="summary-row voucher-discount">
+          <span>{{ appliedVoucher.code }} ({{ appliedVoucher.name }})</span>
+          <span class="discount-text" style="color: #dc2626;">-{{ discountAmount | number:'1.0-0' }}đ</span>
+        </div>
+
+        <div *ngIf="discountAmount > 0 && !appliedVoucher" class="summary-row discount">
+          <span>Mua thêm {{ remainingForFreeShip | number:'1.0-0' }}đ để được Freeship</span>
+          <span class="discount-text" style="color: #22c55e;">{{ discountAmount | number:'1.0-0' }}đ</span>
+        </div>
+
+        <div class="summary-divider"></div>
+
+        <div class="summary-row total">
+          <span>Tổng hóa đơn</span>
+          <span class="total-amount">{{ total | number:'1.0-0' }}đ</span>
+        </div>
+
+        <!-- Cart Items Preview -->
+        <div class="cart-items-preview">
+          <div *ngFor="let item of cart" class="preview-item">
+            <img [src]="item.image" [alt]="item.name" class="item-image">
+            <div class="item-info">
+              <h4>{{ item.name }}</h4>
+              <p class="item-variant">
+                <span *ngIf="item.color">{{ item.color }}</span>
+                <span *ngIf="item.size"> / Size {{ item.size }}</span>
+              </p>
+              <p class="item-details">
+                Size {{ item.size }} - Số lượng {{ item.quantity }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

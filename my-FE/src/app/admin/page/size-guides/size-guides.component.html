@@ -9,7 +9,7 @@
     <div class="stat-card">
       <div class="stat-icon">📁</div>
       <div class="stat-content">
-        <div class="stat-label">Tổng Danh Mục</div>
+        <div class="stat-label">Tổng Danh Mục Cha</div>
         <div class="stat-value">{{ parentCategories.length }}</div>
       </div>
     </div>
@@ -44,7 +44,9 @@
   <div class="categories-grid">
     <div *ngFor="let category of filteredCategories" class="category-card">
       <div class="card-header">
-        <h3>{{ category.name }}</h3>
+        <div class="category-title">
+          <h3>{{ category.name }}</h3>
+        </div>
         <span class="category-badge" [class.has-guide]="categoryGuides.has(category.id!)">
           {{ categoryGuides.has(category.id!) ? '✓ Có Hướng Dẫn' : '⚠ Chưa Có' }}
         </span>

@@ -5,10 +5,60 @@ const { sequelize } = require('../../config/database');
 
 class OrderService {
   async checkout(userId, orderData) {
-    // orderData bao gồm: address_id, payment_method_id, voucher_code, note, delivery, items[], delivery_cost
-    const { items, voucher_code, address_id, delivery_cost = 30000, ...orderInfo } = orderData;
+    // orderData bao gồm: address_id, delivery_address, payment_method_id, voucher_code, note, delivery, items[], delivery_cost
+    const { items, voucher_code, address_id, delivery_address, delivery_cost = 30000, ...orderInfo } = orderData;
 
     return await sequelize.transaction(async (t) => {
+      const variantIds = (items || [])
+        .map(item => Number(item.variant_id))
+        .filter(variantId => Number.isFinite(variantId) && variantId > 0);
+
+      if (variantIds.length === 0) {
+        throw new Error('Danh sách sản phẩm đặt hàng không hợp lệ');
+      }
+
+      const placeholders = variantIds.map(() => '?').join(', ');
+      const variantsInStock = await sequelize.query(
+        `SELECT id, quantity
+         FROM variant
+         WHERE id IN (${placeholders})
+         FOR UPDATE`,
+        {
+          replacements: variantIds,
+          type: sequelize.QueryTypes.SELECT,
+          transaction: t
+        }
+      );
+
+      const stockByVariantId = variantsInStock.reduce((acc, variant) => {
+        acc[Number(variant.id)] = Number(variant.quantity || 0);
+        return acc;
+      }, {});
+
+      for (const item of items) {
+        const variantId = Number(item.variant_id);
+        const requestQty = Number(item.quantity || 0);
+
+        if (!Number.isFinite(variantId) || variantId <= 0) {
+          throw new Error('Biến thể sản phẩm không hợp lệ');
+        }
+
+        if (!Number.isFinite(requestQty) || requestQty <= 0) {
+          throw new Error('Số lượng sản phẩm không hợp lệ');
+        }
+
+        const availableQty = stockByVariantId[variantId];
+        if (availableQty === undefined) {
+          throw new Error(`Biến thể #${variantId} không tồn tại`);
+        }
+
+        if (availableQty < requestQty) {
+          throw new Error(`Số lượng không đủ cho biến thể #${variantId}. Tồn kho: ${availableQty}, yêu cầu: ${requestQty}`);
+        }
+
+        stockByVariantId[variantId] = availableQty - requestQty;
+      }
+
       // 1. Tính tổng tiền từ danh sách sản phẩm gửi lên
       let subtotal = items.reduce((sum, item) => {
         return sum + (item.price * item.quantity);
@@ -48,6 +98,7 @@ class OrderService {
       const order = await orderRepository.createOrder({
         user_id: userId,
         address_id: address_id || null,
+        delivery_address: delivery_address || null,
         total_price: total_price,
         delivery_cost: final_delivery_cost,
         status: 'pending',
@@ -66,6 +117,20 @@ class OrderService {
 
       // 6. Lưu vào bảng order_details
       await orderRepository.createOrderDetails(detailsData, t);
+
+      // 7. Trừ tồn kho sau khi tạo đơn hàng thành công
+      for (const item of items) {
+        await sequelize.query(
+          `UPDATE variant
+           SET quantity = quantity - ?
+           WHERE id = ?`,
+          {
+            replacements: [item.quantity, item.variant_id],
+            type: sequelize.QueryTypes.UPDATE,
+            transaction: t
+          }
+        );
+      }
 
       return {
         ...order.toJSON(),

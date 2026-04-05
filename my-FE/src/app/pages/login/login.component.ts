@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { CartService } from '../../services/cart.service';
 import { NotificationService } from '../../core/services/notification.service';
 
 
@@ -22,11 +23,16 @@ export class LoginComponent {
   isLoading = false;
   emailError = '';
   passwordError = '';
+  formError = '';
+  errorMessage$;
+  successMessage$;
 
   @ViewChild('passwordInput') passwordInput!: ElementRef;
   @ViewChild('emailInput') emailInput!: ElementRef;
 
-  constructor(private authService: AuthService, private router: Router, private cdr: ChangeDetectorRef, private notificationService: NotificationService) {
+  constructor(private authService: AuthService, private cartService: CartService, private router: Router, private cdr: ChangeDetectorRef, private notificationService: NotificationService) {
+    this.errorMessage$ = this.notificationService.errorMessage$;
+    this.successMessage$ = this.notificationService.successMessage$;
     // Nếu đã đăng nhập và là user bình thường, redirect tới home
     if (this.authService.isLoggedIn()) {
       if (this.authService.isAdmin()) {
@@ -45,10 +51,12 @@ export class LoginComponent {
 
   onEmailChange() {
     this.emailError = '';
+    this.formError = '';
   }
 
   onPasswordChange() {
     this.passwordError = '';
+    this.formError = '';
   }
 
   login(){
@@ -56,6 +64,7 @@ export class LoginComponent {
     this.isLoading = true;
     this.emailError = '';
     this.passwordError = '';
+    this.formError = '';
 
     if(!this.email || !this.password){
       this.notificationService.showError("Vui lòng nhập đầy đủ thông tin");
@@ -81,6 +90,12 @@ export class LoginComponent {
           localStorage.setItem('userId', userData.id);
           localStorage.setItem('user', JSON.stringify(userData));
           localStorage.setItem('userRole', userData.role);
+          
+          // Lưu cart_id nếu có
+          if (response.data.cart_id) {
+            localStorage.setItem('cartId', response.data.cart_id);
+            this.cartService.setCartId(response.data.cart_id);
+          }
 
           this.notificationService.showSuccess("Đăng nhập thành công");
           this.isLoading = false;
@@ -101,19 +116,17 @@ export class LoginComponent {
             }
           }, 1500);
         } else {
-          console.error('Login failed:', response.message || 'Unknown error');
-          this.notificationService.showError(response.message || "Đăng nhập thất bại");
+          this.formError = response.message || 'Đăng nhập thất bại';
+          this.notificationService.showError(this.formError);
           this.isLoading = false;
         }
       },
       error: (error) => {
-        console.error('Login error:', error);
         const errorMessage = error.error?.message || "Đăng nhập thất bại. Vui lòng thử lại.";
-        console.log('Error message:', errorMessage);
+
         if (errorMessage === 'Email không tồn tại') {
           this.emailError = errorMessage;
           this.email = ''; // Clear email on wrong email
-          console.log('Set emailError:', this.emailError);
           this.cdr.detectChanges();
           setTimeout(() => {
             this.emailInput.nativeElement.focus();
@@ -121,12 +134,12 @@ export class LoginComponent {
         } else if (errorMessage === 'Sai mật khẩu') {
           this.passwordError = errorMessage;
           this.password = ''; // Clear password on wrong password
-          console.log('Set passwordError:', this.passwordError);
           this.cdr.detectChanges();
           setTimeout(() => {
             this.passwordInput.nativeElement.focus();
           }, 0);
         } else {
+          this.formError = errorMessage;
           this.notificationService.showError(errorMessage);
         }
         this.isLoading = false;

@@ -10,7 +10,7 @@ const storage = multer.diskStorage({
         const dir = path.resolve(__dirname, '../../public/images/products');
 
         // Log đường dẫn này ra Terminal để bạn kiểm tra xem nó trỏ đi đâu
-        console.log('📂 Ảnh sẽ được lưu tại:', dir);
+        console.log('📂 File destination:', dir);
 
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
@@ -19,9 +19,22 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
+        const filename = 'product-' + uniqueSuffix + path.extname(file.originalname);
+        console.log('📝 File saved as:', filename, 'fieldname:', file.fieldname, 'size:', file.size);
+        cb(null, filename);
     }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+
+// Middleware to log incoming files
+upload.use = (req, res, next) => {
+    console.log('📥 Multer middleware triggered');
+    next();
+};
+
+console.log('✅ Upload middleware loaded');
 module.exports = upload;

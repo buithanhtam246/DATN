@@ -8,7 +8,7 @@ exports.getAllVouchers = async () => {
         connection = await db.getConnection();
         console.log("✅ Service: Kết nối DB thành công");
         
-        const sql = `SELECT id, code_voucher as code, name_voucher as name, promotion_type as discount_type, value_reduced as discount_value, quantity, max_value, start_date, promotion_date as endDate FROM vouchers ORDER BY id DESC`;
+        const sql = `SELECT id, code_voucher as code, name_voucher as name, promotion_type as discount_type, value_reduced as discount_value, quantity, max_value, minimum_order, start_date, promotion_date as endDate FROM vouchers ORDER BY id DESC`;
         console.log("🔍 Service: Thực thi query:", sql);
         
         const [rows] = await connection.query(sql);
@@ -22,9 +22,9 @@ exports.getAllVouchers = async () => {
             discountValue: voucher.discount_value,
             quantity: voucher.quantity,
             maxValue: voucher.max_value,
+            minimumOrder: voucher.minimum_order || 0,
             startDate: voucher.start_date,
-            endDate: voucher.endDate,
-            minimumOrder: 0
+            endDate: voucher.endDate
         }));
         
         console.log("📤 Service: Trả về kết quả:", result);

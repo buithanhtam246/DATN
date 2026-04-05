@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Product } from '../models';
 import { FEATURED_PRODUCT } from '../constants';
 import { IProductOperations } from '../interfaces/service.interface';
+import { environment } from '../../../environments/environment';
 
 /**
  * Service quản lý products
@@ -14,7 +15,8 @@ import { IProductOperations } from '../interfaces/service.interface';
   providedIn: 'root'
 })
 export class ProductService implements IProductOperations {
-  private apiUrl = 'http://localhost:3000/api/admin';
+  private apiUrl = environment.apiUrl.replace('/api', '') + '/api/products';
+  private baseUrl = environment.apiUrl.replace('/api', '');
   
   constructor(private http: HttpClient) {}
   
@@ -46,23 +48,34 @@ export class ProductService implements IProductOperations {
    * Lấy danh sách products
    * TODO: Kết nối với API thực tế
    */
-  getProducts(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/all-products`);
+  getProducts(params?: any): Observable<any> {
+    return this.http.get(`http://localhost:3000/api/admin/all-products`, { params });
   }
 
   /**
    * Lấy product theo ID
    */
-  getProductById(id: string): Observable<Product | undefined> {
-    // TODO: Implement khi có API
-    return of(FEATURED_PRODUCT);
+  getProductById(id: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${id}`);
   }
 
   /**
    * Lấy sản phẩm gợi ý (recommended products)
    */
-  getRecommendedProducts(limit: number = 4): Observable<Product[]> {
-    return of([]);
+  getRecommendedProducts(limit: number = 4, categoryId?: number, excludeId?: number): Observable<any[]> {
+    const queryParams = new URLSearchParams();
+    queryParams.set('limit', String(limit));
+    queryParams.set('sort', 'newest');
+
+    if (categoryId) {
+      queryParams.set('category_id', String(categoryId));
+    }
+
+    if (excludeId) {
+      queryParams.set('exclude_id', String(excludeId));
+    }
+
+    return this.http.get<any[]>(`${this.apiUrl}?${queryParams.toString()}`);
   }
 
   /**
@@ -77,7 +90,7 @@ export class ProductService implements IProductOperations {
    * Get size guide image for a category
    */
   getSizeGuideByCategory(categoryId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/sizes/category/${categoryId}/guide`);
+    return this.http.get(`${this.baseUrl}/api/size-guides/category/${categoryId}`);
   }
 
   /**
@@ -99,49 +112,56 @@ export class ProductService implements IProductOperations {
    * Get all categories
    */
   getCategories(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/categories`);
+    return this.http.get(`http://localhost:3000/api/admin/categories`);
   }
 
   /**
    * Get parent categories (Nam/Nữ)
    */
   getParentCategories(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/categories/parents`);
+    return this.http.get(`http://localhost:3000/api/admin/categories/parents`);
   }
 
   /**
    * Get sub categories by parent ID
    */
   getSubCategories(parentId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/categories/children/${parentId}`);
+    return this.http.get(`http://localhost:3000/api/admin/categories/children/${parentId}`);
   }
 
   /**
    * Get all brands
    */
   getBrands(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/brands`);
+    return this.http.get(`http://localhost:3000/api/admin/brands`);
   }
 
   /**
    * Get all colors
    */
   getColors(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/colors`);
+    return this.http.get(`http://localhost:3000/api/admin/colors`);
   }
 
   /**
    * Get all sizes
    */
   getSizes(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/sizes`);
+    return this.http.get(`http://localhost:3000/api/admin/sizes`);
   }
 
   /**
    * Get sizes by gender
    */
   getSizesByGender(gender: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/sizes?gender=${gender}`);
+    return this.http.get(`http://localhost:3000/api/admin/sizes?gender=${gender}`);
+  }
+
+  /**
+   * Get sizes by category
+   */
+  getSizesByCategory(categoryId: number): Observable<any> {
+    return this.http.get(`http://localhost:3000/api/admin/sizes/category/${categoryId}/sizes`);
   }
 
   /**
@@ -170,7 +190,7 @@ export class ProductService implements IProductOperations {
    * Get top selling products
    */
   getTopSellingProducts(limit: number = 5): Observable<any> {
-    return this.http.get(`${this.apiUrl}/dashboard/top-selling-products?limit=${limit}`);
+    return this.http.get(`http://localhost:3000/api/admin/dashboard/top-selling-products?limit=${limit}`);
   }
 
   /**

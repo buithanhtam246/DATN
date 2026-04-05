@@ -48,16 +48,22 @@ class ProductAdminRepository {
     try {
       const [rows] = await db.query(`
         SELECT 
-          id, 
-          product_id, 
-          name, 
-          color, 
-          size, 
-          stock, 
-          image
-        FROM product_variants
-        WHERE product_id = ?
-        ORDER BY id DESC
+          v.id,
+          v.product_id,
+          v.color_id,
+          v.size_id,
+          v.price,
+          v.price_sale,
+          v.quantity,
+          v.image,
+          c.name as color_name,
+          c.hex_code as color_code,
+          s.size as size_name
+        FROM variant v
+        LEFT JOIN color c ON v.color_id = c.id
+        LEFT JOIN size s ON v.size_id = s.id
+        WHERE v.product_id = ?
+        ORDER BY v.id DESC
       `, [productId]);
       return rows;
     } catch (err) {

@@ -49,6 +49,21 @@ export const adminRoutes: Routes = [
         title: 'Quản lý thương hiệu - Admin'
       },
       {
+        path: 'banners',
+        loadComponent: () => import('./page/banners/banners.component').then(m => m.BannersComponent),
+        title: 'Quản lý banner - Admin'
+      },
+      {
+        path: 'banners/categories',
+        loadComponent: () => import('./page/banner-categories/banner-categories.component').then(m => m.BannerCategoriesComponent),
+        title: 'Banner danh mục - Admin'
+      },
+      {
+        path: 'banners/sports',
+        loadComponent: () => import('./page/banner-sports/banner-sports.component').then(m => m.BannerSportsComponent),
+        title: 'Banner thể thao - Admin'
+      },
+      {
         path: 'categories',
         loadComponent: () => import('./page/categories/categories.component').then(m => m.CategoriesComponent),
         title: 'Quản lý danh mục - Admin'
@@ -70,18 +85,8 @@ export const adminRoutes: Routes = [
       },
       {
         path: 'sizes',
-        loadComponent: () => import('./page/sizes/sizes-simple.component').then(m => m.SizesSimpleComponent),
+        loadComponent: () => import('./page/sizes/sizes.component').then(m => m.SizesComponent),
         title: 'Quản lý kích thước - Admin'
-      },
-      {
-        path: 'size-guide-settings',
-        loadComponent: () => import('./page/size-guide-settings/size-guide-settings.component').then(m => m.SizeGuideSettingsComponent),
-        title: 'Cài đặt hướng dẫn size - Admin'
-      },
-      {
-        path: 'size-guides',
-        loadComponent: () => import('./page/size-guides/size-guides.component').then(m => m.SizeGuidesComponent),
-        title: 'Quản lý hướng dẫn size - Admin'
       }
     ]
   }

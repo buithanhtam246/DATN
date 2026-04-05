@@ -33,15 +33,15 @@ export class ApiService {
 
   // ============ ADMIN AUTH ENDPOINTS ============
   adminLogin(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/admin-login`, data);
+    return this.http.post(`${this.apiUrl}/auth/admin/login`, data);
   }
 
   adminVerifyToken(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/verify`, {}, { headers: this.getAuthHeaders() });
+    return this.http.post(`${this.apiUrl}/auth/admin/verify`, {}, { headers: this.getAuthHeaders() });
   }
 
   adminLogout(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/admin-logout`, {}, { headers: this.getAuthHeaders() });
+    return this.http.post(`${this.apiUrl}/auth/admin/logout`, {}, { headers: this.getAuthHeaders() });
   }
 
   // ============ CART ENDPOINTS ============
@@ -153,6 +153,14 @@ export class ApiService {
     );
   }
 
+  updateReviewStatus(reviewId: number, status: number): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/reviews/${reviewId}/status`,
+      { status },
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
   // ============ ADDRESS ENDPOINTS ============
   createAddress(addressData: any): Observable<any> {
     return this.http.post(
@@ -177,19 +185,71 @@ export class ApiService {
     );
   }
 
+  // Lấy danh sách voucher có sẵn cho user
+  getAvailableVouchers(): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/vouchers/available`
+    );
+  }
+
+  // Kiểm tra voucher và tính discount
+  checkVoucher(code: string, totalPrice: number): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/vouchers/check`,
+      { code, totalPrice }
+    );
+  }
+
+  // Lấy chi tiết voucher
+  getVoucherDetail(code: string): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/vouchers/detail/${code}`
+    );
+  }
+
   // ============ PRODUCT ENDPOINTS ============
   getProducts(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/admin/all-products`);
+    return this.http.get(`${this.apiUrl}/products`);
   }
 
   getProductById(productId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/admin/products/${productId}`);
+    return this.http.get(`${this.apiUrl}/products/${productId}`);
+  }
+
+  getVariantsInventory(variantIds: number[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/products/inventory`, {
+      variant_ids: variantIds
+    });
+  }
+
+  searchProducts(keyword?: string, categoryId?: number, brandId?: number): Observable<any> {
+    let query = `${this.apiUrl}/products/search?`;
+    if (keyword) query += `keyword=${keyword}&`;
+    if (categoryId) query += `category_id=${categoryId}&`;
+    if (brandId) query += `brand_id=${brandId}`;
+    return this.http.get(query);
   }
 
   // ============ ADMIN USER ENDPOINTS ============
   getAllUsers(): Observable<any> {
     return this.http.get(
       `${this.apiUrl}/admin/users`,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  lockUser(userId: number): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/admin/users/${userId}/lock`,
+      {},
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  unlockUser(userId: number): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/admin/users/${userId}/unlock`,
+      {},
       { headers: this.getAuthHeaders() }
     );
   }
@@ -206,6 +266,21 @@ export class ApiService {
   getAllOrders(): Observable<any> {
     return this.http.get(
       `${this.apiUrl}/admin/orders`,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  getAdminOrderDetail(orderId: number): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/admin/orders/${orderId}`,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  updateOrderStatus(orderId: number, status: string): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/admin/orders/${orderId}/status`,
+      { status },
       { headers: this.getAuthHeaders() }
     );
   }

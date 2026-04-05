@@ -34,21 +34,20 @@ exports.getAllCategories = async (req, res) => {
     }
 };
 
-// Tạo danh mục cấp 1 (Nam/Nữ)
+// Tạo danh mục cấp 1 (Nam/Nữ/Trẻ em/Unisex)
 exports.createParentCategory = async (req, res) => {
     try {
-        const { name, gender, status } = req.body;
+        const { name, status } = req.body;
 
-        if (!name || !name.trim() || !gender) {
+        if (!name || !name.trim()) {
             return res.status(400).json({
                 success: false,
-                message: "Tên danh mục và giới tính không được để trống"
+                message: "Tên danh mục không được để trống"
             });
         }
 
         const category = await categoryService.createParentCategory(
             name.trim(),
-            gender,
             status || 'active'
         );
 
@@ -73,19 +72,18 @@ exports.createParentCategory = async (req, res) => {
 // Tạo danh mục cấp 2 (con)
 exports.createSubCategory = async (req, res) => {
     try {
-        const { parentId, name, gender, status } = req.body;
+        const { parentId, name, status } = req.body;
 
-        if (!parentId || !name || !name.trim() || !gender) {
+        if (!parentId || !name || !name.trim()) {
             return res.status(400).json({
                 success: false,
-                message: "Parent ID, tên danh mục và giới tính không được để trống"
+                message: "Parent ID và tên danh mục không được để trống"
             });
         }
 
         const category = await categoryService.createSubCategory(
             parentId,
             name.trim(),
-            gender,
             status || 'active'
         );
 
@@ -110,7 +108,7 @@ exports.createSubCategory = async (req, res) => {
 exports.updateCategory = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, gender, status } = req.body;
+        const { name, status } = req.body;
 
         if (!name || !name.trim()) {
             return res.status(400).json({
@@ -122,7 +120,6 @@ exports.updateCategory = async (req, res) => {
         const category = await categoryService.updateCategory(
             id,
             name.trim(),
-            gender,
             status || 'active'
         );
 

@@ -9,7 +9,7 @@ router.get('/', orderController.getAllOrders);
 router.get('/:id', orderController.getOrderDetail);
 
 // Cập nhật trạng thái đơn hàng
-router.put('/:id', orderController.updateOrderStatus);
+router.put('/:id/status', orderController.updateOrderStatus);
 
 // Xóa đơn hàng
 router.delete('/:id', orderController.deleteOrder);

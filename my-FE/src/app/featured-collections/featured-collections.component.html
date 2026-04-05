@@ -1,48 +1,19 @@
 <section class="featured-collections">
   <div class="collections-grid">
-    <!-- Kids Collection -->
-    <div class="collection-card card-kids">
-      <div class="card-content">
-        <h2 class="collection-title">BỘ SƯU TẬP KIDS 2026</h2>
-        <p class="collection-description">
-          Chúng tôi luôn mang đến những thiết kế thời thượng, đặc biệt dành cho các em nhỏ trên thế giới.
-        </p>
-        <button class="view-more-btn">Xem Thêm</button>
-      </div>
-      <div class="card-background">
-        <img src="/assets/images/kids.png" alt="Kids Collection 2026" />
-      </div>
-    </div>
-
-    <!-- Back to School Collection -->
-    <div class="collection-card card-school">
-      <div class="card-content">
-        <div class="collection-header">
-          <h3 class="collection-subtitle">BACK TO</h3>
-          <h2 class="collection-title">SCHOOL</h2>
+    @for (banner of banners(); track banner.id; let i = $index) {
+      <div class="collection-card" [ngClass]="getCardClass(i)">
+        <div class="card-content">
+          <h2 class="collection-header">
+            <span class="collection-subtitle">{{ getCollectionLabel() }}</span>
+            <span class="collection-title">{{ getCategoryName(banner) }}</span>
+          </h2>
+          <p class="collection-description">{{ getNote(banner) }}</p>
+          <button class="view-more-btn" (click)="openBanner(banner)">Xem Thêm</button>
         </div>
-        <p class="collection-description">
-          Chúng tôi luôn dành những ưu đãi đặc biệt cho những bạn học sinh yêu quý, sẵn sàng trở lại hiện trường.
-        </p>
-        <button class="view-more-btn">Xem Thêm</button>
+        <div class="card-background">
+          <img [src]="getImageUrl(banner.image_url)" [alt]="banner.category_name || 'Collection Banner'" />
+        </div>
       </div>
-      <div class="card-background">
-        <img src="/assets/images/bts.png" alt="Back to School Collection" />
-      </div>
-    </div>
-
-    <!-- Football Collection -->
-    <div class="collection-card card-football">
-      <div class="card-content">
-        <h2 class="collection-title">BỘ SƯU TẬP FOOTBALL</h2>
-        <p class="collection-description">
-          Chúng tôi luôn mang đến những thiết kế thời thượng, đặc biệt dành cho các cầu thủ trên sân cỏ.
-        </p>
-        <button class="view-more-btn">Xem Thêm</button>
-      </div>
-      <div class="card-background">
-        <img src="/assets/images/football.png" alt="Football Collection" />
-      </div>
-    </div>
+    }
   </div>
 </section>

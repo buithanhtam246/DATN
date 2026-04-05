@@ -1,11 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CategoryService, Category } from '../../../services/category.service';
 
 interface CategoryForm {
   name: string;
-  gender: string;
   status: string;
 }
 
@@ -17,271 +16,218 @@ interface CategoryForm {
   styleUrl: './categories.component.scss'
 })
 export class CategoriesComponent implements OnInit {
-  // Data
-  categoriesList: Category[] = [];
-  filteredCategories: Category[] = [];
-  
-  // UI State
-  isLoading: boolean = true;
-  errorMessage: string = '';
-  isSubmitting: boolean = false;
-  searchText: string = '';
-  selectedParentId: number | null = null;
-  viewMode: 'parents' | 'children' = 'children'; // Tab selection
-  showParentList: boolean = false; // For parent selector dropdown
-  
-  // Modal State
-  showModal: boolean = false;
-  editingCategory: Category | null = null;
-  modalMode: 'add-parent' | 'add-child' | 'add-child-direct' | 'edit' = 'add-parent';
-  
-  // Form Data
-  newCategory: CategoryForm = { name: '', gender: 'male', status: 'active' };
-  
-  // Computed
-  parentCategories: Category[] = [];
-  childCategories: Category[] = [];
+  categories = signal<Category[]>([]);
+  isLoading = signal(true);
+  errorMessage = signal('');
+  isSubmitting = signal(false);
+  showModal = signal(false);
+  editingCategory = signal<Category | null>(null);
+  selectedParent = signal<Category | null>(null);
+  modalMode = signal<'add-parent' | 'edit' | 'add-subcategory'>('add-parent');
+  formData = signal<CategoryForm>({ name: '', status: 'active' });
+  expandedParentIds = signal<Set<number>>(new Set());
 
-  // Computed property for total children count
-  get totalChildCategories(): number {
-    return this.parentCategories.reduce((sum, parent) => sum + (parent.children?.length || 0), 0);
-  }
-
-  constructor(
-    private categoryService: CategoryService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  constructor(private categoryService: CategoryService) {}
 
   ngOnInit(): void {
     this.loadCategories();
   }
 
   loadCategories(): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.categoryService.getAllCategories().subscribe({
       next: (res: any) => {
-        if (res && res.success) {
-          this.categoriesList = res.data;
-          this.parentCategories = res.data.filter((c: Category) => c.isParent);
-          this.applyFilters();
+        if (res?.success && res?.data) {
+          this.categories.set(res.data);
+          this.errorMessage.set('');
         }
-        this.isLoading = false;
-        this.cdr.detectChanges();
+        this.isLoading.set(false);
       },
       error: (err: any) => {
-        console.error('❌ Error:', err);
-        this.errorMessage = 'Lỗi kết nối server';
-        this.isLoading = false;
-        this.cdr.detectChanges();
+        console.error('Error:', err);
+        this.errorMessage.set('Loi ket noi server');
+        this.isLoading.set(false);
       }
     });
   }
 
-  applyFilters(): void {
-    let filtered = [...this.categoriesList];
-
-    if (this.searchText && this.searchText.trim()) {
-      filtered = filtered.filter(cat => {
-        const matchName = cat.name.toLowerCase().includes(this.searchText.toLowerCase());
-        const matchChildren = cat.children?.some(child => 
-          child.name.toLowerCase().includes(this.searchText.toLowerCase())
-        );
-        return matchName || matchChildren;
-      });
-    }
-
-    this.filteredCategories = filtered;
-  }
-
-  onSearchChange(): void {
-    this.applyFilters();
-  }
-
-  resetFilters(): void {
-    this.searchText = '';
-    this.selectedParentId = null;
-    this.applyFilters();
-  }
-
-  // Filter by gender (for quick suggestions)
-  filterByGender(gender: string): void {
-    this.newCategory.gender = gender;
-    this.applyFilters();
-  }
-
-  // View Mode Management
-  switchViewMode(mode: 'parents' | 'children'): void {
-    this.viewMode = mode;
-    this.searchText = '';
-    this.selectedParentId = null;
-    this.applyFilters();
-  }
-
-  // Modal Management
   openAddParentModal(): void {
-    this.showModal = true;
-    this.modalMode = 'add-parent';
-    this.editingCategory = null;
-    this.newCategory = { name: '', gender: 'male', status: 'active' };
-    this.selectedParentId = null;
-    this.showParentList = false;
+    this.showModal.set(true);
+    this.modalMode.set('add-parent');
+    this.editingCategory.set(null);
+    this.selectedParent.set(null);
+    this.formData.set({ name: '', status: 'active' });
   }
 
-  openAddChildModal(parent: Category): void {
-    this.showModal = true;
-    this.modalMode = 'add-child';
-    this.selectedParentId = parent.id;
-    this.editingCategory = null;
-    this.newCategory = { name: '', gender: parent.gender, status: 'active' };
-    this.showParentList = false;
-  }
-
-  openAddChildFromListModal(): void {
-    this.showModal = true;
-    this.modalMode = 'add-child-direct';
-    this.selectedParentId = null;
-    this.editingCategory = null;
-    this.newCategory = { name: '', gender: 'male', status: 'active' };
-    this.showParentList = false;
+  openAddSubcategoryModal(parent: Category): void {
+    this.showModal.set(true);
+    this.modalMode.set('add-subcategory');
+    this.editingCategory.set(null);
+    this.selectedParent.set(parent);
+    this.formData.set({ name: '', status: 'active' });
   }
 
   editCategory(category: Category): void {
-    this.showModal = true;
-    this.modalMode = 'edit';
-    this.editingCategory = { ...category };
-    this.newCategory = { 
-      name: category.name, 
-      gender: category.gender, 
-      status: category.status 
-    };
+    this.showModal.set(true);
+    this.modalMode.set('edit');
+    this.editingCategory.set(category);
+    this.formData.set({ name: category.name, status: category.status });
   }
 
   closeModal(): void {
-    this.showModal = false;
-    this.editingCategory = null;
-    this.modalMode = 'add-parent';
-    this.newCategory = { name: '', gender: 'male', status: 'active' };
-    this.isSubmitting = false;
+    this.showModal.set(false);
+    this.editingCategory.set(null);
+    this.selectedParent.set(null);
+    this.modalMode.set('add-parent');
+    this.formData.set({ name: '', status: 'active' });
+    this.isSubmitting.set(false);
   }
 
   saveCategory(): void {
-    if (!this.newCategory.name || !this.newCategory.name.trim()) {
-      this.errorMessage = 'Tên danh mục không được để trống';
+    const form = this.formData();
+    if (!form.name || !form.name.trim()) {
+      this.errorMessage.set('Ten danh muc khong duoc de trong');
       return;
     }
 
-    this.isSubmitting = true;
+    this.isSubmitting.set(true);
+    const editing = this.editingCategory();
 
-    if (this.editingCategory) {
-      // Update
-      this.categoryService.updateCategory(this.editingCategory.id, this.newCategory).subscribe({
+    if (editing) {
+      this.categoryService.updateCategory(editing.id, form).subscribe({
         next: (res: any) => {
-          if (res.success) {
-            this.errorMessage = '';
-            alert('✅ Cập nhật thành công!');
+          if (res?.success) {
+            alert('Cap nhat thanh cong!');
             this.closeModal();
             this.loadCategories();
           }
-          this.isSubmitting = false;
-          this.cdr.detectChanges();
+          this.isSubmitting.set(false);
         },
         error: (err: any) => {
-          this.errorMessage = err.error?.message || 'Lỗi cập nhật';
-          this.isSubmitting = false;
-          this.cdr.detectChanges();
+          this.errorMessage.set(err.error?.message || 'Loi cap nhat');
+          this.isSubmitting.set(false);
         }
       });
-    } else if (this.modalMode === 'add-parent') {
-      // Create Parent
-      this.categoryService.createParentCategory(this.newCategory).subscribe({
+    } else if (this.modalMode() === 'add-parent') {
+      this.categoryService.createParentCategory(form).subscribe({
         next: (res: any) => {
-          if (res.success) {
-            this.errorMessage = '';
-            alert('✅ Thêm danh mục thành công!');
+          if (res?.success) {
+            alert('Them danh muc thanh cong!');
             this.closeModal();
             this.loadCategories();
           }
-          this.isSubmitting = false;
-          this.cdr.detectChanges();
+          this.isSubmitting.set(false);
         },
         error: (err: any) => {
-          this.errorMessage = err.error?.message || 'Lỗi thêm danh mục';
-          this.isSubmitting = false;
-          this.cdr.detectChanges();
+          this.errorMessage.set(err.error?.message || 'Loi them danh muc');
+          this.isSubmitting.set(false);
         }
       });
     } else {
-      // Create Child
-      const childData = { ...this.newCategory, parentId: this.selectedParentId };
-      this.categoryService.createSubCategory(childData).subscribe({
+      const parent = this.selectedParent();
+      if (!parent?.id) {
+        this.errorMessage.set('Vui long chon danh muc cha');
+        this.isSubmitting.set(false);
+        return;
+      }
+
+      this.categoryService.createSubCategory({
+        parentId: parent.id,
+        ...form
+      }).subscribe({
         next: (res: any) => {
-          if (res.success) {
-            this.errorMessage = '';
-            alert('✅ Thêm danh mục con thành công!');
+          if (res?.success) {
+            alert('Them danh muc con thanh cong!');
             this.closeModal();
             this.loadCategories();
           }
-          this.isSubmitting = false;
-          this.cdr.detectChanges();
+          this.isSubmitting.set(false);
         },
         error: (err: any) => {
-          this.errorMessage = err.error?.message || 'Lỗi thêm danh mục con';
-          this.isSubmitting = false;
-          this.cdr.detectChanges();
+          this.errorMessage.set(err.error?.message || 'Loi them danh muc con');
+          this.isSubmitting.set(false);
         }
       });
     }
   }
 
-  deleteCategory(id: number): void {
-    if (!confirm('Bạn chắc chắn muốn xóa danh mục này? (Danh mục con cũng sẽ bị xóa)')) {
-      return;
-    }
+  deleteCategory(id: number, hasChildren: boolean = false): void {
+    const msg = hasChildren ? 'Danh muc con cung se bi xoa. Ban chac chan?' : 'Ban chac chan muon xoa?';
+    if (!confirm(msg)) return;
 
     this.categoryService.deleteCategory(id).subscribe({
       next: (res: any) => {
-        if (res.success) {
-          alert('✅ Xóa thành công!');
+        if (res?.success) {
+          alert('Xoa thanh cong!');
           this.loadCategories();
         }
-        this.cdr.detectChanges();
       },
       error: (err: any) => {
-        this.errorMessage = err.error?.message || 'Lỗi xóa danh mục';
-        this.cdr.detectChanges();
+        this.errorMessage.set(err.error?.message || 'Loi xoa danh muc');
       }
     });
   }
 
-  // Helper methods
-  getGenderLabel(gender: string): string {
-    if (gender === 'male') return '👨 Nam';
-    if (gender === 'female') return '👩 Nữ';
-    return '🔄 Unisex';
+  toggleParent(parentId: number): void {
+    const expanded = this.expandedParentIds();
+    const newSet = new Set(expanded);
+    if (newSet.has(parentId)) {
+      newSet.delete(parentId);
+    } else {
+      newSet.add(parentId);
+    }
+    this.expandedParentIds.set(newSet);
+  }
+
+  isParentExpanded(parentId: number): boolean {
+    return this.expandedParentIds().has(parentId);
+  }
+
+  getStatusBadgeClass(status: string): string {
+    return status === 'active' ? 'badge-success' : 'badge-secondary';
   }
 
   getStatusLabel(status: string): string {
-    return status === 'active' ? '✅ Hoạt động' : '❌ Ẩn';
+    return status === 'active' ? 'Hoat dong' : 'An';
   }
 
-  // Parent selector methods
-  toggleParentList(): void {
-    this.showParentList = !this.showParentList;
-  }
+  toggleVisibility(category: Category): void {
+    const newStatus = category.status === 'active' ? 'inactive' : 'active';
+    const confirmMsg = newStatus === 'active' 
+      ? `Bạn có muốn hiện danh mục "${category.name}" không?`
+      : `Bạn có muốn ẩn danh mục "${category.name}" không?`;
+    
+    if (!confirm(confirmMsg)) {
+      return;
+    }
 
-  selectParent(parent: Category): void {
-    this.selectedParentId = parent.id;
-    this.showParentList = false;
-  }
+    this.isSubmitting.set(true);
+    const updateData = {
+      name: category.name,
+      status: newStatus
+    };
 
-  getParentName(parentId: number | null): string {
-    if (!parentId) return '';
-    const parent = this.parentCategories.find(p => p.id === parentId);
-    return parent ? parent.name : '';
-  }
-
-  getParentById(parentId: number | null): Category | null {
-    if (!parentId) return null;
-    return this.parentCategories.find(p => p.id === parentId) || null;
+    this.categoryService.updateCategory(category.id, updateData).subscribe({
+      next: (res: any) => {
+        if (res?.success) {
+          const message = newStatus === 'active' 
+            ? `Danh mục "${category.name}" đã được hiện!`
+            : `Danh mục "${category.name}" đã bị ẩn!`;
+          alert(message);
+          this.errorMessage.set('');
+          
+          // Reload lại danh sách từ server để lấy dữ liệu mới nhất
+          this.loadCategories();
+        } else {
+          this.errorMessage.set('Cập nhật trạng thái thất bại!');
+        }
+        this.isSubmitting.set(false);
+      },
+      error: (err: any) => {
+        console.error('Error:', err);
+        this.errorMessage.set('Lỗi kết nối server!');
+        this.isSubmitting.set(false);
+      }
+    });
   }
 }

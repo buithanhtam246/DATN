@@ -2,46 +2,60 @@
   display:flex;
   max-width:1200px;
   margin:40px auto;
-  gap:50px;
+  gap:30px;
+  padding: 0 20px;
 }
 
 .account-left{
-  width:300px;
-  border-right:1px solid #ddd;
-  padding-right:30px;
+  width:25%;
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
+  height: fit-content;
 }
 
 .account-left h2{
-  font-size:20px;
-  margin-bottom:10px;
+  font-size:18px;
+  font-weight: 600;
+  margin-bottom:15px;
+}
+
+.account-left p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
 }
 
 .account-left ul{
   list-style:none;
   padding:0;
+  margin: 0;
 }
 
 .account-left li{
-  margin:15px 0;
-  cursor:pointer;
+  margin-bottom:10px;
 }
 
 .account-left li a {
+  display: block;
+  padding: 10px 12px;
+  color: #666;
   text-decoration: none;
-  color: inherit;
+  border-left: 3px solid transparent;
+  transition: all 0.3s;
+  border-radius: 4px;
 }
 
 .account-left li a:hover {
-  color: #007bff;
-}
-
-.account-left li.active{
-  font-weight: bold;
-  color: #0f0f0f;
+  background: #f9f9f9;
+  color: #333;
 }
 
 .account-left li.active a {
   color: #007bff;
+  border-left-color: #007bff;
+  font-weight: 600;
+  background: #f0f8ff;
 }
 
 .account-right{

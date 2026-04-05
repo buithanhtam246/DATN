@@ -23,9 +23,8 @@
     </div>
     <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)" class="filter-select">
       <option value="all">Tất cả trạng thái</option>
-      <option value="pending">Chờ duyệt</option>
-      <option value="approved">Đã duyệt</option>
-      <option value="rejected">Đã từ chối</option>
+      <option value="approved">Hiển thị</option>
+      <option value="hidden">Đã ẩn</option>
     </select>
     <select [ngModel]="selectedRating()" (ngModelChange)="selectedRating.set($event)" class="filter-select">
       <option value="all">Tất cả đánh giá</option>
@@ -47,45 +46,56 @@
       <div class="review-card" [class]="'status-' + review.status">
         <div class="review-header">
           <div class="review-product">
-            <strong>Sản phẩm #{{ review.productId }}</strong>
+            <strong class="product-title">Sản phẩm #{{ review.productId }}</strong>
             <span class="review-id">#{{ review.id }}</span>
           </div>
           <div class="review-rating">
-            @for (star of getStars(review.rating); track $index) {
-              <span>{{ star }}</span>
-            }
+            <span class="stars">
+              @for (star of getStars(review.rating); track $index) {
+                <span class="star">{{ star }}</span>
+              }
+            </span>
+            <span class="rating-text">({{ review.rating }}/5 sao)</span>
           </div>
         </div>
         
         <div class="review-body">
           <div class="review-meta">
-            <span class="customer">👤 {{ review.customerName }}</span>
-            <span class="date">📅 {{ review.created_at | date: 'dd/MM/yyyy' }}</span>
+            <span class="customer-info">
+              <span class="icon">👤</span>
+              <span class="name">{{ review.customerName }}</span>
+            </span>
+            <span class="date-info">
+              <span class="icon">📅</span>
+              <span class="date">{{ review.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </span>
           </div>
-          <p class="review-comment">{{ review.comment }}</p>
+          
+          <div class="review-content">
+            <h4 class="comment-title">💬 Bình luận:</h4>
+            <p class="review-comment">{{ review.comment }}</p>
+          </div>
         </div>
         
         <div class="review-footer">
           <span class="status-badge" [ngClass]="'status-' + review.status">
             @switch (review.status) {
-              @case ('pending') { Chờ duyệt }
-              @case ('approved') { Đã duyệt }
-              @case ('rejected') { Đã từ chối }
+              @case ('approved') { ✅ Hiển thị }
+              @case ('hidden') { 👁️ Đã ẩn }
             }
           </span>
           
           <div class="review-actions">
-            @if (review.status === 'pending') {
-              <button class="btn-approve" (click)="approveReview(review)">
-                ✓ Duyệt
-              </button>
-              <button class="btn-reject" (click)="rejectReview(review)">
-                ✕ Từ chối
+            @if (review.status === 'approved') {
+              <button class="btn-hide" (click)="hideReview(review)" title="Ẩn đánh giá khỏi người dùng">
+                👁️ Ẩn
               </button>
             }
-            <button class="btn-delete" (click)="deleteReview(review.id)">
-              🗑️ Xóa
-            </button>
+            @if (review.status === 'hidden') {
+              <button class="btn-unhide" (click)="unhideReview(review)" title="Hiển thị lại đánh giá">
+                👁️ Hiển thị
+              </button>
+            }
           </div>
         </div>
       </div>

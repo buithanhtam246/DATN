@@ -160,11 +160,15 @@ class ProductService {
         variants: variants.map(v => ({
           id: v.id,
           productId: v.product_id,
-          name: v.name,
-          color: v.color || '#000000',
-          size: v.size || '',
-          stock: v.stock || 0,
-          image: v.image || ''
+          colorId: v.color_id,
+          sizeId: v.size_id,
+          price: v.price,
+          priceSale: v.price_sale,
+          quantity: v.quantity,
+          image: v.image || '',
+          colorName: v.color_name || 'Unknown Color',
+          colorCode: v.color_code || '#000000',
+          sizeName: v.size_name || ''
         }))
       };
     } catch (err) {

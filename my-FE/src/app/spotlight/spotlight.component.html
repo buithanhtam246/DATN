@@ -8,12 +8,12 @@
     </div>
 
     <div class="categories-grid">
-      @for (category of categories; track category.id) {
-        <div class="category-item" (click)="selectCategory(category.id)">
+      @for (product of products; track product.id) {
+        <div class="category-item" (click)="selectCategory(product.id)">
           <div class="category-image">
-            <img [src]="category.imageUrl" [alt]="category.name" />
+            <img [src]="product.imageUrl" [alt]="product.name" />
           </div>
-          <h3 class="category-name">{{ category.name }}</h3>
+          <h3 class="category-name">{{ product.name }}</h3>
         </div>
       }
     </div>

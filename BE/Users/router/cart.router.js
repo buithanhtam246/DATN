@@ -24,4 +24,7 @@ router.delete('/clear', cartController.clearCart);
 // Lấy tổng giá giỏ hàng
 router.get('/total', cartController.getCartTotal);
 
+// Hoàn lại tồn kho (khi user xóa từ localStorage)
+router.post('/restore-inventory', cartController.restoreInventory);
+
 module.exports = router;

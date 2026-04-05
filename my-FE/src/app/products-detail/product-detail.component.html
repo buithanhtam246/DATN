@@ -8,16 +8,16 @@
   <!-- Product Detail -->
   <div *ngIf="!isLoading() && product()" class="product-detail">
     <!-- Product Gallery -->
-    <div class="product-gallery">
+    <div class="product-gallery" [class.out-of-stock-visual]="shouldDimProductImages()">
       <!-- Thumbnails -->
       <div class="thumbnails">
         <button
-          *ngFor="let image of product()?.images; let i = index"
+          *ngFor="let image of galleryImages(); let i = index"
           class="thumbnail"
           [class.active]="currentImageIndex() === i"
-          (mouseenter)="selectImage(i)"
-          (focus)="selectImage(i)"
           (click)="selectImage(i)"
+          type="button"
+          style="cursor: pointer;"
         >
           <img [src]="image" [alt]="product()?.title + ' - Ảnh ' + (i + 1)" />
         </button>
@@ -30,9 +30,10 @@
            (mouseleave)="onImageLeave()"
            (mousemove)="onImageHover($event)">
         <img
-          [src]="currentImage()"
+          [src]="displayedImage()"
           [alt]="product()?.title"
           class="main-img"
+          [style.opacity]="imageOpacity()"
           [style.transform-origin]="zoomOrigin()"
           [style.transform]="isImageHovering() ? 'scale(' + zoomScale + ')' : 'scale(1)'"
         />
@@ -42,7 +43,7 @@
     <!-- Product Info -->
     <div class="product-info">
       <!-- Product Title -->
-      <h1 class="product-title">{{ product()?.title }}</h1>
+      <h1 class="product-title" #productTitleRef>{{ product()?.title }}</h1>
 
       <!-- Price -->
       <div class="product-price">
@@ -57,17 +58,21 @@
       <!-- Color Selector -->
       <div class="color-selector">
         <label>Màu sắc</label>
+        <p class="selected-color-name" *ngIf="activeColorObj() as activeColor">
+          {{ activeColor.name || 'Màu đã chọn' }}
+        </p>
         <div class="colors-grid">
           <button
-            *ngFor="let color of displayColors()"
+            *ngFor="let colorVariant of colorVariants()"
             class="color-option"
-            [class.active]="selectedColorId() === color.id"
-            [class.light-color]="isLightColor(color.tableColor)"
-            [style.background-color]="color.tableColor"
-            (click)="selectColor(color.id)"
-            [title]="color.name"
+            [class.active]="selectedColorId() === colorVariant.id"
+            [class.out-of-stock]="colorVariant.isOutOfStock"
+            (click)="selectColor(colorVariant.id)"
+            [title]="colorVariant.isOutOfStock ? (colorVariant.name + ' - Hết hàng') : colorVariant.name"
+            type="button"
           >
-            <span class="color-check" *ngIf="selectedColorId() === color.id">✓</span>
+            <img [src]="colorVariant.imageUrl" [alt]="colorVariant.name" />
+            <span class="stock-badge" *ngIf="colorVariant.isOutOfStock">Hết hàng</span>
           </button>
         </div>
       </div>
@@ -80,7 +85,6 @@
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M8 1L15 8L8 15L1 8L8 1Z" stroke="currentColor" stroke-width="1.5"/>
             </svg>
-            Hướng dẫn chọn kích cỡ
           </button>
         </div>
 
@@ -106,9 +110,41 @@
       <div class="quantity-selector">
         <label>Số lượng</label>
         <div class="quantity-controls">
-          <button class="qty-btn" (click)="decrementQuantity()">−</button>
-          <input type="number" [value]="quantity()" readonly />
-          <button class="qty-btn" (click)="incrementQuantity()">+</button>
+          <button 
+            class="qty-btn" 
+            (click)="decrementQuantity()"
+            [disabled]="quantity() <= 1"
+          >−</button>
+          <input
+            type="number"
+            [value]="quantity()"
+            min="1"
+            step="1"
+            (input)="onQuantityInput($event)"
+          />
+          <button 
+            class="qty-btn" 
+            (click)="incrementQuantity()"
+          >+</button>
+        </div>
+      </div>
+
+      <!-- Inventory Status -->
+      <div class="inventory-status" *ngIf="selectedColorId() && selectedSizeId()">
+        <div class="stock-info">
+          <span class="stock-label">Tồn kho:</span>
+          <span class="stock-value" [class.in-stock]="availableQuantity() > 0" [class.out-of-stock]="availableQuantity() === 0">
+            {{ availableQuantity() }} sản phẩm
+          </span>
+        </div>
+        <div *ngIf="availableQuantity() > 0 && availableQuantity() <= 10" class="stock-warning">
+          ⚠️ Sắp hết hàng
+        </div>
+        <div *ngIf="quantity() > availableQuantity()" class="quantity-exceeded">
+          ⚠️ Số lượng vượt quá tồn kho! Vui lòng giảm xuống {{ availableQuantity() }} sản phẩm trở xuống.
+        </div>
+        <div *ngIf="availableQuantity() === 0" class="stock-unavailable">
+          ❌ Sản phẩm hết hàng
         </div>
       </div>
 
@@ -117,7 +153,7 @@
         <button 
           class="btn-add-to-cart" 
           (click)="addToCart()"
-          [disabled]="!selectedColorId() || !selectedSizeId()"
+          [disabled]="!selectedColorId() || !selectedSizeId() || availableQuantity() === 0"
         >
           Thêm vào Giỏ
         </button>
@@ -156,10 +192,10 @@
         </div>
       </div>
 
-      <!-- Delivery & Returns Accordion -->
+      <!-- Size Guide Accordion -->
       <div class="accordion-section">
         <button class="accordion-header" (click)="toggleDelivery()">
-          <span>Giao hàng và trả hàng</span>
+          <span>📏 Hướng Dẫn Chọn Size</span>
           <svg 
             class="accordion-icon" 
             [class.open]="isDeliveryOpen()"
@@ -173,9 +209,25 @@
         </button>
         <div class="accordion-content" [class.open]="isDeliveryOpen()">
           <div class="content-inner">
-            <p><strong>Miễn phí giao hàng và trả hàng</strong></p>
-            <p>Đơn hàng của bạn sẽ được giao trong vòng 3-7 ngày làm việc.</p>
-            <p>Bạn có thể trả hàng miễn phí trong vòng 30 ngày với bất kỳ lý do nào.</p>
+            <!-- Loading State -->
+            <div *ngIf="isLoadingGuide()" class="loading-state">
+              <p>Đang tải hướng dẫn...</p>
+            </div>
+
+            <!-- Size Guide Image -->
+            <div *ngIf="!isLoadingGuide() && sizeGuideImage()" class="size-guide-container">
+              <img 
+                [src]="sizeGuideImage()" 
+                alt="Hướng dẫn chọn size" 
+                class="size-guide-image"
+              >
+              <p class="size-guide-note">Tham khảo hướng dẫn trên để chọn size phù hợp với bạn</p>
+            </div>
+
+            <!-- No Guide Available -->
+            <div *ngIf="!isLoadingGuide() && !sizeGuideImage()" class="no-guide">
+              <p>Hiện chưa có hướng dẫn chọn size cho danh mục này</p>
+            </div>
           </div>
         </div>
       </div>
@@ -204,7 +256,51 @@
         </button>
         <div class="accordion-content" [class.open]="isReviewsOpen()">
           <div class="content-inner">
-            <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+            @if (isReviewsLoading()) {
+              <div class="reviews-loading">
+                <div class="spinner"></div>
+                <p>Đang tải đánh giá...</p>
+              </div>
+            } @else if (reviews().length === 0) {
+              <div class="reviews-empty">
+                <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+              </div>
+            } @else {
+              <div class="reviews-list">
+                @for (review of reviews(); track review.id) {
+                  <div class="review-card">
+                    <div class="review-header">
+                      <div class="reviewer-info">
+                        <div class="reviewer-name">{{ review.customerName || 'Ẩn danh' }}</div>
+                        <div class="review-meta">
+                          <div class="review-rating">
+                            <div class="stars">
+                              @for (star of [1,2,3,4,5]; track $index) {
+                                <svg 
+                                  *ngIf="star <= review.rating" 
+                                  width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
+                                >
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                <svg 
+                                  *ngIf="star > review.rating" 
+                                  width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                >
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                              }
+                            </div>
+                            <span class="rating-text">({{ review.rating }}/5)</span>
+                          </div>
+                          <div class="review-date">{{ review.created_at | date: 'dd/MM/yyyy HH:mm' }}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="review-content">{{ review.comment }}</div>
+                  </div>
+                }
+              </div>
+            }
           </div>
         </div>
       </div>

@@ -72,3 +72,43 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 };
+
+exports.lockUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await userService.lockUser(id);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
+        }
+
+        res.json({
+            success: true,
+            message: "Khóa tài khoản người dùng thành công",
+            data: user
+        });
+    } catch (error) {
+        console.error("❌ Lỗi Controller User - lockUser:", error);
+        res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+};
+
+exports.unlockUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await userService.unlockUser(id);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
+        }
+
+        res.json({
+            success: true,
+            message: "Mở khóa tài khoản người dùng thành công",
+            data: user
+        });
+    } catch (error) {
+        console.error("❌ Lỗi Controller User - unlockUser:", error);
+        res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+};

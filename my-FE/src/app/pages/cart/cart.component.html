@@ -1,40 +1,105 @@
-<h1>GIỎ HÀNG</h1>
+<div class="cart-container">
+  <div class="cart-wrapper">
+    <!-- LEFT SECTION: Cart Items -->
+    <div class="cart-left">
+      <h2>Giỏ hàng</h2>
+      
+      <div *ngIf="cart().length === 0" class="empty-cart">
+        <p>Giỏ hàng của bạn đang trống</p>
+        <a routerLink="/products" class="continue-shopping">Tiếp tục mua sắm</a>
+      </div>
 
-<table>
-  <tr>
-    <th>Sản phẩm</th>
-    <th>Giá</th>
-    <th>Số lượng</th>
-    <th>Tổng</th>
-  </tr>
+      <!-- Toolbar: Chọn tất cả + Xóa đã chọn -->
+      <div *ngIf="cart().length > 0" class="cart-toolbar">
+        <label class="select-all-checkbox">
+          <input type="checkbox" 
+            [checked]="areAllSelected"
+            (change)="areAllSelected ? deselectAllItems() : selectAllItems()">
+          <span>Chọn tất cả ({{selectedCount}}/{{cart().length}})</span>
+        </label>
+        <button class="delete-selected-btn" 
+          (click)="removeSelectedItems()"
+          [disabled]="selectedCount === 0">
+          🗑️ Xóa sản phẩm
+        </button>
+      </div>
 
-  <tr *ngFor="let item of cart; let i = index">
-    <td>{{item.name}}</td>
-    <td>{{item.price}} đ</td>
-    <td class="cart-qty">
+      <div *ngIf="cart().length > 0" class="cart-items">
+        <div *ngFor="let item of cart(); let i = index" class="cart-item">
+          <!-- Checkbox chọn sản phẩm -->
+          <div class="item-checkbox">
+            <input type="checkbox" 
+              [checked]="item.selected || false"
+              (change)="toggleSelectItem(i)">
+          </div>
 
-<button (click)="decreaseQty(i)">-</button>
+          <div class="item-image">
+            <img [src]="item.image || '/assets/placeholder.png'" [alt]="item.name" />
+          </div>
 
-<span>{{item.quantity}}</span>
+          <div class="item-details">
+            <h3>{{ item.name || 'Sản phẩm' }}</h3>
+            <p class="item-variant" *ngIf="item.color || item.size">
+              <span *ngIf="item.color">{{ item.color }}</span>
+              <span *ngIf="item.color && item.size"> / </span>
+              <span *ngIf="item.size">Size {{ item.size }}</span>
+            </p>
 
-<button (click)="increaseQty(i)">+</button>
+            <div class="item-pricing">
+              <span class="original-price" *ngIf="hasDiscount(item)">
+                {{ formatPrice(getOriginalPrice(item)) }}
+              </span>
+              <span class="sale-price">{{ formatPrice(getDisplayPrice(item)) }}</span>
+            </div>
 
-</td>
-    <td>{{item.price * item.quantity}} đ</td>
+            <div class="item-quantity">
+              <button class="qty-btn" (click)="decreaseQty(i)">−</button>
+              <input type="number" [value]="item.quantity" readonly />
+              <button class="qty-btn" (click)="increaseQty(i)">+</button>
+            </div>
+          </div>
 
-    <td>
-      <button (click)="removeItem(i)">Xóa</button>
-    </td>
-  </tr>
+          <div class="item-actions">
+            <button class="remove-btn" (click)="removeItem(i)" title="Xóa sản phẩm">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M4 2h12a1 1 0 0 1 0 2H3.5a1.5 1.5 0 0 0 0 3h1.11L6.41 17a2 2 0 0 0 2 1.6h3.18a2 2 0 0 0 2-1.6l1.81-10h1.1a1.5 1.5 0 0 0 0-3H4a1 1 0 0 1 0-2zm5 4a1 1 0 0 1 2 0v8a1 1 0 1 1-2 0V6zm4 0a1 1 0 0 1 2 0v8a1 1 0 1 1-2 0V6z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-</table>
+    <!-- RIGHT SECTION: Order Summary -->
+    <div class="cart-right">
+      <div class="order-summary">
+        <h2>Tóm tắt đơn hàng</h2>
 
-<h2>Tổng tiền: {{getTotal()}} đ</h2>
+        <!-- Thông tin sản phẩm được chọn -->
+        <div class="selected-info" *ngIf="cart().length > 0">
+          <p class="selected-count">Sản phẩm chọn: <strong>{{selectedCount}}/{{cart().length}}</strong></p>
+        </div>
 
-<button
-[disabled]="cart.length === 0"
-routerLink="/checkout">
+        <div class="summary-row">
+          <label>Tổng giá sản phẩm</label>
+          <span class="amount">{{ formatPrice(selectedSubtotal) }}</span>
+        </div>
 
-Thanh toán
+        <div class="summary-divider"></div>
 
-</button>
+        <div class="summary-row total-row">
+          <label>Tổng hóa đơn</label>
+          <span class="amount total-amount">{{ formatPrice(selectedSubtotal) }}</span>
+        </div>
+
+        <button 
+          class="checkout-btn" 
+          [disabled]="selectedCount === 0"
+          (click)="proceedToCheckout()"
+        >
+          {{selectedCount > 0 ? 'Thanh toán (' + selectedCount + ')' : 'Chọn sản phẩm để thanh toán'}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -151,6 +151,18 @@
   gap: $spacing-sm;
 }
 
+.product-brand-category {
+  font-size: $font-size-xs;
+  color: $color-text-light;
+  margin: 0;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  
+  @include mobile {
+    font-size: 11px;
+  }
+}
+
 .product-name-link {
   text-decoration: none;
   color: inherit;
@@ -158,19 +170,6 @@
 
   &:hover {
     color: $color-primary;
-  }
-}
-
-.product-name {
-  font-size: $font-size-md;
-  font-weight: $font-weight-bold;
-  color: $color-text;
-  margin: 0;
-  line-height: 1.4;
-  transition: color $transition-normal;
-
-  @include mobile {
-    font-size: $font-size-sm;
   }
 }
 

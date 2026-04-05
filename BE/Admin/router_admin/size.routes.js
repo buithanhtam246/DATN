@@ -66,6 +66,9 @@ router.delete('/:id', sizeController.deleteSize);
 
 // ===== CATEGORY SIZE GUIDE ENDPOINTS =====
 
+// Lấy sizes theo category
+router.get('/category/:categoryId/sizes', sizeController.getSizesByCategory);
+
 // Lấy ảnh hướng dẫn size theo category
 router.get('/category/:categoryId/guide', sizeController.getSizeGuideByCategory);
 

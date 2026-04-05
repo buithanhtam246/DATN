@@ -63,6 +63,14 @@
           </td>
           <td class="col-actions">
             <div class="action-buttons">
+              <button 
+                class="btn-toggle" 
+                [class.active]="brand.status === 'active'"
+                (click)="toggleVisibility(brand)"
+                [disabled]="isSubmitting"
+              >
+                {{ brand.status === 'active' ? '👁️ Ẩn' : '🚫 Hiện' }}
+              </button>
               <button class="btn-edit" (click)="editBrand(brand)">✏️ Sửa</button>
               <button class="btn-delete" (click)="deleteBrand(brand.id)">🗑️ Xóa</button>
             </div>

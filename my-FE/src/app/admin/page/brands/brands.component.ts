@@ -146,6 +146,46 @@ export class BrandsComponent implements OnInit {
     }
   }
 
+  toggleVisibility(brand: Brand): void {
+    const newStatus = brand.status === 'active' ? 'inactive' : 'active';
+    const confirmMsg = newStatus === 'active' 
+      ? `Bạn có muốn hiện thương hiệu "${brand.name}" không?`
+      : `Bạn có muốn ẩn thương hiệu "${brand.name}" không?`;
+    
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+
+    this.isSubmitting = true;
+    const updateData = {
+      name: brand.name,
+      status: newStatus
+    };
+
+    this.brandService.updateBrand(brand.id, updateData).subscribe({
+      next: (res: any) => {
+        if (res?.success) {
+          const message = newStatus === 'active' 
+            ? `Thương hiệu "${brand.name}" đã được hiện!`
+            : `Thương hiệu "${brand.name}" đã bị ẩn!`;
+          alert(message);
+          this.errorMessage = '';
+          this.loadBrands();
+        } else {
+          this.errorMessage = 'Cập nhật trạng thái thất bại!';
+        }
+        this.isSubmitting = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('Error:', err);
+        this.errorMessage = 'Lỗi kết nối server!';
+        this.isSubmitting = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   deleteBrand(id: number): void {
     if (!confirm('Bạn chắc chắn muốn xóa thương hiệu này?')) {
       return;

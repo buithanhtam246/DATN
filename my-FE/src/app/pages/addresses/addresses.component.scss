@@ -34,12 +34,19 @@
         text-decoration: none;
         border-left: 3px solid transparent;
         transition: all 0.3s;
+        border-radius: 4px;
+
+        &:hover {
+          background: #f9f9f9;
+          color: #333;
+        }
       }
 
       &.active a {
-        color: #ffc107;
-        border-left-color: #ffc107;
+        color: #007bff;
+        border-left-color: #007bff;
         font-weight: 600;
+        background: #f0f8ff;
       }
     }
   }

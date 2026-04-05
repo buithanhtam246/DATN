@@ -3,10 +3,10 @@
   <div class="addresses-left">
     <h2>TRANG TÀI KHOẢN</h2>
     <ul>
-      <li><a routerLink="/account">Thông tin tài khoản</a></li>
-      <li class="active"><a routerLink="/addresses">Quản lý địa chỉ</a></li>
-      <li><a routerLink="/orders">Lịch sử đơn hàng</a></li>
-      <li><a routerLink="/change-password">Đổi mật khẩu</a></li>
+      <li routerLinkActive="active"><a routerLink="/account">Thông tin tài khoản</a></li>
+      <li routerLinkActive="active"><a routerLink="/orders">Lịch sử đơn hàng</a></li>
+      <li routerLinkActive="active"><a routerLink="/addresses">Quản lý địa chỉ</a></li>
+      <li routerLinkActive="active"><a routerLink="/change-password">Đổi mật khẩu</a></li>
     </ul>
   </div>
 
@@ -44,12 +44,53 @@
         </div>
 
         <div class="form-group">
-          <label>Địa chỉ:</label>
+          <label>Tỉnh/Thành Phố:</label>
+          <select 
+            [(ngModel)]="formData.province"
+            (change)="onProvinceChange(formData.province)"
+            name="province"
+            class="form-control"
+            required>
+            <option value="">Chọn tỉnh/thành phố</option>
+            <option *ngFor="let prov of provinces" [value]="prov">{{prov}}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Quận/Huyện:</label>
+          <select 
+            [(ngModel)]="formData.district"
+            (change)="onDistrictChange(formData.district)"
+            name="district"
+            class="form-control"
+            required
+            [disabled]="!formData.province">
+            <option value="">Chọn quận/huyện</option>
+            <option *ngFor="let dist of districts" [value]="dist">{{dist}}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Phường/Xã:</label>
+          <select 
+            [(ngModel)]="formData.ward"
+            (change)="onWardChange(formData.ward)"
+            name="ward"
+            class="form-control"
+            required
+            [disabled]="!formData.district">
+            <option value="">Chọn phường/xã</option>
+            <option *ngFor="let w of wards" [value]="w">{{w}}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Chi tiết địa chỉ:</label>
           <textarea 
-            [(ngModel)]="formData.full_address" 
-            name="full_address"
-            placeholder="Nhập đầy đủ địa chỉ"
-            rows="3"
+            [(ngModel)]="formData.address_detail" 
+            name="address_detail"
+            placeholder="Nhập số nhà, tên đường, ..."
+            rows="2"
             required></textarea>
         </div>
 

@@ -81,7 +81,7 @@
   position: relative;
   z-index: 2;
   height: 100%;
-  padding: $spacing-xl;
+  padding: 36px 24px 32px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -93,25 +93,20 @@
 }
 
 .collection-header {
-  .collection-subtitle {
-    font-size: $font-size-xl;
-    font-weight: $font-weight-bold;
-    letter-spacing: 2px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+
+  .collection-subtitle,
+  .collection-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 1px;
     margin: 0;
+    line-height: 1.2;
     text-transform: uppercase;
-  }
-}
-
-.collection-title {
-  font-size: $font-size-xxl;
-  font-weight: $font-weight-bold;
-  letter-spacing: 1px;
-  margin: 0 0 $spacing-md 0;
-  line-height: 1.2;
-  text-transform: uppercase;
-
-  @include mobile {
-    font-size: $font-size-xl;
   }
 }
 
@@ -124,10 +119,10 @@
 }
 
 .collection-description {
-  font-size: $font-size-md;
-  line-height: 1.6;
-  margin: $spacing-md 0;
-  max-width: 90%;
+  font-size: 1.02rem;
+  line-height: 1.45;
+  margin: 12px 0 18px;
+  max-width: 84%;
   opacity: 0.95;
 
   &.cursive {
@@ -138,24 +133,24 @@
   }
 
   @include mobile {
-    font-size: $font-size-sm;
+    font-size: 0.92rem;
     max-width: 100%;
   }
 }
 
 .view-more-btn {
-  padding: $spacing-md $spacing-xl;
+  padding: 14px 32px;
   background-color: transparent;
   border: 2px solid $color-white;
   border-radius: 30px;
   color: $color-white;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   align-self: flex-start;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 
   &:hover {
     background-color: $color-white;
@@ -163,8 +158,8 @@
   }
 
   @include mobile {
-    padding: $spacing-sm $spacing-lg;
-    font-size: $font-size-xs;
+    padding: 12px 26px;
+    font-size: 0.9rem;
   }
 }
 
@@ -186,16 +181,6 @@
       rgba(255, 182, 185, 0.4) 0%,
       rgba(250, 227, 217, 0.5) 100%
     );
-  }
-
-  .collection-title {
-    font-size: 4rem;
-    font-weight: $font-weight-bold;
-    letter-spacing: 4px;
-
-    @include mobile {
-      font-size: 2.5rem;
-    }
   }
 }
 

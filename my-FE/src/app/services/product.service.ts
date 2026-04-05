@@ -1,19 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
-  // Base URL khớp với cấu hình server.js của Backend
-  private baseUrl = 'http://localhost:3000/api/admin';
+  private baseUrl = environment.adminApiUrl || `${environment.apiUrl}/admin`;
   
-  // Đường dẫn ảnh sản phẩm (cấu hình cũ)
-  public imgBaseUrl = 'http://localhost:3000/public/images/products/';
+  public imgBaseUrl = `${environment.assetsBaseUrl || ''}/public/images/products/`;
 
-  // Đường dẫn ảnh hướng dẫn size (khớp với thư mục uploads mới)
-  public sizeGuideImgUrl = 'http://localhost:3000/uploads/size-guides/';
+  public sizeGuideImgUrl = `${environment.assetsBaseUrl || ''}/uploads/size-guides/`;
 
   constructor(private http: HttpClient) { }
 
@@ -90,7 +88,12 @@ export class ProductService {
 
   // Lấy size guide theo gender (male/female)
   getSizesByGender(gender: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/sizes/guide/${gender}`);
+    return this.http.get(`${this.baseUrl}/sizes?gender=${gender}`);
+  }
+
+  // Lấy sizes theo category
+  getSizesByCategory(categoryId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/sizes/category/${categoryId}/sizes`);
   }
 
   // Lấy tất cả thông tin size guides (để hiển thị danh sách ảnh)

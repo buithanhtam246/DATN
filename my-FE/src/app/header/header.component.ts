@@ -29,8 +29,8 @@ export class HeaderComponent {
   // Scroll state
   public isScrolled = false;
 
-  // Public properties for template
-  public readonly menuItems: MenuItem[] = this.navigationService.getMenuItems();
+  // Public properties for template - use signal for reactive updates
+  public readonly menuItems = this.navigationService.getMenuItemsSignal();
   public readonly cartItemCount = this.cartService.itemCount;
 
   /**

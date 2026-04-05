@@ -10,7 +10,7 @@ class UserController {
     try {
       // Lấy danh sách users với thống kê đơn hàng
       const users = await User.findAll({
-        attributes: ['id', 'name', 'email', 'phone', 'role'],
+        attributes: ['id', 'name', 'email', 'phone', 'role', 'status'],
         include: [
           {
             model: Order,
@@ -29,6 +29,7 @@ class UserController {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        status: user.status || 'active',
         totalOrders: user.orders ? user.orders.length : 0,
         totalSpent: user.orders ? user.orders.reduce((sum, order) => sum + parseFloat(order.total_price || 0), 0) : 0
       }));

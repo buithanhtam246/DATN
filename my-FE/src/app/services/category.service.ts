@@ -8,6 +8,7 @@ export interface Category {
   gender: 'male' | 'female' | 'unisex';
   status: 'active' | 'inactive';
   isParent?: boolean;
+  parent_id?: number | null;
   children?: Category[];
 }
 
