@@ -1,0 +1,19 @@
+<section class="featured-collections">
+  <div class="collections-grid">
+    @for (banner of banners(); track banner.id; let i = $index) {
+      <div class="collection-card" [ngClass]="getCardClass(i)">
+        <div class="card-content">
+          <h2 class="collection-header">
+            <span class="collection-subtitle">{{ getCollectionLabel() }}</span>
+            <span class="collection-title">{{ getCategoryName(banner) }}</span>
+          </h2>
+          <p class="collection-description">{{ getNote(banner) }}</p>
+          <button class="view-more-btn" (click)="openBanner(banner)">Xem Thêm</button>
+        </div>
+        <div class="card-background">
+          <img [src]="getImageUrl(banner.image_url)" [alt]="banner.category_name || 'Collection Banner'" />
+        </div>
+      </div>
+    }
+  </div>
+</section>

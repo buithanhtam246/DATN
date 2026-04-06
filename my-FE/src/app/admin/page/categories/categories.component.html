@@ -1,0 +1,170 @@
+﻿<div class="categories-wrapper">
+  <!-- Header -->
+  <div class="categories-header">
+    <div class="header-left">
+      <h1>🏷️ Quản Lý Danh Mục</h1>
+      <p class="header-subtitle">Quản lý danh mục sản phẩm cha và danh mục con</p>
+    </div>
+    <button class="btn-add-parent" (click)="openAddParentModal()">
+      ➕ Thêm Danh Mục Cha
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage()" class="error-alert">
+    <span class="alert-icon">⚠️</span>
+    {{ errorMessage() }}
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Đang tải dữ liệu...</p>
+  </div>
+
+  <!-- Categories List -->
+  <div *ngIf="!isLoading()" class="categories-list">
+    <div *ngIf="categories().length === 0" class="empty-state">
+      <div class="empty-icon">📭</div>
+      <p>Chưa có danh mục nào. Hãy thêm danh mục cha đầu tiên!</p>
+    </div>
+
+    <div *ngFor="let parent of categories()" class="category-item">
+      <!-- Parent Header -->
+      <div class="category-parent-header">
+        <div class="parent-left">
+          <button 
+            class="expand-btn" 
+            [class.expanded]="isParentExpanded(parent.id)"
+            (click)="toggleParent(parent.id)"
+            [attr.aria-expanded]="isParentExpanded(parent.id)"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M6.3 6.3L10 10l3.7-3.7m-7.4 7.4L10 15l3.7-3.7"/>
+            </svg>
+          </button>
+          
+          <div class="category-info">
+            <div class="parent-name-badge">
+              <h3>{{ parent.name }}</h3>
+              <span class="parent-indicator">Danh Mục Cha</span>
+            </div>
+            <span [class]="'status-badge ' + getStatusBadgeClass(parent.status)">
+              {{ getStatusLabel(parent.status) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="category-actions">
+          <button class="action-btn edit-btn" (click)="editCategory(parent)" title="Sửa">
+            ✏️ Sửa
+          </button>
+          <button 
+            [class]="'action-btn toggle-btn ' + (parent.status === 'active' ? 'show' : 'hide')" 
+            (click)="toggleVisibility(parent)"
+            [title]="parent.status === 'active' ? 'Ẩn danh mục' : 'Hiện danh mục'"
+          >
+            {{ parent.status === 'active' ? '👁️ Ẩn' : '🚫 Hiện' }}
+          </button>
+          <button class="action-btn add-child-btn" (click)="openAddSubcategoryModal(parent)" title="Thêm con">
+            ➕ Thêm Con
+          </button>
+          <button class="action-btn delete-btn" (click)="deleteCategory(parent.id, (parent.children?.length || 0) > 0)" title="Xoá">
+            🗑️ Xoá
+          </button>
+        </div>
+      </div>
+
+      <!-- Subcategories -->
+      <div *ngIf="isParentExpanded(parent.id)" class="subcategories-wrapper">
+        <div *ngIf="parent.children && parent.children.length > 0" class="subcategories">
+          <div *ngFor="let child of parent.children" class="category-child-item">
+            <div class="child-left">
+              <div class="child-icon">↳</div>
+              <div class="category-child-info">
+                <h4>{{ child.name }}</h4>
+                <span [class]="'status-badge ' + getStatusBadgeClass(child.status)">
+                  {{ getStatusLabel(child.status) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="category-actions">
+              <button class="action-btn edit-btn" (click)="editCategory(child)" title="Sửa">
+                ✏️ Sửa
+              </button>
+              <button 
+                [class]="'action-btn toggle-btn ' + (child.status === 'active' ? 'show' : 'hide')" 
+                (click)="toggleVisibility(child)"
+                [title]="child.status === 'active' ? 'Ẩn danh mục' : 'Hiện danh mục'"
+              >
+                {{ child.status === 'active' ? '👁️ Ẩn' : '🚫 Hiện' }}
+              </button>
+              <button class="action-btn delete-btn" (click)="deleteCategory(child.id)" title="Xoá">
+                🗑️ Xoá
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty Children -->
+        <div *ngIf="!parent.children || parent.children.length === 0" class="empty-children">
+          <div class="empty-children-icon">📁</div>
+          <p>Chưa có danh mục con. Thêm danh mục con mới!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div *ngIf="showModal()" class="modal-backdrop" (click)="closeModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-title-bar">
+      <h2>
+        <ng-container *ngIf="modalMode() === 'add-parent'">
+          Them Danh Muc Cha
+        </ng-container>
+        <ng-container *ngIf="modalMode() === 'add-subcategory'">
+          Them Danh Muc Con - {{ selectedParent()?.name }}
+        </ng-container>
+        <ng-container *ngIf="modalMode() === 'edit'">
+          Sua Danh Muc: {{ editingCategory()?.name }}
+        </ng-container>
+      </h2>
+      <button class="close-btn" (click)="closeModal()">X</button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="saveCategory()">
+        <div class="form-field">
+          <label>Ten Danh Muc *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="formData()['name']"
+            name="name"
+            placeholder="Nhap ten danh muc"
+            required
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Trang Thai *</label>
+          <select [(ngModel)]="formData()['status']" name="status">
+            <option value="active">Hoat dong</option>
+            <option value="inactive">An</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeModal()">
+            Huy
+          </button>
+          <button type="submit" class="btn-save" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Dang luu...' : 'Luu' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

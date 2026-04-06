@@ -1,0 +1,21 @@
+<section class="spotlight-section">
+  <div class="section-container">
+    <div class="section-header">
+      <h2 class="section-title">SPOTLIGHT</h2>
+      <p class="section-description">
+        Những kiểu dáng cổ điển kết hợp với công nghệ tiên tiến nhất để xây dựng nền tảng cho sự nghiệp của bạn.
+      </p>
+    </div>
+
+    <div class="categories-grid">
+      @for (product of products; track product.id) {
+        <div class="category-item" (click)="selectCategory(product.id)">
+          <div class="category-image">
+            <img [src]="product.imageUrl" [alt]="product.name" />
+          </div>
+          <h3 class="category-name">{{ product.name }}</h3>
+        </div>
+      }
+    </div>
+  </div>
+</section>

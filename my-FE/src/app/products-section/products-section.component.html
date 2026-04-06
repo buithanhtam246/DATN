@@ -1,0 +1,29 @@
+<section class="products-section">
+  <div class="section-header">
+    <h2 class="section-title">SẢN PHẨM</h2>
+    <button class="view-more-btn" (click)="navigateToProducts()">Xem Thêm</button>
+  </div>
+
+  <div class="products-grid">
+    <ng-container *ngIf="products().length > 0; else noProducts">
+      <div class="product-item" *ngFor="let product of products()">
+        <a [routerLink]="['/products', product.id]" class="product-image">
+          <img [src]="product.imageUrl" [alt]="product.title" loading="lazy" />
+        </a>
+        <div class="product-info">
+          <a [routerLink]="['/products', product.id]" class="product-name-link">
+            <h3 class="product-name">{{ product.title }}</h3>
+          </a>
+          <p class="product-brand-category">{{ product.brand }} / {{ product.category }}</p>
+          <div class="product-actions">
+            <div class="product-price">{{ product.price }}</div>
+            <a [routerLink]="['/products', product.id]" class="details-btn">Chi tiết</a>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+    <ng-template #noProducts>
+      <p class="no-products">Không có sản phẩm để hiển thị.</p>
+    </ng-template>
+  </div>
+</section>

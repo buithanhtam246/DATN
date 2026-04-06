@@ -1,0 +1,108 @@
+<div class="reviews-page">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý đánh giá</h1>
+      <p>Kiểm duyệt và quản lý đánh giá sản phẩm</p>
+    </div>
+    <div class="stats-quick">
+      <div class="stat">
+        <span class="label">Chờ duyệt</span>
+        <strong class="pending">{{ pendingReviewsCount() }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="search" 
+        placeholder="Tìm kiếm đánh giá..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      >
+    </div>
+    <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)" class="filter-select">
+      <option value="all">Tất cả trạng thái</option>
+      <option value="approved">Hiển thị</option>
+      <option value="hidden">Đã ẩn</option>
+    </select>
+    <select [ngModel]="selectedRating()" (ngModelChange)="selectedRating.set($event)" class="filter-select">
+      <option value="all">Tất cả đánh giá</option>
+      <option value="5">5 sao</option>
+      <option value="4">4 sao</option>
+      <option value="3">3 sao</option>
+      <option value="2">2 sao</option>
+      <option value="1">1 sao</option>
+    </select>
+  </div>
+
+  <div *ngIf="isLoading()" class="text-center p-5">
+    <div class="spinner-border text-primary"></div>
+    <p>Đang tải dữ liệu...</p>
+  </div>
+
+  <div class="reviews-list" *ngIf="!isLoading()">
+    @for (review of filteredReviews(); track review.id) {
+      <div class="review-card" [class]="'status-' + review.status">
+        <div class="review-header">
+          <div class="review-product">
+            <strong class="product-title">Sản phẩm #{{ review.productId }}</strong>
+            <span class="review-id">#{{ review.id }}</span>
+          </div>
+          <div class="review-rating">
+            <span class="stars">
+              @for (star of getStars(review.rating); track $index) {
+                <span class="star">{{ star }}</span>
+              }
+            </span>
+            <span class="rating-text">({{ review.rating }}/5 sao)</span>
+          </div>
+        </div>
+        
+        <div class="review-body">
+          <div class="review-meta">
+            <span class="customer-info">
+              <span class="icon">👤</span>
+              <span class="name">{{ review.customerName }}</span>
+            </span>
+            <span class="date-info">
+              <span class="icon">📅</span>
+              <span class="date">{{ review.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </span>
+          </div>
+          
+          <div class="review-content">
+            <h4 class="comment-title">💬 Bình luận:</h4>
+            <p class="review-comment">{{ review.comment }}</p>
+          </div>
+        </div>
+        
+        <div class="review-footer">
+          <span class="status-badge" [ngClass]="'status-' + review.status">
+            @switch (review.status) {
+              @case ('approved') { ✅ Hiển thị }
+              @case ('hidden') { 👁️ Đã ẩn }
+            }
+          </span>
+          
+          <div class="review-actions">
+            @if (review.status === 'approved') {
+              <button class="btn-hide" (click)="hideReview(review)" title="Ẩn đánh giá khỏi người dùng">
+                👁️ Ẩn
+              </button>
+            }
+            @if (review.status === 'hidden') {
+              <button class="btn-unhide" (click)="unhideReview(review)" title="Hiển thị lại đánh giá">
+                👁️ Hiển thị
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state">
+        Không tìm thấy đánh giá nào
+      </div>
+    }
+  </div>
+</div>

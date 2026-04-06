@@ -1,0 +1,39 @@
+<section class="banner">
+  <div class="banner-container">
+    <!-- Banner Image -->
+    <img 
+      src="/assets/images/banner.png" 
+      alt="Nike Air VaporMax 2026" 
+      class="banner-full-image"
+    />
+
+    <!-- Explore More Button - Top Right -->
+    <button class="explore-more-btn" aria-label="Explore more">
+      <span class="arrow-icon">→</span>
+      <span class="explore-text">Khám phá<br>thêm</span>
+    </button>
+
+    <!-- Scroll Down Button - Bottom Center -->
+    <button 
+      class="scroll-down-btn" 
+      aria-label="Scroll down"
+      (click)="onScrollDown()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M19 12l-7 7-7-7"/>
+      </svg>
+    </button>
+
+    <!-- Product Info Box - Using ProductCard Component -->
+    <div class="banner-product">
+      @if (product(); as currentProduct) {
+        <app-product-card
+          [product]="currentProduct"
+          [selectedColor]="selectedColor()"
+          (colorSelected)="onColorSelected($event)"
+          (addToCart)="onAddToCart()"
+          (addToWishlist)="onAddToWishlist()">
+        </app-product-card>
+      }
+    </div>
+  </div>
+</section>

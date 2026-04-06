@@ -1,0 +1,52 @@
+<section class="shop-by-sport">
+  <div class="section-container">
+    <div class="section-header">
+      <h2 class="section-title">Shop by Sport</h2>
+      <div class="navigation-buttons">
+        <button 
+          class="nav-btn prev-btn" 
+          (click)="previous()"
+          [disabled]="currentIndex === 0"
+          aria-label="Previous">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        <button 
+          class="nav-btn next-btn" 
+          (click)="next()"
+          [disabled]="currentIndex >= (sports.length - itemsPerView)"
+          aria-label="Next">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="sports-carousel"
+      (touchstart)="onTouchStart($event)"
+      (touchmove)="onTouchMove($event)"
+      (touchend)="onTouchEnd()"
+      (mousedown)="onMouseDown($event)"
+      (mousemove)="onMouseMove($event)"
+      (mouseup)="onMouseUp()"
+      (mouseleave)="onMouseLeave()"
+    >
+      <div class="sports-track" [style.transform]="'translateX(-' + (currentIndex * slideWidth) + '%)'">
+        @for (sport of sports; track sport.id) {
+          <div 
+            class="sport-card"
+            [class.active]="sport.id === activeSportId"
+            (click)="openSportBanner(sport)">
+            <div class="sport-image">
+              <img [src]="sport.imageUrl" [alt]="sport.name" />
+            </div>
+            <h3 class="sport-name">{{ sport.name }}</h3>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

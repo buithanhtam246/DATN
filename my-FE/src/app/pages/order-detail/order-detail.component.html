@@ -1,0 +1,138 @@
+<div class="order-detail-container">
+  <!-- LEFT MENU -->
+  <div class="account-left">
+    <h2>TRANG TÀI KHOẢN</h2>
+    <ul>
+      <li routerLinkActive="active"><a routerLink="/account">Thông tin tài khoản</a></li>
+      <li routerLinkActive="active"><a routerLink="/orders">Lịch sử đơn hàng</a></li>
+      <li routerLinkActive="active"><a routerLink="/addresses">Quản lý địa chỉ</a></li>
+      <li routerLinkActive="active"><a routerLink="/change-password">Đổi mật khẩu</a></li>
+    </ul>
+  </div>
+
+  <!-- RIGHT CONTENT -->
+  <div class="order-detail-content">
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <span class="spinner"></span> Đang tải chi tiết đơn hàng...
+  </div>
+
+  <!-- Order Detail -->
+  <div *ngIf="!isLoading && order" class="order-detail-content">
+    <!-- Header -->
+    <div class="detail-header">
+      <div class="header-left">
+        <h1>Xem Chi Tiết Đơn Hàng</h1>
+        <div class="order-info">
+          <h2>Đơn hàng #{{order.id}}</h2>
+          <span class="order-date">{{order.create_at | date:'dd/MM/yyyy HH:mm'}}</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="order-status" [ngClass]="'status-' + order.status">
+          {{getStatusText(order.status)}}
+        </span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="detail-content">
+      <!-- Left: Order Items -->
+      <div class="detail-left">
+        <!-- Shipping Address -->
+        <div class="section shipping-address">
+          <h3 class="section-title">📍 Thông tin giao hàng</h3>
+          <div class="address-box">
+            <p class="address-phone">
+              <strong>Địa chỉ:</strong> {{order.delivery_address || 'Không có địa chỉ'}}
+            </p>
+            <p class="address-note" *ngIf="order.note">
+              <strong>Ghi chú:</strong> {{order.note || 'Không có ghi chú'}}
+            </p>
+          </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="section order-items">
+          <h3 class="section-title">📦 Sản phẩm đơn hàng</h3>
+          <div class="items-table">
+            <div class="items-header">
+              <span class="col-product">Sản phẩm</span>
+              <span class="col-quantity">Số lượng</span>
+              <span class="col-price">Giá</span>
+              <span class="col-total">Thành tiền</span>
+            </div>
+            
+            <div *ngFor="let item of order.items" class="item-row">
+              <div class="col-product">
+                <div class="product-image-wrapper">
+                  <img *ngIf="item.variant_image || item.product_image" [src]="getImageUrl(item.variant_image || item.product_image)" [alt]="item.product_name" class="product-image">
+                  <div *ngIf="!item.variant_image && !item.product_image" class="no-image-icon">📦</div>
+                </div>
+                <div class="product-info">
+                  <span class="product-name">{{item.product_name}}</span>
+                  <div class="product-variant-info">
+                    <span *ngIf="item.color_id" class="product-color">Color ID: {{item.color_id}}</span>
+                    <span *ngIf="item.size_id" class="product-size">Size: {{item.size_id}}</span>
+                  </div>
+                </div>
+              </div>
+              <span class="col-quantity">x{{item.quantity}}</span>
+              <span class="col-price">{{item.price | currency:'VND':'symbol':'1.0-0'}}</span>
+              <span class="col-total">{{(item.price * item.quantity) | currency:'VND':'symbol':'1.0-0'}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Order Summary -->
+      <div class="detail-right">
+        <div class="summary-box">
+          <h3 class="summary-title">📊 Tóm tắt đơn hàng</h3>
+          
+          <div class="summary-items">
+            <!-- Subtotal -->
+            <div class="summary-row">
+              <span class="label">Tổng tiền hàng:</span>
+              <span class="value">
+                {{getOrderItemsTotal() | currency:'VND':'symbol':'1.0-0'}}
+              </span>
+            </div>
+
+            <!-- Discount if exists -->
+            <div *ngIf="order.discount_amount && order.discount_amount > 0" class="summary-row discount">
+              <span class="label">Giảm giá:</span>
+              <span class="value">-{{order.discount_amount | currency:'VND':'symbol':'1.0-0'}}</span>
+            </div>
+
+            <!-- Shipping Cost -->
+            <div class="summary-row shipping">
+              <span class="label">Phí vận chuyển:</span>
+              <span class="value">{{order.delivery_cost | currency:'VND':'symbol':'1.0-0'}}</span>
+            </div>
+
+            <!-- Divider -->
+            <div class="summary-divider"></div>
+
+            <!-- Total -->
+            <div class="summary-row total">
+              <span class="label"><strong>Tổng cộng:</strong></span>
+              <span class="value total-amount"><strong>{{calculateOrderTotal() | currency:'VND':'symbol':'1.0-0'}}</strong></span>
+            </div>
+          </div>
+
+          <!-- Payment Status -->
+          <div class="payment-status">
+            <p class="payment-label">💳 Phương thức thanh toán:</p>
+            <p class="payment-method">{{ order?.payment_method || 'Chưa xác định' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer: Action Buttons -->
+    <div class="detail-footer">
+      <button class="btn-back" (click)="goBack()">← Quay lại danh sách đơn hàng</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,88 @@
+.banners-container {
+  padding: 24px;
+  color: #1f2937;
+}
+
+.header-row {
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0;
+    font-size: 34px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 8px 0 0;
+    color: #6b7280;
+    font-size: 16px;
+  }
+}
+
+.management-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.management-card {
+  text-decoration: none;
+  color: #1f2937;
+  flex: 1 1 320px;
+  min-height: 200px;
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: #93c5fd;
+    box-shadow: 0 12px 24px rgba(30, 64, 175, 0.12);
+  }
+
+  .icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 24px;
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    color: #6b7280;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .action {
+    color: #1d4ed8;
+    font-weight: 700;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .banners-container {
+    padding: 16px;
+  }
+
+  .header-row h1 {
+    font-size: 28px;
+  }
+}

@@ -1,0 +1,153 @@
+@if (showModal() && selectedUser()) {
+  <div class="modal-overlay" (click)="onCloseModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="header-content">
+          <div class="user-avatar">
+            <span class="avatar-icon">👤</span>
+          </div>
+          <div class="header-info">
+            <h2>Chi tiết người dùng #{{ selectedUser()!.id }}</h2>
+            <p class="user-role">{{ selectedUser()!.role === 'admin' ? '👑 Quản trị viên' : '🛍️ Khách hàng' }}</p>
+          </div>
+        </div>
+        <button class="close-btn" (click)="onCloseModal()" title="Đóng">✕</button>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="tabs-container">
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab() === 'info'"
+          (click)="switchTab('info')">
+          <span class="tab-icon">ℹ️</span>
+          <span class="tab-label">Thông tin</span>
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab() === 'orders'"
+          (click)="switchTab('orders')">
+          <span class="tab-icon">📦</span>
+          <span class="tab-label">Đơn hàng</span>
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab() === 'spending'"
+          (click)="switchTab('spending')">
+          <span class="tab-icon">💰</span>
+          <span class="tab-label">Chi tiêu</span>
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="modal-body">
+        <!-- Tab 1: Thông tin cá nhân -->
+        @if (activeTab() === 'info') {
+          <div class="tab-content info-content">
+            <div class="info-section">
+              <h3 class="section-title">Thông tin cơ bản</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <label class="info-label">Tên:</label>
+                  <span class="info-value">{{ selectedUser()!.name }}</span>
+                </div>
+                <div class="info-item">
+                  <label class="info-label">Email:</label>
+                  <span class="info-value email">{{ selectedUser()!.email }}</span>
+                </div>
+                <div class="info-item">
+                  <label class="info-label">Số điện thoại:</label>
+                  <span class="info-value">{{ selectedUser()!.phone || 'N/A' }}</span>
+                </div>
+                <div class="info-item">
+                  <label class="info-label">Vai trò:</label>
+                  <span class="info-value badge" [ngClass]="selectedUser()!.role">
+                    {{ selectedUser()!.role === 'admin' ? 'Admin' : 'Khách hàng' }}
+                  </span>
+                </div>
+                <div class="info-item">
+                  <label class="info-label">Trạng thái:</label>
+                  <span class="info-value badge" [ngClass]="selectedUser()!.status">
+                    {{ selectedUser()!.status === 'active' ? '✓ Hoạt động' : '✗ Đã khóa' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Tab 2: Đơn hàng đã mua -->
+        @if (activeTab() === 'orders') {
+          <div class="tab-content orders-content">
+            @if (userOrders().length > 0) {
+              <div class="orders-section">
+                <h3 class="section-title">Các đơn hàng đã hoàn tất</h3>
+                <div class="orders-list">
+                  @for (order of userOrders(); track order.id) {
+                    <div class="order-card">
+                      <div class="order-top">
+                        <div class="order-info">
+                          <span class="order-id">Đơn #{{ order.id }}</span>
+                          <span class="order-date">{{ order.created_at | date: 'dd/MM/yyyy' }}</span>
+                        </div>
+                        <span class="order-badge">✓ Đã giao</span>
+                      </div>
+                      <div class="order-bottom">
+                        <span class="order-price">{{ (order.totalPrice || order.total_price) | number:'1.0-0' }}₫</span>
+                        <span class="order-time">{{ order.created_at | date: 'HH:mm' }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <p class="empty-text">Người dùng chưa có đơn hàng hoàn tất</p>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Tab 3: Tổng chi tiêu -->
+        @if (activeTab() === 'spending') {
+          <div class="tab-content spending-content">
+            <div class="spending-section">
+              <div class="spending-main">
+                <div class="total-spent-card">
+                  <div class="card-label">Tổng chi tiêu</div>
+                  <div class="card-value">{{ (userStats().totalSpent || 0) | number:'1.0-0' }}₫</div>
+                  <div class="card-icon">💰</div>
+                </div>
+              </div>
+
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-icon">📊</div>
+                  <div class="stat-label">Tổng đơn hàng</div>
+                  <div class="stat-value">{{ userStats().totalOrders }}</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon">✅</div>
+                  <div class="stat-label">Đơn hoàn tất</div>
+                  <div class="stat-value">{{ userStats().completedOrders }}</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon">💵</div>
+                  <div class="stat-label">Chi/đơn trung bình</div>
+                  <div class="stat-value">{{ userStats().completedOrders > 0 ? ((userStats().totalSpent / userStats().completedOrders) | number:'1.0-0') : 0 }}₫</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="onCloseModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+}

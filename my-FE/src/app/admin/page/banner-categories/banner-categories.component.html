@@ -1,0 +1,171 @@
+<div class="banner-subpage">
+  <div class="header-row">
+    <div>
+      <h1>Banner Danh mục</h1>
+      <p>Quản lý banner cho danh mục cha và hình ảnh hiển thị.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-add" type="button" (click)="openAddModal()">+ Thêm banner</button>
+      <a class="btn-back" routerLink="/admin/banners">← Quay lại Banner</a>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input
+      type="text"
+      placeholder="Tìm theo tiêu đề hoặc danh mục..."
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event)"
+    />
+    <p class="active-counter">Đang hiển thị: {{ activeBannerCount() }}/{{ maxActiveBanners }}</p>
+  </div>
+
+  @if (loading()) {
+    <div class="empty">Đang tải dữ liệu banner...</div>
+  }
+
+  @if (!loading()) {
+    <div class="grid">
+      @for (banner of filteredBanners(); track banner.id) {
+        <div class="card">
+          <img [src]="getDisplayImageUrl(banner.imageUrl)" [alt]="banner.title" />
+          <div class="card-content">
+            <h3>{{ banner.title }}</h3>
+            <p><strong>Danh mục cha:</strong> {{ banner.category }}</p>
+            <p><strong>Link:</strong> {{ banner.linkUrl || 'Mặc định theo danh mục' }}</p>
+            <p><strong>Ghi chú:</strong> {{ banner.note || 'Chưa có ghi chú' }}</p>
+            <div class="card-footer">
+              <span class="status" [class.inactive]="banner.status === 'inactive'">
+                {{ banner.status === 'active' ? 'Đang hiển thị' : 'Đã tắt' }}
+              </span>
+              <div class="card-actions">
+                <button
+                  class="btn-toggle"
+                  type="button"
+                  [class.inactive]="banner.status === 'inactive'"
+                  [disabled]="togglingBannerId() === banner.id || (banner.status === 'inactive' && !canActivateBanner(banner))"
+                  (click)="toggleBannerVisibility(banner)"
+                >
+                  {{ togglingBannerId() === banner.id ? 'Đang đổi...' : (banner.status === 'active' ? 'Tắt hiển thị' : 'Bật hiển thị') }}
+                </button>
+                <button class="btn-edit" type="button" (click)="openEditModal(banner)">Sửa</button>
+                <button class="btn-delete" type="button" (click)="deleteBanner(banner.id)">Xóa</button>
+              </div>
+            </div>
+            @if (banner.status === 'inactive' && !canActivateBanner(banner)) {
+              <small class="status-warning">Đã đủ 3 banner hiển thị, cần tắt 1 banner trước khi bật banner này.</small>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!loading() && filteredBanners().length === 0) {
+    <div class="empty">Không có banner danh mục nào.</div>
+  }
+</div>
+
+@if (showAddModal()) {
+  <div class="modal-overlay" (click)="closeAddModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Thêm banner danh mục cha</h3>
+        <button type="button" class="btn-close" (click)="closeAddModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <label>Danh mục cha *</label>
+        <select [ngModel]="selectedCategoryId" (ngModelChange)="onCategoryChange($event)">
+          <option [ngValue]="null">-- Chọn danh mục cha --</option>
+          @for (category of parentCategories(); track category.id) {
+            <option [value]="category.id">{{ category.name }}</option>
+          }
+        </select>
+
+        <label>Ghi chú nội dung banner</label>
+        <input
+          type="text"
+          placeholder="Ví dụ: Back to school 2026"
+          [(ngModel)]="formNote"
+        />
+
+        <label>Trạng thái hiển thị</label>
+        <select [(ngModel)]="formStatus">
+          <option [ngValue]="'active'" [disabled]="!canActivateForAdd()">Đang hiển thị</option>
+          <option [ngValue]="'inactive'">Tạm tắt</option>
+        </select>
+        @if (formStatus === 'active' && !canActivateForAdd()) {
+          <small class="status-warning">Đã đủ 3 banner hiển thị, hãy tắt bớt trước khi bật banner mới.</small>
+        }
+
+        <label>Ảnh banner *</label>
+        <input type="file" accept="image/*" (change)="onImageSelected($event)" />
+
+        @if (selectedImagePreview) {
+          <img class="preview" [src]="selectedImagePreview" alt="Xem trước banner" />
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeAddModal()">Hủy</button>
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="submitting() || !selectedCategoryId || !selectedImageFile || (formStatus === 'active' && !canActivateForAdd())"
+          (click)="submitCreateBanner()"
+        >
+          {{ submitting() ? 'Đang lưu...' : 'Lưu banner' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showEditModal()) {
+  <div class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Sửa banner danh mục</h3>
+        <button type="button" class="btn-close" (click)="closeEditModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <label>Ghi chú nội dung banner</label>
+        <input
+          type="text"
+          placeholder="Ví dụ: Back to school 2026"
+          [(ngModel)]="formNote"
+        />
+
+        <label>Trạng thái hiển thị</label>
+        <select [(ngModel)]="formStatus">
+          <option [ngValue]="'active'" [disabled]="!canActivateForEdit()">Đang hiển thị</option>
+          <option [ngValue]="'inactive'">Tạm tắt</option>
+        </select>
+        @if (formStatus === 'active' && !canActivateForEdit()) {
+          <small class="status-warning">Đã đủ 3 banner hiển thị, không thể bật thêm.</small>
+        }
+
+        <label>Ảnh banner mới (không bắt buộc)</label>
+        <input type="file" accept="image/*" (change)="onImageSelected($event)" />
+
+        @if (selectedImagePreview) {
+          <img class="preview" [src]="selectedImagePreview" alt="Xem trước banner" />
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeEditModal()">Hủy</button>
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="submitting() || (formStatus === 'active' && !canActivateForEdit())"
+          (click)="submitUpdateBanner()"
+        >
+          {{ submitting() ? 'Đang lưu...' : 'Cập nhật' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

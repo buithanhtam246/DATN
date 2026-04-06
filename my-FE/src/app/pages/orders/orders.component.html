@@ -1,0 +1,194 @@
+﻿<div class="account-container">
+
+  <!-- LEFT MENU -->
+  <div class="account-left">
+    <h2>TRANG TÀI KHOẢN</h2>
+    <p>Xin chào, {{user?.name}} !</p>
+
+    <ul>
+      <li routerLinkActive="active"><a routerLink="/account">Thông tin tài khoản</a></li>
+      <li routerLinkActive="active"><a routerLink="/orders">Lịch sử đơn hàng</a></li>
+      <li routerLinkActive="active"><a routerLink="/addresses">Quản lý địa chỉ</a></li>
+      <li routerLinkActive="active"><a routerLink="/change-password">Đổi mật khẩu</a></li>
+    </ul>
+  </div>
+
+  <!-- RIGHT CONTENT -->
+  <div class="account-right">
+    <h2>LỊCH SỬ ĐƠN HÀNG</h2>
+    <p>Đây là danh sách các đơn hàng bạn đã đặt.</p>
+
+    <div *ngIf="isLoading" class="orders-loading">
+      <span class="spinner"></span> Đang tải lịch sử đơn hàng...
+    </div>
+
+    <div *ngIf="!isLoading && orders.length === 0" class="orders-empty">
+      <p>Bạn chưa có đơn hàng nào.</p>
+      <a routerLink="/products" class="shop-link">Đi mua sắm ngay!</a>
+    </div>
+
+    <!-- ORDERS LIST -->
+    <div class="orders-container">
+      <div *ngFor="let order of orders; trackBy: trackByOrderId" class="order-card">
+        
+        <!-- Order Header -->
+        <div class="order-header">
+          <div class="order-info">
+            <h3 class="order-id">Đơn hàng #{{order.id}}</h3>
+            <span class="order-date">{{order.create_at | date:'dd/MM/yyyy HH:mm'}}</span>
+          </div>
+          <span class="order-status" [ngClass]="'status-' + order.status">
+            {{getStatusText(order.status)}}
+          </span>
+        </div>
+
+        <!-- Order Items -->
+        <div class="order-items">
+          <div *ngIf="order.items && order.items.length > 0">
+            <div class="items-header">
+              <span class="col-product">Sản phẩm</span>
+              <span class="col-quantity">Số lượng</span>
+              <span class="col-price">Giá</span>
+              <span class="col-total">Thành tiền</span>
+            </div>
+            
+            <div *ngFor="let item of order.items; trackBy: trackByItemId" class="item-row">
+              <div class="col-product">
+                <!-- Hiển thị hình ảnh variant sản phẩm -->
+                <div class="product-placeholder">
+                  <img *ngIf="item.image" [src]="getImageUrl(item.image)" [alt]="item.product_name" class="product-image">
+                  <div *ngIf="!item.image" class="no-image-icon">📦</div>
+                </div>
+                <div class="product-details">
+                  <span class="product-name">{{item.product_name}}</span>
+                  <span class="product-variant" *ngIf="item.color_name">{{item.color_name}}</span>
+                  <span class="product-size" *ngIf="item.size_id"> / Size {{item.size_id}}</span>
+                </div>
+              </div>
+              <span class="col-quantity">x{{item.quantity}}</span>
+              <span class="col-price">{{item.price | currency:'VND':'symbol':'1.0-0'}}</span>
+              <span class="col-total">{{(item.price * item.quantity) | currency:'VND':'symbol':'1.0-0'}}</span>
+            </div>
+            
+            <!-- Review Section for Delivered Orders -->
+            <div *ngIf="order.canReview" class="item-reviews">
+              <div class="reviews-section-header">
+                <h4 class="reviews-title">📝 Đánh giá sản phẩm</h4>
+                <span class="reviews-subtitle">Chia sẻ trải nghiệm của bạn để giúp những khách hàng khác</span>
+              </div>
+              
+              <div *ngFor="let item of order.items; trackBy: trackByItemId" class="review-item">
+                <div class="review-header">
+                  <div class="review-product-info">
+                    <img *ngIf="item.image" [src]="getImageUrl(item.image)" [alt]="item.product_name" class="review-product-img">
+                    <div *ngIf="!item.image" class="review-product-placeholder">📦</div>
+                    <div class="review-product-text">
+                      <span class="review-product">{{item.product_name}}</span>
+                      <span class="review-product-variant" *ngIf="item.color_name">{{item.color_name}}</span>
+                      <span class="review-product-size" *ngIf="item.size_id"> / Size {{item.size_id}}</span>
+                    </div>
+                  </div>
+                  <div class="review-actions">
+                    <button 
+                      *ngIf="!item.reviewed && reviewingItemId !== item.id"
+                      class="btn-review"
+                      (click)="openReviewForm(item.id)"
+                    >
+                      ⭐ Đánh giá
+                    </button>
+                    <span *ngIf="item.reviewed" class="badge-reviewed">✓ Đã đánh giá</span>
+                  </div>
+                </div>
+                
+                <!-- Review Form -->
+                <div *ngIf="reviewingItemId === item.id" class="review-form-wrapper">
+                  <div class="review-form">
+                    <!-- Rating Section -->
+                    <div class="form-group rating-group">
+                      <label class="form-label">Đánh giá sản phẩm (1-5 sao):</label>
+                      <div class="rating-wrapper">
+                        <div class="rating-stars">
+                          <button 
+                            *ngFor="let i of [1,2,3,4,5]"
+                            class="star"
+                            [class.active]="i <= reviewForm.rating"
+                            (click)="reviewForm.rating = i"
+                            type="button"
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <span class="rating-display">{{reviewForm.rating}} / 5 sao</span>
+                      </div>
+                    </div>
+
+                    <!-- Comment Section -->
+                    <div class="form-group comment-group">
+                      <label class="form-label">Nhận xét chi tiết:</label>
+                      <textarea 
+                        [(ngModel)]="reviewForm.comment"
+                        placeholder="Sản phẩm có chất lượng tốt không? Kích thước như mô tả? Chia sẻ ý kiến của bạn..."
+                        class="comment-input"
+                        rows="4"
+                        maxlength="1000"
+                      ></textarea>
+                      <div class="char-count-wrapper">
+                        <span class="char-count" [class.limit-reached]="reviewForm.comment.length >= 1000">
+                          {{reviewForm.comment.length}}/1000 ký tự
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="form-actions">
+                      <button 
+                        class="btn-submit"
+                        (click)="submitReview(item)"
+                        [disabled]="isSubmittingReview || !reviewForm.comment.trim()"
+                      >
+                        <span *ngIf="!isSubmittingReview">✓ Gửi đánh giá</span>
+                        <span *ngIf="isSubmittingReview">⏳ Đang gửi...</span>
+                      </button>
+                      <button 
+                        class="btn-cancel" 
+                        (click)="closeReviewForm()" 
+                        [disabled]="isSubmittingReview"
+                        type="button"
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!order.items || order.items.length === 0" class="no-items">
+            <p>Không có sản phẩm trong đơn hàng này</p>
+          </div>
+        </div>
+
+        <!-- Order Footer -->
+        <div class="order-footer">
+          <div class="order-summary">
+            <div class="summary-row">
+              <span>Phí vận chuyển:</span>
+              <span>{{order.delivery_cost | currency:'VND':'symbol':'1.0-0'}}</span>
+            </div>
+            <div class="summary-row total">
+              <span><strong>Tổng cộng:</strong></span>
+              <span><strong>{{calculateOrderTotal(order) | currency:'VND':'symbol':'1.0-0'}}</strong></span>
+            </div>
+          </div>
+          <div class="order-actions">
+            <button class="btn-detail" [routerLink]="['/order-detail', order.id]">Xem chi tiết</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+  </div>
+
+</div>

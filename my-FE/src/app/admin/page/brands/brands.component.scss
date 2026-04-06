@@ -1,0 +1,658 @@
+@use 'sass:color';
+@use '../../styles/admin-variables' as *;
+
+// ==========================================
+// BRANDS MANAGEMENT PAGE STYLES
+// ==========================================
+
+// Color Palette
+$primary: #0d6efd;
+$success: #198754;
+$danger: #dc3545;
+$warning: #ffc107;
+$info: #0dcaf0;
+$light: #f8f9fa;
+$dark: #212529;
+$muted: #6c757d;
+$white: #fff;
+
+// Spacing System
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-2xl: 3rem;
+
+// Shadows
+$shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+$shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+$shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+
+// Responsive Breakpoints
+$mobile: 480px;
+$tablet: 768px;
+
+// ==========================================
+// MAIN CONTAINER
+// ==========================================
+.brands-container {
+  padding: $spacing-xl;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+// ==========================================
+// PAGE HEADER
+// ==========================================
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-2xl;
+  gap: $spacing-lg;
+  animation: slideDown 0.5s ease-out;
+
+  @media (max-width: $tablet) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: $dark;
+    margin: 0;
+    letter-spacing: -0.5px;
+
+    @media (max-width: $mobile) {
+      font-size: 2rem;
+    }
+  }
+
+  .btn-add {
+    background: linear-gradient(135deg, $primary 0%, #0b5ed7 100%);
+    color: $white;
+    border: none;
+    padding: $spacing-md $spacing-xl;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: $shadow-md;
+    white-space: nowrap;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+      background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: $mobile) {
+      width: 100%;
+      padding: $spacing-md;
+    }
+  }
+}
+
+// ==========================================
+// STATS CONTAINER
+// ==========================================
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $spacing-lg;
+  margin-bottom: $spacing-2xl;
+  animation: slideUp 0.5s ease-out 0.1s both;
+
+  @media (max-width: $tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: $mobile) {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    background: $white;
+    padding: $spacing-lg;
+    border-radius: 1rem;
+    box-shadow: $shadow-md;
+    transition: all 0.3s ease;
+    border-left: 4px solid $primary;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: $shadow-lg;
+    }
+
+    .icon {
+      font-size: 2rem;
+      margin-bottom: $spacing-sm;
+    }
+
+    .label {
+      font-size: 0.875rem;
+      color: $muted;
+      margin-bottom: $spacing-xs;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: $dark;
+    }
+  }
+}
+
+// ==========================================
+// FILTER SECTION
+// ==========================================
+.filter-section {
+  background: $white;
+  padding: $spacing-lg;
+  border-radius: 1rem;
+  margin-bottom: $spacing-2xl;
+  box-shadow: $shadow-md;
+  animation: slideUp 0.5s ease-out 0.2s both;
+
+  .filter-header {
+    display: flex;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+    align-items: center;
+
+    @media (max-width: $tablet) {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+
+      @media (max-width: $tablet) {
+        min-width: 100%;
+      }
+
+      input {
+        width: 100%;
+        padding: $spacing-md $spacing-lg;
+        border: 2px solid #e0e0e0;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+
+        &:focus {
+          outline: none;
+          border-color: $primary;
+          box-shadow: 0 0 0 3px rgba($primary, 0.1);
+        }
+
+        &::placeholder {
+          color: $muted;
+        }
+      }
+    }
+
+    .btn-reset {
+      background: $muted;
+      color: $white;
+      border: none;
+      padding: $spacing-md $spacing-lg;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: color.mix(white, $muted, 15%);
+        transform: translateY(-2px);
+      }
+
+      @media (max-width: $tablet) {
+        width: 100%;
+      }
+    }
+  }
+}
+
+// ==========================================
+// ERROR MESSAGE
+// ==========================================
+.error-message {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: $spacing-lg;
+  border-radius: 0.75rem;
+  margin-bottom: $spacing-xl;
+  animation: slideDown 0.3s ease-out;
+
+  @media (max-width: $mobile) {
+    padding: $spacing-md;
+    font-size: 0.875rem;
+  }
+}
+
+// ==========================================
+// TABLE CONTAINER
+// ==========================================
+.table-container {
+  background: $white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: $shadow-md;
+  animation: slideUp 0.5s ease-out 0.3s both;
+  min-height: 300px;
+
+  .loading-state,
+  .empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    flex-direction: column;
+    gap: $spacing-lg;
+    color: $muted;
+
+    .spinner {
+      font-size: 2.5rem;
+      animation: spin 1s linear infinite;
+    }
+
+    .message {
+      font-size: 1.125rem;
+      font-weight: 500;
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background: linear-gradient(135deg, $dark 0%, #3a3f44 100%);
+      color: $white;
+      font-weight: 600;
+
+      th {
+        padding: $spacing-lg;
+        text-align: left;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: $light;
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        td {
+          padding: $spacing-lg;
+          font-size: 0.95rem;
+          color: $dark;
+
+          &.col-id {
+            width: 10%;
+            color: $muted;
+            font-weight: 600;
+          }
+
+          &.col-name {
+            width: 50%;
+            font-weight: 500;
+            color: $dark;
+          }
+
+          &.col-status {
+            width: 20%;
+
+            .status-badge {
+              display: inline-block;
+              padding: $spacing-sm $spacing-lg;
+              border-radius: 2rem;
+              font-size: 0.85rem;
+              font-weight: 600;
+              text-align: center;
+
+              &.active {
+                background: #d1f2eb;
+                color: #0f6342;
+              }
+
+              &.inactive {
+                background: #f8d7da;
+                color: #721c24;
+              }
+            }
+          }
+
+          &.col-actions {
+            width: 20%;
+            text-align: right;
+          }
+        }
+
+        @media (max-width: $tablet) {
+          td {
+            padding: $spacing-md;
+            font-size: 0.875rem;
+          }
+        }
+      }
+    }
+  }
+
+  // ==========================================
+  // ACTION BUTTONS
+  // ==========================================
+  .action-buttons {
+    display: flex;
+    gap: $spacing-sm;
+    justify-content: flex-end;
+
+    @media (max-width: $mobile) {
+      flex-direction: column;
+      gap: $spacing-xs;
+    }
+
+    button {
+      padding: $spacing-sm $spacing-md;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+
+      @media (max-width: $mobile) {
+        padding: $spacing-sm;
+        font-size: 0.75rem;
+      }
+
+      &.btn-edit {
+        background: linear-gradient(135deg, $info 0%, #0bb5e0 100%);
+        color: $white;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: $shadow-md;
+        }
+      }
+
+      &.btn-delete {
+        background: linear-gradient(135deg, $danger 0%, #d32f2f 100%);
+        color: $white;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: $shadow-md;
+        }
+      }
+
+      &.btn-toggle {
+        background: linear-gradient(135deg, #e2e3e5 0%, #d0d1d3 100%);
+        color: $dark;
+
+        &:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: $shadow-md;
+        }
+
+        &.active {
+          background: linear-gradient(135deg, #cfe2ff 0%, #a8c5ff 100%);
+          color: #0d6efd;
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+// ==========================================
+// MODAL STYLES
+// ==========================================
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+  padding: $spacing-lg;
+
+  .modal-content {
+    background: $white;
+    border-radius: 1.5rem;
+    padding: $spacing-2xl;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    @media (max-width: $tablet) {
+      padding: $spacing-xl;
+      border-radius: 1rem;
+    }
+
+    @media (max-width: $mobile) {
+      padding: $spacing-lg;
+    }
+
+    .modal-header {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: $dark;
+      margin-bottom: $spacing-xl;
+      display: flex;
+      align-items: center;
+      gap: $spacing-md;
+
+      @media (max-width: $mobile) {
+        font-size: 1.25rem;
+        margin-bottom: $spacing-lg;
+      }
+    }
+
+    .form-group {
+      margin-bottom: $spacing-xl;
+
+      @media (max-width: $mobile) {
+        margin-bottom: $spacing-lg;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        color: $dark;
+        margin-bottom: $spacing-sm;
+        font-size: 0.95rem;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: $spacing-md $spacing-lg;
+        border: 2px solid #e0e0e0;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        font-family: inherit;
+
+        &:focus {
+          outline: none;
+          border-color: $primary;
+          box-shadow: 0 0 0 3px rgba($primary, 0.1);
+        }
+
+        &::placeholder {
+          color: $muted;
+        }
+
+        @media (max-width: $mobile) {
+          padding: $spacing-sm $spacing-md;
+          font-size: 0.95rem;
+        }
+      }
+
+      select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230d6efd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right $spacing-lg center;
+        background-size: 20px;
+        padding-right: $spacing-2xl;
+      }
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: $spacing-lg;
+      justify-content: flex-end;
+
+      @media (max-width: $mobile) {
+        gap: $spacing-md;
+        flex-direction: column;
+      }
+
+      button {
+        padding: $spacing-md $spacing-xl;
+        border: none;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        @media (max-width: $mobile) {
+          padding: $spacing-sm $spacing-lg;
+          font-size: 0.95rem;
+          width: 100%;
+        }
+
+        &.btn-cancel {
+          background: $light;
+          color: $dark;
+          border: 2px solid $muted;
+
+          &:hover {
+            background: color.mix(white, $light, 8%);
+            transform: translateY(-2px);
+          }
+        }
+
+        &.btn-save {
+          background: linear-gradient(135deg, $primary 0%, #0b5ed7 100%);
+          color: $white;
+
+          &:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: $shadow-lg;
+          }
+
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ==========================================
+// ANIMATIONS
+// ==========================================
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ==========================================
+// UTILITY CLASSES
+// ==========================================
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: $muted;
+}
+
+.mt-3 {
+  margin-top: $spacing-lg;
+}
+
+.mb-3 {
+  margin-bottom: $spacing-lg;
+}

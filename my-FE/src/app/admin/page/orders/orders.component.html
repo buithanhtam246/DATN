@@ -1,0 +1,193 @@
+<div class="orders-page">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý đơn hàng</h1>
+      <p>Theo dõi và xử lý đơn hàng</p>
+    </div>
+    <div class="stats-quick">
+      <div class="stat">
+        <span class="label">Tổng đơn hàng</span>
+        <strong>{{ orders().length }}</strong>
+      </div>
+      <div class="stat">
+        <span class="label">Chờ xử lý</span>
+        <strong class="pending">{{ pendingOrdersCount() }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="search" 
+        placeholder="Tìm kiếm mã đơn, khách hàng..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      >
+    </div>
+    <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)" class="filter-select">
+      <option value="all">Tất cả trạng thái</option>
+      <option value="pending">Chờ xử lý</option>
+      <option value="confirmed">Đã xác nhận</option>
+      <option value="shipped">Đang giao</option>
+      <option value="delivered">Đã giao</option>
+      <option value="cancelled">Đã hủy</option>
+    </select>
+    <select [ngModel]="selectedPaymentMethod()" (ngModelChange)="selectedPaymentMethod.set($event)" class="filter-select">
+      <option value="all">Tất cả thanh toán</option>
+      <option value="cod">COD</option>
+      <option value="bank_transfer">Chuyển khoản</option>
+      <option value="momo">MoMo</option>
+      <option value="vnpay">VNPay</option>
+      <option value="unknown">Chưa xác định</option>
+    </select>
+  </div>
+
+  <div class="orders-table-card">
+    <div *ngIf="isLoading()" class="text-center p-5">Đang tải dữ liệu...</div>
+    
+    <table *ngIf="!isLoading()">
+      <thead>
+        <tr>
+          <th>Mã đơn</th>
+          <th>Khách hàng</th>
+          <th>Sản phẩm</th>
+          <th>Tổng tiền</th>
+          <th>Thanh toán</th>
+          <th>Trạng thái</th>
+          <th>Ngày đặt</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (order of filteredOrders(); track order.id) {
+          <tr>
+            <td><strong>#{{ order.id }}</strong></td>
+            <td>
+              <div>{{ order.customerName }}</div>
+              <small class="text-muted">{{ order.email }}</small>
+            </td>
+            <td>
+              <div class="product-names">{{ order.productNames || 'N/A' }}</div>
+              <small class="text-muted">({{ order.productCount }} sản phẩm)</small>
+            </td>
+            <td><strong class="price">{{ order.totalPrice | number }}₫</strong></td>
+            <td>{{ getPaymentMethodLabel(order.paymentMethod) }}</td>
+            <td>
+              <div class="status-cell">
+                <div class="inline-approve" *ngIf="canInlineApprove(order); else lockedStatusBadge">
+                  <select
+                    class="inline-status-select"
+                    [ngModel]="getRowDraftStatus(order)"
+                    (ngModelChange)="onRowStatusChange(order.id, $event)">
+                    <option
+                      *ngFor="let status of statusOptions"
+                      [value]="status.value"
+                      [disabled]="isStatusOptionDisabled(order.status, status.value)">
+                      {{ status.label }}
+                    </option>
+                  </select>
+
+                  <button
+                    class="btn-inline-save"
+                    [disabled]="isRowSaving(order.id) || getRowDraftStatus(order) === order.status"
+                    (click)="saveRowStatus(order)">
+                    {{ isRowSaving(order.id) ? 'Đang lưu...' : 'Duyệt' }}
+                  </button>
+                </div>
+
+                <ng-template #lockedStatusBadge>
+                  <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+                    {{ getStatusLabel(order.status) }}
+                  </span>
+                </ng-template>
+              </div>
+            </td>
+            <td>{{ order.created_at | date: 'dd/MM/yyyy' }}</td>
+            <td>
+              <button class="btn-view" (click)="viewOrderDetail(order)">
+                👁 Chi tiết
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="empty-state">Không tìm thấy đơn hàng nào</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (showDetailModal() && selectedOrder()) {
+    <div class="modal-overlay" (click)="closeDetailModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Chi tiết đơn hàng #{{ selectedOrder()?.id }}</h2>
+          <button class="close-btn" (click)="closeDetailModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="order-info">
+            <div class="info-group"><label>Khách hàng:</label><span>{{ selectedOrder()?.customerName }}</span></div>
+            <div class="info-group"><label>SĐT:</label><span>{{ selectedOrder()?.phone }}</span></div>
+            <div class="info-group"><label>Email:</label><span>{{ selectedOrder()?.email }}</span></div>
+            <div class="info-group"><label>Địa chỉ giao hàng:</label><span>{{ selectedOrder()?.address || 'Chưa có địa chỉ' }}</span></div>
+            <div class="info-group"><label>Phương thức thanh toán:</label><span>{{ getPaymentMethodLabel(selectedOrder()?.paymentMethod) }}</span></div>
+            <div class="info-group"><label>Ngày đặt:</label><span>{{ selectedOrder()?.created_at | date: 'dd/MM/yyyy HH:mm' }}</span></div>
+            <div class="info-group"><label>Tổng tiền:</label><span class="price">{{ selectedOrder()?.totalPrice | number }}₫</span></div>
+          </div>
+
+          <div class="order-items" *ngIf="selectedOrder()?.items?.length; else noOrderItems">
+            <h3>Sản phẩm trong đơn hàng</h3>
+            <div class="items-list">
+              <div class="item-row" *ngFor="let item of selectedOrder()?.items">
+                <img [src]="getItemImageUrl(item.image)"
+                     [alt]="item.product_name"
+                     class="item-image"
+                     (error)="$event.target.src='https://placehold.co/56x56?text=No+Img'">
+                <div class="item-content">
+                  <div class="item-name">{{ item.product_name }}</div>
+                  <div class="item-meta">
+                    <span *ngIf="item.category_name || item.parent_category_name">Danh mục: {{ getCategoryPath(item) }}</span>
+                    <span *ngIf="item.color_name">Màu: {{ item.color_name }}</span>
+                    <span *ngIf="item.size_name !== null && item.size_name !== undefined && item.size_name !== ''">Size: {{ item.size_name }}</span>
+                  </div>
+                </div>
+                <div class="item-qty">x{{ item.quantity }}</div>
+                <div class="item-price">{{ (item.price * item.quantity) | number }}₫</div>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noOrderItems>
+            <div class="order-items empty-items">
+              <h3>Sản phẩm trong đơn hàng</h3>
+              <p>Không có dữ liệu sản phẩm trong đơn này.</p>
+            </div>
+          </ng-template>
+
+          <div class="payment-summary" *ngIf="selectedOrder() as order">
+            <h3>Thông tin thanh toán</h3>
+            <div class="summary-row">
+              <span>Tạm tính</span>
+              <strong>{{ getOrderSubtotal(order) | number }}₫</strong>
+            </div>
+            <div class="summary-row">
+              <span>Phí vận chuyển</span>
+              <strong>{{ (order.deliveryCost || 0) | number }}₫</strong>
+            </div>
+            <div class="summary-row total">
+              <span>Cần thanh toán</span>
+              <strong>{{ order.totalPrice | number }}₫</strong>
+            </div>
+            <div class="summary-row method">
+              <span>Phương thức thanh toán</span>
+              <strong>{{ getPaymentMethodLabel(order.paymentMethod) }}</strong>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,381 @@
+<div class="product-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Đang tải sản phẩm...</p>
+  </div>
+
+  <!-- Product Detail -->
+  <div *ngIf="!isLoading() && product()" class="product-detail">
+    <!-- Product Gallery -->
+    <div class="product-gallery" [class.out-of-stock-visual]="shouldDimProductImages()">
+      <!-- Thumbnails -->
+      <div class="thumbnails">
+        <button
+          *ngFor="let image of galleryImages(); let i = index"
+          class="thumbnail"
+          [class.active]="currentImageIndex() === i"
+          (click)="selectImage(i)"
+          type="button"
+          style="cursor: pointer;"
+        >
+          <img [src]="image" [alt]="product()?.title + ' - Ảnh ' + (i + 1)" />
+        </button>
+      </div>
+
+      <!-- Main Image -->
+      <div class="main-image"
+           [class.zoom-active]="isImageHovering()"
+           (mouseenter)="onImageEnter()"
+           (mouseleave)="onImageLeave()"
+           (mousemove)="onImageHover($event)">
+        <img
+          [src]="displayedImage()"
+          [alt]="product()?.title"
+          class="main-img"
+          [style.opacity]="imageOpacity()"
+          [style.transform-origin]="zoomOrigin()"
+          [style.transform]="isImageHovering() ? 'scale(' + zoomScale + ')' : 'scale(1)'"
+        />
+      </div>
+    </div>
+
+    <!-- Product Info -->
+    <div class="product-info">
+      <!-- Product Title -->
+      <h1 class="product-title" #productTitleRef>{{ product()?.title }}</h1>
+
+      <!-- Price -->
+      <div class="product-price">
+        <span class="current-price">
+          {{ (currentVariantPrice().salePrice || currentVariantPrice().price) | number:'1.0-0' }} VND
+        </span>
+        <span *ngIf="currentVariantPrice().salePrice" class="original-price">
+          {{ currentVariantPrice().price | number:'1.0-0' }} VND
+        </span>
+      </div>
+
+      <!-- Color Selector -->
+      <div class="color-selector">
+        <label>Màu sắc</label>
+        <p class="selected-color-name" *ngIf="activeColorObj() as activeColor">
+          {{ activeColor.name || 'Màu đã chọn' }}
+        </p>
+        <div class="colors-grid">
+          <button
+            *ngFor="let colorVariant of colorVariants()"
+            class="color-option"
+            [class.active]="selectedColorId() === colorVariant.id"
+            [class.out-of-stock]="colorVariant.isOutOfStock"
+            (click)="selectColor(colorVariant.id)"
+            [title]="colorVariant.isOutOfStock ? (colorVariant.name + ' - Hết hàng') : colorVariant.name"
+            type="button"
+          >
+            <img [src]="colorVariant.imageUrl" [alt]="colorVariant.name" />
+            <span class="stock-badge" *ngIf="colorVariant.isOutOfStock">Hết hàng</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Size Selector -->
+      <div class="size-selector">
+        <div class="size-header">
+          <label>Kích cỡ</label>
+          <button (click)="openSizeGuideModal()" class="size-guide" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1L15 8L8 15L1 8L8 1Z" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="sizes-grid">
+          <button
+            *ngFor="let size of displaySizes()"
+            class="size-option"
+            [class.active]="selectedSizeId() === size.id"
+            [class.disabled]="!isSizeAvailable(size.id)"
+            [disabled]="!isSizeAvailable(size.id)"
+            (click)="selectSize(size.id)"
+          >
+            {{ size.bangSize }}
+          </button>
+        </div>
+
+        <p *ngIf="!selectedColorId()" class="no-sizes">
+          Vui lòng chọn màu sắc trước
+        </p>
+      </div>
+
+      <!-- Quantity Selector -->
+      <div class="quantity-selector">
+        <label>Số lượng</label>
+        <div class="quantity-controls">
+          <button 
+            class="qty-btn" 
+            (click)="decrementQuantity()"
+            [disabled]="quantity() <= 1"
+          >−</button>
+          <input
+            type="number"
+            [value]="quantity()"
+            min="1"
+            step="1"
+            (input)="onQuantityInput($event)"
+          />
+          <button 
+            class="qty-btn" 
+            (click)="incrementQuantity()"
+          >+</button>
+        </div>
+      </div>
+
+      <!-- Inventory Status -->
+      <div class="inventory-status" *ngIf="selectedColorId() && selectedSizeId()">
+        <div class="stock-info">
+          <span class="stock-label">Tồn kho:</span>
+          <span class="stock-value" [class.in-stock]="availableQuantity() > 0" [class.out-of-stock]="availableQuantity() === 0">
+            {{ availableQuantity() }} sản phẩm
+          </span>
+        </div>
+        <div *ngIf="availableQuantity() > 0 && availableQuantity() <= 10" class="stock-warning">
+          ⚠️ Sắp hết hàng
+        </div>
+        <div *ngIf="quantity() > availableQuantity()" class="quantity-exceeded">
+          ⚠️ Số lượng vượt quá tồn kho! Vui lòng giảm xuống {{ availableQuantity() }} sản phẩm trở xuống.
+        </div>
+        <div *ngIf="availableQuantity() === 0" class="stock-unavailable">
+          ❌ Sản phẩm hết hàng
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button 
+          class="btn-add-to-cart" 
+          (click)="addToCart()"
+          [disabled]="!selectedColorId() || !selectedSizeId() || availableQuantity() === 0"
+        >
+          Thêm vào Giỏ
+        </button>
+        <button class="btn-wishlist">
+          Yêu thích
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke-width="2"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Product Description Accordion -->
+      <div class="accordion-section">
+        <button class="accordion-header" (click)="toggleDescription()">
+          <span>Xem chi tiết sản phẩm</span>
+          <svg 
+            class="accordion-icon" 
+            [class.open]="isDescriptionOpen()"
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none"
+          >
+            <path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="accordion-content" [class.open]="isDescriptionOpen()">
+          <div class="content-inner">
+            <p>{{ product()?.description || 'Thoải mái, bền bỉ và vượt thời gian—nó đúng đầu bảng xếp hạng vì một lý do. Mẫu AF-1 này kết hợp chất liệu da cao cấp với các chi tiết kim loại nhỏ nhắn nên về ngoài thanh lịch, cổ điển.' }}</p>
+            <ul>
+              <li>Màu sắc hiển thị: Trắng/Vàng kim loại/Đen</li>
+              <li>Style: IB6543-101</li>
+              <li>Quốc gia/Khu vực xuất xứ: Trung Quốc, Việt Nam</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Size Guide Accordion -->
+      <div class="accordion-section">
+        <button class="accordion-header" (click)="toggleDelivery()">
+          <span>📏 Hướng Dẫn Chọn Size</span>
+          <svg 
+            class="accordion-icon" 
+            [class.open]="isDeliveryOpen()"
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none"
+          >
+            <path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="accordion-content" [class.open]="isDeliveryOpen()">
+          <div class="content-inner">
+            <!-- Loading State -->
+            <div *ngIf="isLoadingGuide()" class="loading-state">
+              <p>Đang tải hướng dẫn...</p>
+            </div>
+
+            <!-- Size Guide Image -->
+            <div *ngIf="!isLoadingGuide() && sizeGuideImage()" class="size-guide-container">
+              <img 
+                [src]="sizeGuideImage()" 
+                alt="Hướng dẫn chọn size" 
+                class="size-guide-image"
+              >
+              <p class="size-guide-note">Tham khảo hướng dẫn trên để chọn size phù hợp với bạn</p>
+            </div>
+
+            <!-- No Guide Available -->
+            <div *ngIf="!isLoadingGuide() && !sizeGuideImage()" class="no-guide">
+              <p>Hiện chưa có hướng dẫn chọn size cho danh mục này</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews Accordion -->
+      <div class="accordion-section">
+        <button class="accordion-header" (click)="toggleReviews()">
+          <span>Reviews</span>
+          <div class="reviews-header-right">
+            <div class="stars">
+              <svg *ngFor="let star of [1,2,3,4,5]" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+            </div>
+            <svg 
+              class="accordion-icon" 
+              [class.open]="isReviewsOpen()"
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill="none"
+            >
+              <path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </button>
+        <div class="accordion-content" [class.open]="isReviewsOpen()">
+          <div class="content-inner">
+            @if (isReviewsLoading()) {
+              <div class="reviews-loading">
+                <div class="spinner"></div>
+                <p>Đang tải đánh giá...</p>
+              </div>
+            } @else if (reviews().length === 0) {
+              <div class="reviews-empty">
+                <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+              </div>
+            } @else {
+              <div class="reviews-list">
+                @for (review of reviews(); track review.id) {
+                  <div class="review-card">
+                    <div class="review-header">
+                      <div class="reviewer-info">
+                        <div class="reviewer-name">{{ review.customerName || 'Ẩn danh' }}</div>
+                        <div class="review-meta">
+                          <div class="review-rating">
+                            <div class="stars">
+                              @for (star of [1,2,3,4,5]; track $index) {
+                                <svg 
+                                  *ngIf="star <= review.rating" 
+                                  width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
+                                >
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                <svg 
+                                  *ngIf="star > review.rating" 
+                                  width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                >
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                              }
+                            </div>
+                            <span class="rating-text">({{ review.rating }}/5)</span>
+                          </div>
+                          <div class="review-date">{{ review.created_at | date: 'dd/MM/yyyy HH:mm' }}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="review-content">{{ review.comment }}</div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products Section -->
+  <div *ngIf="relatedProducts().length > 0" class="related-products">
+    <div class="section-header">
+      <h2>Có thể bạn sẽ thích</h2>
+      <div class="carousel-controls">
+        <button class="carousel-btn prev">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
+        <button class="carousel-btn next">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="products-grid">
+      <div *ngFor="let relatedProduct of relatedProducts()" class="product-card">
+        <a [routerLink]="['/products', relatedProduct.id]">
+          <div class="card-image">
+            <img [src]="relatedProduct.imageUrl" [alt]="relatedProduct.title" />
+          </div>
+          <div class="card-info">
+            <h3 class="card-title">{{ relatedProduct.title }}</h3>
+            <p class="card-brand">{{ relatedProduct.brand }} / Giày Nam</p>
+            <p class="card-price">{{ relatedProduct.price }} VND</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Not Found State -->
+  <div *ngIf="!isLoading() && !product()" class="not-found">
+    <h2>Không tìm thấy sản phẩm</h2>
+    <p>Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+    <a routerLink="/products" class="btn-back">Quay lại trang sản phẩm</a>
+  </div>
+
+  <!-- Size Guide Modal -->
+  <div *ngIf="showSizeGuideModal()" class="size-guide-modal-overlay" (click)="closeSizeGuideModal()">
+    <div class="size-guide-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Hướng Dẫn Chọn Kích Cỡ</h2>
+        <button class="btn-close" (click)="closeSizeGuideModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-content">
+        <div *ngIf="isLoadingGuide()" class="loading-spinner">
+          <div class="spinner"></div>
+          <p>Đang tải hướng dẫn...</p>
+        </div>
+
+        <div *ngIf="!isLoadingGuide() && sizeGuideImage()" class="guide-image-wrapper">
+          <img [src]="sizeGuideImage()" alt="Hướng dẫn kích cỡ" class="guide-image" />
+        </div>
+
+        <div *ngIf="!isLoadingGuide() && !sizeGuideImage()" class="no-guide">
+          <p>Chưa có hướng dẫn chọn kích cỡ cho danh mục này</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-close-modal" (click)="closeSizeGuideModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+</div>

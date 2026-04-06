@@ -1,0 +1,171 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.shop-by-sport {
+  width: 100%;
+  padding: 18px 0 44px;
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.section-container {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 0 24px;
+
+  @include mobile {
+    padding: 0 16px;
+  }
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+
+  @include mobile {
+    margin-bottom: 14px;
+  }
+}
+
+.section-title {
+  font-size: clamp(2rem, 3.1vw, 3rem);
+  font-weight: 500;
+  color: #111827;
+  margin: 0;
+  letter-spacing: 0;
+  text-transform: none;
+
+  @include mobile {
+    font-size: 2rem;
+  }
+}
+
+.navigation-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.nav-btn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background-color: #e6e8ec;
+  border: none;
+  color: #5b616b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-normal;
+
+  &:hover:not(:disabled) {
+    background-color: #dde1e7;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  @include mobile {
+    width: 44px;
+    height: 44px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+.sports-carousel {
+  overflow: hidden;
+  width: 100%;
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.sports-track {
+  display: flex;
+  transition: transform 0.5s ease;
+  gap: 14px;
+
+  @include mobile {
+    gap: 10px;
+  }
+}
+
+.sport-card {
+  flex: 0 0 calc((100% - 28px) / 3);
+  cursor: pointer;
+  position: relative;
+  transition: all $transition-normal;
+
+  &:hover {
+    transform: translateY(-8px);
+
+    .sport-image img {
+      transform: scale(1.05);
+    }
+  }
+
+  @include desktop {
+    flex: 0 0 calc((100% - 28px) / 3);
+  }
+
+  @include tablet {
+    flex: 0 0 calc(50% - 7px);
+  }
+
+  @include mobile {
+    flex: 0 0 100%;
+  }
+}
+
+.sport-image {
+  width: 100%;
+  height: 536px;
+  border-radius: 0;
+  overflow: hidden;
+  background-color: #f3f4f6;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform $transition-slow;
+  }
+
+  @include tablet {
+    height: 420px;
+  }
+
+  @include mobile {
+    height: 320px;
+  }
+}
+
+.sport-name {
+  font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+  font-weight: 500;
+  color: #111827;
+  margin: 18px 0 0;
+  text-align: left;
+
+  @include mobile {
+    font-size: 1.7rem;
+    margin-top: 12px;
+  }
+}

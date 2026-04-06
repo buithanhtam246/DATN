@@ -1,0 +1,85 @@
+<div class="products-container">
+  <!-- Header Section -->
+  <div class="products-header">
+    <div class="header-top">
+      <h1>Giày ({{ filteredProducts().length }})</h1>
+      <div class="header-controls">
+        <!-- Parent Category Filter -->
+        <div class="control-group">
+          <label>Danh mục</label>
+          <select [(ngModel)]="selectedParentCategory" (change)="onParentCategoryChange()">
+            <option value="">Tất cả danh mục</option>
+            <option *ngFor="let cat of parentCategories()" [value]="cat.id.toString()">{{ cat.name }}</option>
+          </select>
+        </div>
+
+        <!-- Child Category Filter -->
+        <div class="control-group">
+          <label>Danh mục con</label>
+          <select [(ngModel)]="selectedChildCategory" (change)="onChildCategoryChange()">
+            <option value="">Tất cả danh mục con</option>
+            <option *ngFor="let cat of getDisplayedChildCategories()" [value]="cat.id.toString()">
+              {{ cat.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Brand Filter -->
+        <div class="control-group">
+          <label>Thương hiệu</label>
+          <select [(ngModel)]="selectedBrandFilter" (change)="onFilterChange()">
+            <option value="">Tất cả thương hiệu</option>
+            <option *ngFor="let brand of brands()" [value]="brand.id.toString()">{{ brand.name }}</option>
+          </select>
+        </div>
+
+        <!-- Sort Filter -->
+        <div class="control-group">
+          <label>Lọc & Sắp xếp</label>
+          <select [(ngModel)]="sortBy" (change)="onSortChange()">
+            <option value="newest">Mới Nhất</option>
+            <option value="price-low">Giá: Thấp đến Cao</option>
+            <option value="price-high">Giá: Cao đến Thấp</option>
+            <option value="sale">Sản phẩm Sale</option>
+          </select>
+        </div>
+
+        <!-- Reset Button -->
+        <button (click)="resetFilters()" class="btn-reset">Đặt lại</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="products-grid">
+    <div *ngIf="filteredProducts().length === 0" class="no-products">
+      <i class="fas fa-inbox"></i>
+      <p>Không tìm thấy sản phẩm nào</p>
+    </div>
+
+    <div *ngFor="let product of filteredProducts()" class="product-item">
+      <!-- Product Image -->
+      <div class="product-image" (click)="viewProductDetail(product)">
+        <img 
+          [src]="getProductImage(product)" 
+          [alt]="product.name"
+        />
+        <div *ngIf="getDiscountPercent(product) > 0" class="discount-badge">
+          -{{ getDiscountPercent(product) }}%
+        </div>
+      </div>
+
+      <!-- Product Info -->
+      <div class="product-info">
+        <p class="product-brand-category">{{ product.brand_name || 'Brand' }} / {{ product.category_name || 'N/A' }}</p>
+        <h3 class="product-name" (click)="viewProductDetail(product)">{{ product.name }}</h3>
+        
+        <!-- Actions -->
+        <div class="product-actions">
+          <span class="product-price">{{ formatPrice(getDisplayPrice(product)) }}</span>
+          <a class="details-btn" (click)="viewProductDetail(product)">Chi tiết</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

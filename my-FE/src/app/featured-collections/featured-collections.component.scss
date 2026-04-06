@@ -1,0 +1,195 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.featured-collections {
+  width: 100%;
+  padding: $spacing-xxl 0;
+  background-color: $color-background;
+}
+
+.collections-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 $spacing-xl;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-lg;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+  }
+}
+
+.collection-card {
+  position: relative;
+  height: 600px;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-8px);
+
+    .card-background img {
+      transform: scale(1.1);
+    }
+
+    .view-more-btn {
+      background-color: $color-white;
+      color: $color-text;
+    }
+  }
+
+  @include mobile {
+    height: 500px;
+  }
+}
+
+.card-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.3) 0%,
+      rgba(0, 0, 0, 0.5) 100%
+    );
+  }
+}
+
+.card-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  padding: 36px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  color: $color-white;
+
+  @include mobile {
+    padding: $spacing-lg;
+  }
+}
+
+.collection-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+
+  .collection-subtitle,
+  .collection-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin: 0;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+}
+
+.collection-tag {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  letter-spacing: 3px;
+  margin: $spacing-xs 0 0 0;
+  opacity: 0.9;
+}
+
+.collection-description {
+  font-size: 1.02rem;
+  line-height: 1.45;
+  margin: 12px 0 18px;
+  max-width: 84%;
+  opacity: 0.95;
+
+  &.cursive {
+    font-family: 'Brush Script MT', cursive;
+    font-size: $font-size-lg;
+    font-style: italic;
+    line-height: 1.8;
+  }
+
+  @include mobile {
+    font-size: 0.92rem;
+    max-width: 100%;
+  }
+}
+
+.view-more-btn {
+  padding: 14px 32px;
+  background-color: transparent;
+  border: 2px solid $color-white;
+  border-radius: 30px;
+  color: $color-white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: flex-start;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &:hover {
+    background-color: $color-white;
+    color: $color-text;
+  }
+
+  @include mobile {
+    padding: 12px 26px;
+    font-size: 0.9rem;
+  }
+}
+
+// Specific card styles
+.card-kids {
+  .card-background::after {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 90, 95, 0.4) 0%,
+      rgba(139, 69, 149, 0.5) 100%
+    );
+  }
+}
+
+.card-school {
+  .card-background::after {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 182, 185, 0.4) 0%,
+      rgba(250, 227, 217, 0.5) 100%
+    );
+  }
+}
+
+.card-football {
+  .card-background::after {
+    background: linear-gradient(
+      135deg,
+      rgba(139, 69, 149, 0.5) 0%,
+      rgba(0, 0, 0, 0.6) 100%
+    );
+  }
+}

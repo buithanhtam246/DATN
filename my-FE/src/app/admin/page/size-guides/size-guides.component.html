@@ -1,0 +1,167 @@
+<div class="size-guides-container">
+  <div class="page-header">
+    <h1>📏 Quản Lý Hướng Dẫn Size</h1>
+    <p>Quản lý ảnh hướng dẫn size cho các danh mục sản phẩm</p>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">📁</div>
+      <div class="stat-content">
+        <div class="stat-label">Tổng Danh Mục Cha</div>
+        <div class="stat-value">{{ parentCategories.length }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <div class="stat-label">Có Hướng Dẫn</div>
+        <div class="stat-value">{{ categoryGuides.size }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-content">
+        <div class="stat-label">Chưa Có</div>
+        <div class="stat-value">{{ parentCategories.length - categoryGuides.size }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="search-bar">
+    <input 
+      type="text" 
+      placeholder="🔍 Tìm kiếm danh mục..." 
+      [(ngModel)]="searchText"
+      (input)="applyFilters()"
+      class="search-input"
+    >
+  </div>
+
+  <!-- Categories Grid -->
+  <div class="categories-grid">
+    <div *ngFor="let category of filteredCategories" class="category-card">
+      <div class="card-header">
+        <div class="category-title">
+          <h3>{{ category.name }}</h3>
+        </div>
+        <span class="category-badge" [class.has-guide]="categoryGuides.has(category.id!)">
+          {{ categoryGuides.has(category.id!) ? '✓ Có Hướng Dẫn' : '⚠ Chưa Có' }}
+        </span>
+      </div>
+
+      <!-- Image Preview -->
+      <div class="image-preview-container">
+        <img 
+          *ngIf="categoryGuides.has(category.id!) && categoryGuides.get(category.id!)?.image_url"
+          [src]="sizeGuideImgUrl + categoryGuides.get(category.id!)?.image_url"
+          alt="Size guide for {{ category.name }}"
+          class="preview-image"
+        >
+        <div 
+          *ngIf="!categoryGuides.has(category.id!) || !categoryGuides.get(category.id!)?.image_url"
+          class="no-image"
+        >
+          <span>📷 Chưa Có Hình Ảnh</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card-actions">
+        <button 
+          class="btn btn-primary"
+          (click)="openUploadModal(category)"
+          [disabled]="isSubmitting"
+        >
+          {{ categoryGuides.has(category.id!) ? '🔄 Thay Đổi' : '⬆️ Upload' }}
+        </button>
+        <button 
+          *ngIf="categoryGuides.has(category.id!)"
+          class="btn btn-danger"
+          (click)="deleteGuide(category)"
+          [disabled]="isSubmitting"
+        >
+          🗑️ Xóa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Results -->
+  <div *ngIf="filteredCategories.length === 0" class="no-results">
+    <p>Không tìm thấy danh mục nào</p>
+  </div>
+
+  <!-- Upload Modal -->
+  <div *ngIf="showUploadModal" class="modal-overlay" (click)="closeUploadModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>📤 Upload Hướng Dẫn Size</h2>
+        <button class="modal-close" (click)="closeUploadModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-subtitle">Danh Mục: <strong>{{ selectedCategory?.name }}</strong></p>
+
+        <div class="upload-area">
+          <input 
+            #fileInput
+            type="file" 
+            accept="image/*"
+            (change)="onFileSelected($event)"
+            class="file-input"
+            style="display: none"
+          >
+          
+          <div 
+            class="upload-box"
+            (click)="fileInput.click()"
+            [class.has-file]="selectedFile"
+          >
+            <div *ngIf="!selectedFile" class="upload-placeholder">
+              <span class="upload-icon">📁</span>
+              <p>Nhấp để chọn hình ảnh hoặc kéo thả</p>
+              <small>JPG, PNG, WebP • Tối đa 5MB</small>
+            </div>
+            <div *ngIf="selectedFile" class="file-info">
+              <span class="file-icon">✓</span>
+              <p>{{ selectedFile.name }}</p>
+              <small>{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Preview -->
+        <div *ngIf="filePreview" class="preview-section">
+          <p class="preview-label">Xem Trước:</p>
+          <img [src]="filePreview" alt="Preview" class="preview-img">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button 
+          class="btn btn-secondary"
+          (click)="closeUploadModal()"
+          [disabled]="isSubmitting"
+        >
+          Hủy
+        </button>
+        <button 
+          class="btn btn-primary"
+          (click)="uploadGuide()"
+          [disabled]="!selectedFile || isSubmitting"
+        >
+          {{ isSubmitting ? '⏳ Đang Upload...' : '⬆️ Upload' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div *ngIf="isSubmitting" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Đang xử lý...</p>
+  </div>
+</div>

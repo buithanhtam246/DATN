@@ -1,0 +1,54 @@
+<div class="account-container">
+
+  <!-- LEFT MENU -->
+  <div class="account-left">
+    <h2>TRANG TÀI KHOẢN</h2>
+    <p>Xin chào, {{user?.name}} !</p>
+
+    <ul>
+      <li routerLinkActive="active"><a routerLink="/account">Thông tin tài khoản</a></li>
+      <li routerLinkActive="active"><a routerLink="/orders">Lịch sử đơn hàng</a></li>
+      <li routerLinkActive="active"><a routerLink="/addresses">Quản lý địa chỉ</a></li>
+      <li routerLinkActive="active"><a routerLink="/change-password">Đổi mật khẩu</a></li>
+    </ul>
+  </div>
+
+  <!-- RIGHT CONTENT -->
+  <div class="account-right">
+    <h2>THÔNG TIN TÀI KHOẢN</h2>
+
+    <div class="user-info-section">
+      <p><b>Họ tên:</b> {{user?.name}}</p>
+      <p><b>Email:</b> {{user?.email}}</p>
+      <p><b>Số điện thoại:</b> {{user?.phone || 'Chưa cập nhật'}}</p>
+    </div>
+
+    <!-- Default Address Section -->
+    <div *ngIf="defaultAddress" class="default-address-section">
+      <h3>📍 Địa chỉ mặc định</h3>
+      <div class="address-card">
+        <div class="address-item">
+          <span class="label">Người nhận:</span>
+          <span class="value">{{defaultAddress?.receiver_name}}</span>
+        </div>
+        <div class="address-item">
+          <span class="label">Số điện thoại:</span>
+          <span class="value">{{defaultAddress?.receiver_phone}}</span>
+        </div>
+        <div class="address-item">
+          <span class="label">Địa chỉ:</span>
+          <span class="value">{{defaultAddress?.full_address}}</span>
+        </div>
+      </div>
+      <button class="btn-edit-address" (click)="goToAddresses()">Quản lý địa chỉ</button>
+    </div>
+
+    <div *ngIf="!defaultAddress" class="no-address-section">
+      <p class="no-address-text">Bạn chưa có địa chỉ mặc định</p>
+      <button class="btn-add-address" (click)="goToAddresses()">Thêm địa chỉ</button>
+    </div>
+
+    <button class="btn-logout" (click)="logout()">Đăng xuất</button>
+  </div>
+
+</div>

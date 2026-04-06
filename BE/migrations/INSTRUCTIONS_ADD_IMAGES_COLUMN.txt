@@ -1,0 +1,7 @@
+-- Run this SQL in phpMyAdmin to add images column to products table
+-- Go to: localhost/phpmyadmin
+-- Select DATN_DB database
+-- Click SQL tab
+-- Paste this query and execute:
+
+ALTER TABLE products ADD COLUMN images JSON NULL COMMENT 'Array of product images [image1.jpg, image2.jpg, ...]' AFTER image;
