@@ -73,4 +73,8 @@ export class FooterComponent {
     { label: 'Chính sách bảo mật', url: '/legal/privacy' },
     { label: 'Điều khoản & Điều kiện', url: '/legal/terms' }
   ];
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

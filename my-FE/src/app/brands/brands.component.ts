@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -9,6 +10,10 @@ interface BrandItem {
   logo?: string;
   filterValue: string;
 }
+=======
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
 /**
  * Brands Component
@@ -21,6 +26,7 @@ interface BrandItem {
 @Component({
   selector: 'app-brands',
   standalone: true,
+<<<<<<< HEAD
   imports: [CommonModule, RouterModule],
   templateUrl: './brands.component.html',
   styleUrl: './brands.component.scss'
@@ -33,15 +39,32 @@ export class BrandsComponent implements OnInit {
       name: 'ADIDAS',
       logo: '/assets/images/brands/adidas-logo.png',
       filterValue: 'adidas'
+=======
+  imports: [CommonModule],
+  templateUrl: './brands.component.html',
+  styleUrl: './brands.component.scss'
+})
+export class BrandsComponent {
+  public readonly brands = [
+    {
+      name: 'ADIDAS',
+      logo: '/assets/images/brands/adidas-logo.png',
+      url: '/brands/adidas'
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     },
     {
       name: 'NIKE',
       logo: '/assets/images/brands/nike-logo.png',
+<<<<<<< HEAD
       filterValue: 'nike'
+=======
+      url: '/brands/nike'
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     },
     {
       name: 'JORDAN',
       logo: '/assets/images/brands/jordan-logo.png',
+<<<<<<< HEAD
       filterValue: 'jordan'
     }
   ];
@@ -63,3 +86,9 @@ export class BrandsComponent implements OnInit {
     });
   }
 }
+=======
+      url: '/brands/jordan'
+    }
+  ];
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

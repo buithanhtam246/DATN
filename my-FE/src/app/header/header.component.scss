@@ -1,6 +1,7 @@
 .header {
   width: 100%;
   background-color: #ffffff;
+<<<<<<< HEAD
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   position: fixed;
   top: 0;
@@ -20,6 +21,12 @@
       height: 50px;
     }
   }
+=======
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 }
 
 .header-container {
@@ -30,7 +37,10 @@
   grid-template-columns: minmax(200px, 1fr) auto minmax(200px, 1fr);
   align-items: center;
   gap: 2rem;
+<<<<<<< HEAD
   transition: padding 0.3s ease-in-out;
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 }
 
 .logo {
@@ -52,7 +62,10 @@
       height: 60px;
       width: auto;
       display: block;
+<<<<<<< HEAD
       transition: height 0.3s ease-in-out;
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     }
   }
 }
@@ -173,4 +186,8 @@
       height: 20px;
     }
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

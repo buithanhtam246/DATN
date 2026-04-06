@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Component, OnInit, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -6,6 +7,13 @@ import { BannerService } from '../services/banner.service';
 interface Sport {
   id: number;
   categoryId: number;
+=======
+import { Component, OnInit, HostListener } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+interface Sport {
+  id: string;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   name: string;
   imageUrl: string;
 }
@@ -26,6 +34,7 @@ interface Sport {
   styleUrl: './shop-by-sport.component.scss'
 })
 export class ShopBySportComponent implements OnInit {
+<<<<<<< HEAD
   private bannerService = inject(BannerService);
   private router = inject(Router);
 
@@ -38,6 +47,12 @@ export class ShopBySportComponent implements OnInit {
   private dragStartX = 0;
   private dragDeltaX = 0;
   private readonly swipeThreshold = 60;
+=======
+  sports: Sport[] = [];
+  currentIndex = 0;
+  activeSportId = 'football';
+  itemsPerView = 3;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   
   get slideWidth(): number {
     return 100 / this.itemsPerView;
@@ -62,6 +77,7 @@ export class ShopBySportComponent implements OnInit {
     } else {
       this.itemsPerView = 3;
     }
+<<<<<<< HEAD
 
     this.clampCurrentIndex();
   }
@@ -111,6 +127,58 @@ export class ShopBySportComponent implements OnInit {
       return imageUrl;
     }
     return `${this.bannerService.categoryBannerImgBaseUrl}${imageUrl}`;
+=======
+  }
+
+  private loadSports(): void {
+    this.sports = [
+      {
+        id: 'running',
+        name: 'Running',
+        imageUrl: '/assets/images/sports/running.jpg'
+      },
+      {
+        id: 'football',
+        name: 'Football',
+        imageUrl: '/assets/images/sports/football.jpg'
+      },
+      {
+        id: 'basketball',
+        name: 'Basketball',
+        imageUrl: '/assets/images/sports/basketball.jpg'
+      },
+      {
+        id: 'tennis',
+        name: 'Tennis',
+        imageUrl: '/assets/images/sports/tennis.jpg'
+      },
+      {
+        id: 'golf',
+        name: 'Golf',
+        imageUrl: '/assets/images/sports/golf.jpg'
+      },
+      {
+        id: 'training',
+        name: 'Training',
+        imageUrl: '/assets/images/sports/training.jpg'
+      },
+      {
+        id: 'skateboarding',
+        name: 'Skateboarding',
+        imageUrl: '/assets/images/sports/skateboarding.jpg'
+      },
+      {
+        id: 'swimming',
+        name: 'Swimming',
+        imageUrl: '/assets/images/sports/swimming.jpg'
+      }
+    ];
+  }
+
+  selectSport(sportId: string): void {
+    this.activeSportId = sportId;
+    // TODO: Navigate to sport category page or filter products
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 
   previous(): void {
@@ -120,6 +188,7 @@ export class ShopBySportComponent implements OnInit {
   }
 
   next(): void {
+<<<<<<< HEAD
     if (this.currentIndex < this.maxIndex) {
       this.currentIndex++;
     }
@@ -198,3 +267,10 @@ export class ShopBySportComponent implements OnInit {
     }
   }
 }
+=======
+    if (this.currentIndex < this.sports.length - this.itemsPerView) {
+      this.currentIndex++;
+    }
+  }
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

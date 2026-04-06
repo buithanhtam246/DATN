@@ -90,6 +90,10 @@
   align-items: center;
   text-align: center;
   transition: all $transition-normal;
+<<<<<<< HEAD
+=======
+  cursor: pointer;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   overflow: hidden;
 
   &:hover {
@@ -100,6 +104,7 @@
       transform: scale(1.05);
     }
 
+<<<<<<< HEAD
     .product-price {
       transform: translateX(-50%) translateX(-75px);
 
@@ -115,6 +120,11 @@
       @include mobile {
         transform: translateX(-50%) translateX(70px);
       }
+=======
+    .details-btn {
+      transform: translateX(0);
+      opacity: 1;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     }
   }
 }
@@ -128,8 +138,11 @@
   margin-bottom: $spacing-lg;
   overflow: hidden;
   border-radius: $border-radius-sm;
+<<<<<<< HEAD
   text-decoration: none;
   cursor: pointer;
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
   img {
     width: 100%;
@@ -151,6 +164,7 @@
   gap: $spacing-sm;
 }
 
+<<<<<<< HEAD
 .product-brand-category {
   font-size: $font-size-xs;
   color: $color-text-light;
@@ -170,6 +184,17 @@
 
   &:hover {
     color: $color-primary;
+=======
+.product-name {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-text;
+  margin: 0;
+  line-height: 1.4;
+
+  @include mobile {
+    font-size: $font-size-sm;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 }
 
@@ -187,6 +212,7 @@
 .product-actions {
   margin-top: $spacing-sm;
   display: flex;
+<<<<<<< HEAD
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -195,6 +221,15 @@
 
   @include mobile {
     min-height: 36px;
+=======
+  gap: $spacing-md;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+
+  @include mobile {
+    gap: $spacing-sm;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 }
 
@@ -207,10 +242,13 @@
   color: $color-white;
   background-color: $color-primary;
   white-space: nowrap;
+<<<<<<< HEAD
   transition: all $transition-normal;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
   @include mobile {
     font-size: $font-size-xs;
@@ -229,22 +267,37 @@
   cursor: pointer;
   transition: all $transition-normal;
   white-space: nowrap;
+<<<<<<< HEAD
   position: absolute;
   left: 50%;
   transform: translateX(-50%) translateX(150px);
   opacity: 0;
   text-decoration: none;
   display: inline-block;
+=======
+  transform: translateX(100px);
+  opacity: 0;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
   &:hover {
     background-color: $color-white;
     color: $color-primary;
+<<<<<<< HEAD
+=======
+    transform: translateX(0) scale(1.05);
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
   @include mobile {
     font-size: $font-size-xs;
     padding: $spacing-xs $spacing-md;
+<<<<<<< HEAD
     transform: translateX(-50%) translateX(100px);
   }
 }
+=======
+    transform: translateX(60px);
+  }
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

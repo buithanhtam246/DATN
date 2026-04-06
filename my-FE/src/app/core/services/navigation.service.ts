@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+=======
+import { Injectable } from '@angular/core';
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 import { MenuItem } from '../models';
 import { NAVIGATION_MENU } from '../constants';
 
@@ -11,6 +15,7 @@ import { NAVIGATION_MENU } from '../constants';
   providedIn: 'root'
 })
 export class NavigationService {
+<<<<<<< HEAD
   private http = inject(HttpClient);
   private menuItemsSignal = signal<MenuItem[]>(NAVIGATION_MENU);
 
@@ -67,13 +72,26 @@ export class NavigationService {
    */
   getMenuItemsSignal() {
     return this.menuItemsSignal;
+=======
+  private menuItems: MenuItem[] = NAVIGATION_MENU;
+
+  /**
+   * Lấy danh sách menu items
+   */
+  getMenuItems(): MenuItem[] {
+    return [...this.menuItems]; // Return copy để tránh mutation
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 
   /**
    * Tìm menu item theo label
    */
   findMenuItemByLabel(label: string): MenuItem | undefined {
+<<<<<<< HEAD
     return this.menuItemsSignal().find(item => item.label === label);
+=======
+    return this.menuItems.find(item => item.label === label);
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 
   /**

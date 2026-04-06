@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Component, ElementRef, HostListener, ViewChild, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../core/services';
@@ -5,6 +6,12 @@ import { Product } from '../core/models';
 import { Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+=======
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ProductService } from '../core/services';
+import { Product } from '../core/models';
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
 /**
  * Collection Component
@@ -12,7 +19,11 @@ import { catchError } from 'rxjs/operators';
  * Responsibility: Display new collection section
  * - Show collection header
  * - Display product carousel/grid
+<<<<<<< HEAD
  * - Support horizontal drag scrolling
+=======
+ * - Handle navigation between products
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
  */
 @Component({
   selector: 'app-collection',
@@ -23,6 +34,7 @@ import { catchError } from 'rxjs/operators';
 })
 export class CollectionComponent implements OnInit {
   private readonly productService = inject(ProductService);
+<<<<<<< HEAD
   private readonly router = inject(Router);
   @ViewChild('productTrack') private productTrack?: ElementRef<HTMLDivElement>;
   
@@ -33,12 +45,18 @@ export class CollectionComponent implements OnInit {
 
   private dragStartX = 0;
   private initialScrollLeft = 0;
+=======
+  
+  public currentSlide = signal<number>(0);
+  public products = signal<Product[]>([]);
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   
   ngOnInit(): void {
     this.loadProducts();
   }
   
   private loadProducts(): void {
+<<<<<<< HEAD
     forkJoin({
       productsResponse: this.productService.getProducts({ limit: 8, sort: 'newest' }).pipe(catchError(() => of([]))),
       sizesResponse: this.productService.getSizes().pipe(catchError(() => of([])))
@@ -125,12 +143,19 @@ export class CollectionComponent implements OnInit {
 
   private loadMockProducts(): void {
     // Mock data fallback
+=======
+    // TODO: Load từ API
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     const mockProducts: Product[] = [
       {
         id: '1',
         title: 'Jordan Jumpman MVP',
         price: '4.000.000 VND',
+<<<<<<< HEAD
         imageUrl: '/assets/images/products/mvp.jpg',
+=======
+        imageUrl: '/assets/images/jordan-jumpman.jpg',
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
         brand: 'JORDAN',
         colors: ['#FF6B35', '#F7B731', '#E91E63', '#3B82F6'],
         sizes: [40, 41, 42, 43]
@@ -139,13 +164,18 @@ export class CollectionComponent implements OnInit {
         id: '2',
         title: 'Grand Court Cloudfoam',
         price: '3.500.000 VND',
+<<<<<<< HEAD
         imageUrl: '/assets/images/products/superstar.jpg',
+=======
+        imageUrl: '/assets/images/adidas-grand-court.jpg',
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
         brand: 'ADIDAS',
         colors: ['#FF6B35', '#F7B731', '#E91E63', '#3B82F6'],
         sizes: [40, 41, 42, 43]
       }
     ];
     this.products.set(mockProducts);
+<<<<<<< HEAD
     this.currentSlide.set(0);
   }
 
@@ -230,3 +260,22 @@ export class CollectionComponent implements OnInit {
     this.router.navigate(['/products', productId]);
   }
 }
+=======
+  }
+  
+  previousSlide(): void {
+    const current = this.currentSlide();
+    this.currentSlide.set(current > 0 ? current - 1 : 0);
+  }
+  
+  nextSlide(): void {
+    const current = this.currentSlide();
+    const maxSlides = Math.ceil(this.products().length / 2) - 1;
+    this.currentSlide.set(current < maxSlides ? current + 1 : maxSlides);
+  }
+  
+  goToSlide(index: number): void {
+    this.currentSlide.set(index);
+  }
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

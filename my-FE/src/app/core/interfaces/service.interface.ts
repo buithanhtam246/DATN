@@ -53,4 +53,8 @@ export interface INavigationOperations {
 export interface IProductOperations {
   getFeaturedProduct(): any;
   getProductsByCategory(category: string): any[];
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

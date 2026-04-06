@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { HomeComponent } from './pages/home/home.component';
+<<<<<<< HEAD
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
@@ -16,6 +17,8 @@ import { ProductsListComponent } from './pages/products-list/products-list.compo
 import { ProductDetailComponent } from './products-detail/product-detail.component';
 import { adminRoutes } from './admin/admin.routes';
 
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
 /**
  * Application Routes
@@ -24,7 +27,10 @@ import { adminRoutes } from './admin/admin.routes';
  * - Main Layout (Header + Footer wrapper)
  *   - Home page (default route)
  *   - Other pages can be added here
+<<<<<<< HEAD
  * - Admin routes (under /admin path)
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
  */
 export const routes: Routes = [
   {
@@ -36,6 +42,7 @@ export const routes: Routes = [
         component: HomeComponent,
         title: 'Home - GoodShoes'
       },
+<<<<<<< HEAD
           { path: 'login',component: LoginComponent },
           { path: 'register',component: RegisterComponent },
           {path: 'forgot-password',component: ForgotPasswordComponent},
@@ -57,16 +64,22 @@ export const routes: Routes = [
             component: ProductDetailComponent,
             title: 'Chi tiết sản phẩm - GoodShoes'
           },
+=======
+      // Add more routes here
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
       // {
       //   path: 'products',
       //   loadComponent: () => import('./pages/products/products.component').then(m => m.ProductsComponent),
       //   title: 'Products - GoodShoes'
       // }
     ]
+<<<<<<< HEAD
 
   },
   {
     path: 'admin',
     children: adminRoutes
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 ];

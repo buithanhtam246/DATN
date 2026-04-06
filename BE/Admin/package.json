@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+<<<<<<< HEAD
     "start": "node server.js",
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     "dev": "nodemon server.js"
   },
   "keywords": [],

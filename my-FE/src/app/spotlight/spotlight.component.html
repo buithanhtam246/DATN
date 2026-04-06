@@ -8,14 +8,27 @@
     </div>
 
     <div class="categories-grid">
+<<<<<<< HEAD
       @for (product of products; track product.id) {
         <div class="category-item" (click)="selectCategory(product.id)">
           <div class="category-image">
             <img [src]="product.imageUrl" [alt]="product.name" />
           </div>
           <h3 class="category-name">{{ product.name }}</h3>
+=======
+      @for (category of categories; track category.id) {
+        <div class="category-item" (click)="selectCategory(category.id)">
+          <div class="category-image">
+            <img [src]="category.imageUrl" [alt]="category.name" />
+          </div>
+          <h3 class="category-name">{{ category.name }}</h3>
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
         </div>
       }
     </div>
   </div>
+<<<<<<< HEAD
 </section>
+=======
+</section>
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

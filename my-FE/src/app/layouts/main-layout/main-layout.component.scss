@@ -2,6 +2,7 @@
 @use '../../../styles/mixins' as *;
 
 .main-layout {
+<<<<<<< HEAD
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -15,3 +16,14 @@
     padding-top: 76px; // Smaller header on mobile
   }
 }
+=======
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  width: 100%;
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

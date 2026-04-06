@@ -36,26 +36,46 @@ export class NewsSectionComponent implements OnInit {
         id: '1',
         title: 'Nike Launches New Global Football-Inspired Workouts on...',
         date: '20/01/2026',
+<<<<<<< HEAD
         imageUrl: '/assets/images/news/Nike Pegasus 42 Hero.jpg'
+=======
+        imageUrl: '/assets/images/news/nike-workout-1.jpg'
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
       },
       {
         id: '2',
         title: 'Nike Launches New Global Football-Inspired Workouts on...',
         date: '20/01/2026',
+<<<<<<< HEAD
         imageUrl: '/assets/images/news/alexia-putellas-player-edition-nike-phantom-6-hero.jpg'
+=======
+        imageUrl: '/assets/images/news/nike-workout-2.jpg'
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
       },
       {
         id: '3',
         title: 'Nike Launches New Global Football-Inspired Workouts on...',
         date: '20/01/2026',
+<<<<<<< HEAD
         imageUrl: '/assets/images/news/Nike Freak 8 Official Image.jpg'
+=======
+        imageUrl: '/assets/images/news/nike-workout-3.jpg'
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
       },
       {
         id: '4',
         title: 'Nike Launches New Global Football-Inspired Workouts on...',
         date: '20/01/2026',
+<<<<<<< HEAD
         imageUrl: '/assets/images/news/Heir Series 2 Napheesa Collier.jpg'
       }
     ];
   }
 }
+=======
+        imageUrl: '/assets/images/news/nike-workout-4.jpg'
+      }
+    ];
+  }
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

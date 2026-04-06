@@ -81,7 +81,11 @@
   position: relative;
   z-index: 2;
   height: 100%;
+<<<<<<< HEAD
   padding: 36px 24px 32px;
+=======
+  padding: $spacing-xl;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -93,6 +97,7 @@
 }
 
 .collection-header {
+<<<<<<< HEAD
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -106,10 +111,33 @@
     letter-spacing: 1px;
     margin: 0;
     line-height: 1.2;
+=======
+  .collection-subtitle {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    letter-spacing: 2px;
+    margin: 0;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     text-transform: uppercase;
   }
 }
 
+<<<<<<< HEAD
+=======
+.collection-title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  letter-spacing: 1px;
+  margin: 0 0 $spacing-md 0;
+  line-height: 1.2;
+  text-transform: uppercase;
+
+  @include mobile {
+    font-size: $font-size-xl;
+  }
+}
+
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 .collection-tag {
   font-size: $font-size-md;
   font-weight: $font-weight-medium;
@@ -119,10 +147,17 @@
 }
 
 .collection-description {
+<<<<<<< HEAD
   font-size: 1.02rem;
   line-height: 1.45;
   margin: 12px 0 18px;
   max-width: 84%;
+=======
+  font-size: $font-size-md;
+  line-height: 1.6;
+  margin: $spacing-md 0;
+  max-width: 90%;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   opacity: 0.95;
 
   &.cursive {
@@ -133,24 +168,41 @@
   }
 
   @include mobile {
+<<<<<<< HEAD
     font-size: 0.92rem;
+=======
+    font-size: $font-size-sm;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     max-width: 100%;
   }
 }
 
 .view-more-btn {
+<<<<<<< HEAD
   padding: 14px 32px;
+=======
+  padding: $spacing-md $spacing-xl;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   background-color: transparent;
   border: 2px solid $color-white;
   border-radius: 30px;
   color: $color-white;
+<<<<<<< HEAD
   font-size: 0.95rem;
   font-weight: 700;
+=======
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   cursor: pointer;
   transition: all 0.3s ease;
   align-self: flex-start;
   text-transform: uppercase;
+<<<<<<< HEAD
   letter-spacing: 0.5px;
+=======
+  letter-spacing: 1px;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
   &:hover {
     background-color: $color-white;
@@ -158,8 +210,13 @@
   }
 
   @include mobile {
+<<<<<<< HEAD
     padding: 12px 26px;
     font-size: 0.9rem;
+=======
+    padding: $spacing-sm $spacing-lg;
+    font-size: $font-size-xs;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 }
 
@@ -182,6 +239,19 @@
       rgba(250, 227, 217, 0.5) 100%
     );
   }
+<<<<<<< HEAD
+=======
+
+  .collection-title {
+    font-size: 4rem;
+    font-weight: $font-weight-bold;
+    letter-spacing: 4px;
+
+    @include mobile {
+      font-size: 2.5rem;
+    }
+  }
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 }
 
 .card-football {
@@ -192,4 +262,8 @@
       rgba(0, 0, 0, 0.6) 100%
     );
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

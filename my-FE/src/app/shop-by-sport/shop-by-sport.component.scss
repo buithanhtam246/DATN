@@ -3,6 +3,7 @@
 
 .shop-by-sport {
   width: 100%;
+<<<<<<< HEAD
   padding: 18px 0 44px;
   background-color: #f3f4f6;
   color: #111827;
@@ -15,6 +16,20 @@
 
   @include mobile {
     padding: 0 16px;
+=======
+  padding: $spacing-xxl 0;
+  background-color: #1a1a1a;
+  color: $color-white;
+}
+
+.section-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 $spacing-xl;
+
+  @include mobile {
+    padding: 0 $spacing-lg;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 }
 
@@ -22,14 +37,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+<<<<<<< HEAD
   margin-bottom: 18px;
 
   @include mobile {
     margin-bottom: 14px;
+=======
+  margin-bottom: $spacing-xl;
+
+  @include mobile {
+    margin-bottom: $spacing-lg;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 }
 
 .section-title {
+<<<<<<< HEAD
   font-size: clamp(2rem, 3.1vw, 3rem);
   font-weight: 500;
   color: #111827;
@@ -39,11 +62,22 @@
 
   @include mobile {
     font-size: 2rem;
+=======
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-white;
+  margin: 0;
+  letter-spacing: 2px;
+
+  @include mobile {
+    font-size: $font-size-xl;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 }
 
 .navigation-buttons {
   display: flex;
+<<<<<<< HEAD
   gap: 12px;
 }
 
@@ -54,6 +88,18 @@
   background-color: #e6e8ec;
   border: none;
   color: #5b616b;
+=======
+  gap: $spacing-md;
+}
+
+.nav-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: $color-white;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -61,11 +107,20 @@
   transition: all $transition-normal;
 
   &:hover:not(:disabled) {
+<<<<<<< HEAD
     background-color: #dde1e7;
   }
 
   &:disabled {
     opacity: 0.45;
+=======
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     cursor: not-allowed;
   }
 
@@ -75,8 +130,13 @@
   }
 
   @include mobile {
+<<<<<<< HEAD
     width: 44px;
     height: 44px;
+=======
+    width: 40px;
+    height: 40px;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
     svg {
       width: 20px;
@@ -88,6 +148,7 @@
 .sports-carousel {
   overflow: hidden;
   width: 100%;
+<<<<<<< HEAD
   cursor: grab;
   user-select: none;
   touch-action: pan-y;
@@ -95,20 +156,33 @@
   &:active {
     cursor: grabbing;
   }
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 }
 
 .sports-track {
   display: flex;
   transition: transform 0.5s ease;
+<<<<<<< HEAD
   gap: 14px;
 
   @include mobile {
     gap: 10px;
+=======
+  gap: $spacing-lg;
+
+  @include mobile {
+    gap: $spacing-md;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 }
 
 .sport-card {
+<<<<<<< HEAD
   flex: 0 0 calc((100% - 28px) / 3);
+=======
+  flex: 0 0 calc(33.333% - #{$spacing-lg});
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   cursor: pointer;
   position: relative;
   transition: all $transition-normal;
@@ -122,11 +196,19 @@
   }
 
   @include desktop {
+<<<<<<< HEAD
     flex: 0 0 calc((100% - 28px) / 3);
   }
 
   @include tablet {
     flex: 0 0 calc(50% - 7px);
+=======
+    flex: 0 0 calc(33.333% - #{$spacing-lg});
+  }
+
+  @include tablet {
+    flex: 0 0 calc(50% - #{$spacing-md});
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 
   @include mobile {
@@ -136,10 +218,17 @@
 
 .sport-image {
   width: 100%;
+<<<<<<< HEAD
   height: 536px;
   border-radius: 0;
   overflow: hidden;
   background-color: #f3f4f6;
+=======
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.05);
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
   img {
     width: 100%;
@@ -149,15 +238,24 @@
   }
 
   @include tablet {
+<<<<<<< HEAD
     height: 420px;
   }
 
   @include mobile {
     height: 320px;
+=======
+    height: 350px;
+  }
+
+  @include mobile {
+    height: 300px;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 }
 
 .sport-name {
+<<<<<<< HEAD
   font-size: clamp(1.75rem, 2.5vw, 2.25rem);
   font-weight: 500;
   color: #111827;
@@ -169,3 +267,16 @@
     margin-top: 12px;
   }
 }
+=======
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-white;
+  margin: $spacing-lg 0 0;
+  text-align: left;
+
+  @include mobile {
+    font-size: $font-size-lg;
+    margin-top: $spacing-md;
+  }
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

@@ -1,8 +1,13 @@
 import { Injectable, signal, computed } from '@angular/core';
+<<<<<<< HEAD
 import { HttpClient } from '@angular/common/http';
 import { Product } from '../models';
 import { ICartOperations, IStatefulService } from '../interfaces/service.interface';
 import { Observable } from 'rxjs';
+=======
+import { Product } from '../models';
+import { ICartOperations, IStatefulService } from '../interfaces/service.interface';
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
 /**
  * Interface cho cart item
@@ -11,7 +16,10 @@ export interface CartItem {
   product: Product;
   quantity: number;
   selectedColor?: string;
+<<<<<<< HEAD
   selectedSize?: number | string;
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 }
 
 /**
@@ -23,7 +31,11 @@ export interface CartItem {
   providedIn: 'root'
 })
 export class CartService implements ICartOperations, IStatefulService<CartItem[]> {
+<<<<<<< HEAD
   private apiUrl = 'http://localhost:3000/api';
+=======
+  // Sử dụng signal cho reactive state management
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   private cartItems = signal<CartItem[]>([]);
   
   // Computed values
@@ -32,8 +44,11 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
     this.cartItems().reduce((total, item) => total + item.quantity, 0)
   );
 
+<<<<<<< HEAD
   constructor(private http: HttpClient) {}
 
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   /**
    * Thêm sản phẩm vào giỏ hàng
    * Implementation of ICartOperations
@@ -139,6 +154,7 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
   }
 
   /**
+<<<<<<< HEAD
    * Thêm item vào giỏ hàng (dùng cho cart item objects phức tạp)
    */
   addItem(cartItem: any): void {
@@ -162,6 +178,8 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
   }
 
   /**
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
    * Lấy tổng giá trị giỏ hàng
    */
   getTotalPrice(): number {
@@ -170,6 +188,7 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
       return total + (price * item.quantity);
     }, 0);
   }
+<<<<<<< HEAD
 
   /**
    * Thêm sản phẩm vào giỏ hàng qua API (Backend)
@@ -182,4 +201,6 @@ export class CartService implements ICartOperations, IStatefulService<CartItem[]
       quantity: quantity
     });
   }
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 }

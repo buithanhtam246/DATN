@@ -12,4 +12,8 @@ export const BANNER_CONTENT = {
   year: '2026',
   title: 'SỨC MẠNH ĐỘT PHÁ',
   description: 'Chúng tôi đã dồn hết tâm huyết để tạo ra những đôi giày hoàn hảo dành cho những người đam mê thể thao.'
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

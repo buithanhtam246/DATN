@@ -1,10 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
+<<<<<<< HEAD
 import { HttpClient } from '@angular/common/http';
 import { Product } from '../models';
 import { FEATURED_PRODUCT } from '../constants';
 import { IProductOperations } from '../interfaces/service.interface';
 import { environment } from '../../../environments/environment';
+=======
+import { Product } from '../models';
+import { FEATURED_PRODUCT } from '../constants';
+import { IProductOperations } from '../interfaces/service.interface';
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
 /**
  * Service quản lý products
@@ -15,10 +21,13 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class ProductService implements IProductOperations {
+<<<<<<< HEAD
   private apiUrl = environment.apiUrl.replace('/api', '') + '/api/products';
   private baseUrl = environment.apiUrl.replace('/api', '');
   
   constructor(private http: HttpClient) {}
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   
   /**
    * Lấy featured product
@@ -48,13 +57,19 @@ export class ProductService implements IProductOperations {
    * Lấy danh sách products
    * TODO: Kết nối với API thực tế
    */
+<<<<<<< HEAD
   getProducts(params?: any): Observable<any> {
     return this.http.get(`http://localhost:3000/api/admin/all-products`, { params });
+=======
+  getProducts(): Observable<Product[]> {
+    return of([FEATURED_PRODUCT]);
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 
   /**
    * Lấy product theo ID
    */
+<<<<<<< HEAD
   getProductById(id: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/${id}`);
   }
@@ -76,6 +91,11 @@ export class ProductService implements IProductOperations {
     }
 
     return this.http.get<any[]>(`${this.apiUrl}?${queryParams.toString()}`);
+=======
+  getProductById(id: string): Observable<Product | undefined> {
+    // TODO: Implement khi có API
+    return of(FEATURED_PRODUCT);
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 
   /**
@@ -84,6 +104,7 @@ export class ProductService implements IProductOperations {
   formatPrice(price: string): string {
     return price;
   }
+<<<<<<< HEAD
 
   // ========== SIZE GUIDE METHODS ==========
   /**
@@ -199,4 +220,6 @@ export class ProductService implements IProductOperations {
   getRecentOrders(limit: number = 10): Observable<any> {
     return this.http.get(`${this.apiUrl}/dashboard/recent-orders?limit=${limit}`);
   }
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 }

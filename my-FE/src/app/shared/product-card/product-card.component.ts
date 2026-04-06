@@ -37,4 +37,8 @@ export class ProductCardComponent {
   onAddToWishlist(): void {
     this.addToWishlist.emit();
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

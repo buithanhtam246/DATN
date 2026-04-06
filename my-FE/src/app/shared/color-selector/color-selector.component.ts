@@ -29,4 +29,8 @@ export class ColorSelectorComponent {
   isSelected(color: string): boolean {
     return this.selectedColor === color;
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

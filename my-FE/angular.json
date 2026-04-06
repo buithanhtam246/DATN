@@ -56,9 +56,12 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+<<<<<<< HEAD
           "options": {
             "port": 4200
           },
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
           "configurations": {
             "production": {
               "buildTarget": "my-FE:build:production"
@@ -90,8 +93,11 @@
         }
       }
     }
+<<<<<<< HEAD
   },
   "cli": {
     "analytics": "adab5546-a10f-4b86-ad1c-e5983288203e"
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
 }

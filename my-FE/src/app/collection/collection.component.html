@@ -5,6 +5,10 @@
       <div class="collection-header">
         <div class="badges">
           <span class="badge">NEW COLLECTION</span>
+<<<<<<< HEAD
+=======
+          <span class="badge badge-light">BESTSELLER</span>
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
         </div>
         
         <h2 class="collection-title">
@@ -26,6 +30,7 @@
           <span class="arrow">↗</span>
           COLLECTION
         </button>
+<<<<<<< HEAD
 
         <div class="slider-navigation">
           <button class="nav-btn nav-prev" (click)="previousSlide()" aria-label="Previous">
@@ -52,11 +57,42 @@
             </button>
           }
         </div>
+=======
+      </div>
+      
+      <!-- Navigation -->
+      <div class="slider-navigation">
+        <button class="nav-btn nav-prev" (click)="previousSlide()" aria-label="Previous">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        
+        <button class="nav-btn nav-next" (click)="nextSlide()" aria-label="Next">
+          NEXT
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Dots Indicator -->
+      <div class="dots-indicator">
+        @for (item of [0, 1, 2]; track item) {
+          <button 
+            class="dot" 
+            [class.active]="currentSlide() === item"
+            (click)="goToSlide(item)"
+            [attr.aria-label]="'Go to slide ' + (item + 1)">
+          </button>
+        }
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
       </div>
     </div>
     
     <!-- Right Product Grid -->
     <div class="collection-right">
+<<<<<<< HEAD
       <div
         #productTrack
         class="product-track"
@@ -64,6 +100,9 @@
         (pointerdown)="onTrackPointerDown($event)"
         (pointermove)="onTrackPointerMove($event)"
         (pointerleave)="stopDragging()">
+=======
+      <div class="product-grid" [style.transform]="'translateX(-' + (currentSlide() * 100) + '%)'">
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
         @for (product of products(); track product.id) {
           <div class="product-item">
             <div class="product-header">
@@ -71,6 +110,7 @@
               <span class="product-price">{{ product.price }}</span>
             </div>
             
+<<<<<<< HEAD
             <h3 class="product-name" (click)="viewProductDetail(product.id || '')">{{ product.title }}</h3>
             
             <div class="product-image-container" (click)="viewProductDetail(product.id || '')">
@@ -79,15 +119,38 @@
 
             <div class="product-sizes">
               <span class="size-label">Size:</span>
+=======
+            <h3 class="product-name">{{ product.title }}</h3>
+            
+            <div class="product-image-container">
+              <img [src]="product.imageUrl" [alt]="product.title" class="product-image">
+            </div>
+            
+            <div class="product-colors">
+              @for (color of product.colors; track color) {
+                <span class="color-dot" [style.background-color]="color"></span>
+              }
+            </div>
+            
+            <div class="product-sizes">
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
               @for (size of product.sizes; track size) {
                 <button class="size-btn">{{ size }}</button>
               }
             </div>
             
+<<<<<<< HEAD
             <button class="add-to-cart-btn" (click)="viewProductDetail(product.id || '')">Xem chi tiết</button>
+=======
+            <button class="add-to-cart-btn">Thêm vào Giỏ</button>
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
           </div>
         }
       </div>
     </div>
   </div>
+<<<<<<< HEAD
 </section>
+=======
+</section>
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

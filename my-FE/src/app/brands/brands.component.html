@@ -1,9 +1,18 @@
 <section class="brands">
   <div class="brands-container">
+<<<<<<< HEAD
     @for (brand of brands; track brand.id || brand.name) {
       <a [routerLink]="['/products']" [queryParams]="{ brand: brand.filterValue }" class="brand-item" [attr.aria-label]="brand.name">
+=======
+    @for (brand of brands; track brand.name) {
+      <a [href]="brand.url" class="brand-item" [attr.aria-label]="brand.name">
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
         <h2 class="brand-name">{{ brand.name }}</h2>
       </a>
     }
   </div>
+<<<<<<< HEAD
 </section>
+=======
+</section>
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

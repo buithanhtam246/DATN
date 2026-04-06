@@ -13,9 +13,15 @@
   margin: 0 auto;
   padding: 0 $spacing-xl;
   display: grid;
+<<<<<<< HEAD
   grid-template-columns: minmax(360px, 0.92fr) minmax(0, 1.08fr);
   gap: $spacing-xxl;
   align-items: start;
+=======
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-xxl;
+  align-items: center;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
   @include tablet {
     grid-template-columns: 1fr;
@@ -27,16 +33,24 @@
 .collection-left {
   display: flex;
   flex-direction: column;
+<<<<<<< HEAD
   justify-content: space-between;
   gap: $spacing-lg;
   min-height: 680px;
+=======
+  gap: $spacing-xl;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 }
 
 .collection-header {
   .badges {
     display: flex;
     gap: $spacing-md;
+<<<<<<< HEAD
     margin-bottom: $spacing-md;
+=======
+    margin-bottom: $spacing-lg;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     
     .badge {
       padding: $spacing-xs $spacing-md;
@@ -55,9 +69,15 @@
   }
   
   .collection-title {
+<<<<<<< HEAD
     font-size: 3.35rem;
     font-weight: $font-weight-bold;
     line-height: 0.98;
+=======
+    font-size: 3.5rem;
+    font-weight: $font-weight-bold;
+    line-height: 1.1;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     margin-bottom: $spacing-lg;
     color: $color-primary;
     
@@ -77,16 +97,27 @@
   
   .collection-description {
     font-size: $font-size-md;
+<<<<<<< HEAD
     line-height: 1.7;
     color: $color-text-light;
     margin-bottom: $spacing-lg;
     max-width: 430px;
+=======
+    line-height: 1.8;
+    color: $color-text-light;
+    margin-bottom: $spacing-xl;
+    max-width: 500px;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
   
   .collection-images {
     display: flex;
     gap: $spacing-md;
+<<<<<<< HEAD
     margin-bottom: $spacing-lg;
+=======
+    margin-bottom: $spacing-xl;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     
     .preview-img {
       width: 140px;
@@ -117,6 +148,7 @@
       font-size: $font-size-lg;
     }
   }
+<<<<<<< HEAD
 
   .slider-navigation {
     display: flex;
@@ -167,6 +199,56 @@
       &.active {
         background-color: $color-primary;
       }
+=======
+}
+
+/* Slider Navigation */
+.slider-navigation {
+  display: flex;
+  gap: $spacing-md;
+  align-items: center;
+  
+  .nav-btn {
+    @include button-base {
+      background-color: $color-primary;
+      color: $color-white;
+    }
+    padding: $spacing-md $spacing-lg;
+    border: 2px solid $color-primary;
+    border-radius: $border-radius-lg;
+    background-color: transparent;
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-xs;
+    
+    &.nav-prev {
+      @include circle-button(50px);
+      padding: 0;
+    }
+    
+    &.nav-next {
+      padding: $spacing-md $spacing-xl;
+    }
+  }
+}
+
+/* Dots Indicator */
+.dots-indicator {
+  display: flex;
+  gap: $spacing-sm;
+  
+  .dot {
+    @include button-base;
+    width: 40px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.2);
+    
+    &.active {
+      background-color: $color-primary;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     }
   }
 }
@@ -175,13 +257,18 @@
 .collection-right {
   overflow: hidden;
   position: relative;
+<<<<<<< HEAD
   height: 700px;
+=======
+  height: 600px;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
   @include tablet {
     height: auto;
   }
 }
 
+<<<<<<< HEAD
 .product-track {
   display: flex;
   flex-direction: row;
@@ -224,6 +311,28 @@
     transform: translateY(-6px);
     @include card-shadow(2);
   }
+=======
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-xl;
+  transition: transform 0.5s ease;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.product-item {
+  background-color: rgba(255, 255, 255, 0.95);
+  @include backdrop-blur(0.95);
+  padding: $spacing-xl;
+  border-radius: $border-radius-md;
+  @include card-shadow(2);
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   
   .product-header {
     display: flex;
@@ -244,6 +353,7 @@
   }
   
   .product-name {
+<<<<<<< HEAD
     font-size: 1.15rem;
     font-weight: $font-weight-bold;
     color: $color-primary;
@@ -255,10 +365,17 @@
     &:hover {
       color: #111827;
     }
+=======
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    margin: 0;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
   }
   
   .product-image-container {
     width: 100%;
+<<<<<<< HEAD
     height: 240px;
     display: flex;
     align-items: center;
@@ -269,23 +386,48 @@
     cursor: pointer;
     border-radius: 18px;
     background: linear-gradient(140deg, #f8fafc 0%, #eef2f7 100%);
+=======
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: $spacing-md 0;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     
     .product-image {
       width: 100%;
       height: 100%;
       object-fit: contain;
+<<<<<<< HEAD
       transform: rotate(-6deg) scale(1.05);
       transition: transform 0.3s ease;
     }
 
     &:hover .product-image {
       transform: rotate(-6deg) scale(1.12);
+=======
+    }
+  }
+  
+  .product-colors {
+    display: flex;
+    gap: $spacing-xs;
+    
+    .color-dot {
+      @include circle-button(24px);
+      border: 2px solid transparent;
+      
+      &:hover {
+        border-color: $color-primary;
+      }
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     }
   }
   
   .product-sizes {
     display: flex;
     gap: $spacing-xs;
+<<<<<<< HEAD
     flex-wrap: wrap;
     align-items: center;
 
@@ -302,6 +444,15 @@
       height: 34px;
       padding: 0 10px;
       border-radius: 999px;
+=======
+    
+    .size-btn {
+      @include button-base {
+        background-color: $color-primary;
+        color: $color-white;
+      }
+      @include circle-button(40px);
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
       background-color: $color-white;
       border: 2px solid #e0e0e0;
       color: $color-text;
@@ -320,12 +471,17 @@
     color: $color-white;
     padding: $spacing-md;
     border-radius: $border-radius-lg;
+<<<<<<< HEAD
     font-size: $font-size-sm;
+=======
+    font-size: $font-size-md;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
     font-weight: $font-weight-semibold;
     width: 100%;
     margin-top: auto;
   }
 }
+<<<<<<< HEAD
 
 @include mobile {
   .collection-container {
@@ -346,3 +502,5 @@
     min-height: 500px;
   }
 }
+=======
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

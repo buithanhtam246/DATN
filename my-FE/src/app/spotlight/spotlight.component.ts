@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -10,14 +11,29 @@ interface SpotlightProduct {
   name: string;
   imageUrl: string;
   raw: any;
+=======
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+interface Category {
+  id: string;
+  name: string;
+  imageUrl: string;
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 }
 
 /**
  * Spotlight Component
  * 
+<<<<<<< HEAD
  * Responsibility: Display spotlight products
  * - Show products in spotlight grid layout
  * - Select products by ratio: 60% Bestseller, 20% New Arrival, 20% Strategic
+=======
+ * Responsibility: Display featured product categories
+ * - Show product categories in grid layout
+ * - Navigate to category pages
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
  */
 @Component({
   selector: 'app-spotlight',
@@ -27,6 +43,7 @@ interface SpotlightProduct {
   styleUrl: './spotlight.component.scss'
 })
 export class SpotlightComponent implements OnInit {
+<<<<<<< HEAD
   private readonly productService = inject(ProductService);
   private readonly router = inject(Router);
 
@@ -276,3 +293,101 @@ export class SpotlightComponent implements OnInit {
     this.router.navigate(['/products', productId]);
   }
 }
+=======
+  categories: Category[] = [];
+
+  ngOnInit(): void {
+    this.loadCategories();
+  }
+
+  private loadCategories(): void {
+    this.categories = [
+      {
+        id: 'air-force',
+        name: 'AIR FORCE',
+        imageUrl: '/assets/images/categories/air-force.jpg'
+      },
+      {
+        id: 'jordan',
+        name: 'JORDAN',
+        imageUrl: '/assets/images/categories/jordan.jpg'
+      },
+      {
+        id: 'vomero',
+        name: 'VOMERO',
+        imageUrl: '/assets/images/categories/vomero.jpg'
+      },
+      {
+        id: 'air-max',
+        name: 'AIR MAX',
+        imageUrl: '/assets/images/categories/air-max.jpg'
+      },
+      {
+        id: 'pegasus',
+        name: 'PEGASUS',
+        imageUrl: '/assets/images/categories/pegasus.jpg'
+      },
+      {
+        id: 'dunk',
+        name: 'DUNK',
+        imageUrl: '/assets/images/categories/dunk.jpg'
+      },
+      {
+        id: 'gym',
+        name: 'GYM',
+        imageUrl: '/assets/images/categories/gym.jpg'
+      },
+      {
+        id: 'adidas',
+        name: 'ADIDAS',
+        imageUrl: '/assets/images/categories/adidas.jpg'
+      },
+      {
+        id: 'pegasus-2',
+        name: 'PEGASUS',
+        imageUrl: '/assets/images/categories/pegasus-2.jpg'
+      },
+      {
+        id: 'basketball',
+        name: 'BASKETBALL',
+        imageUrl: '/assets/images/categories/basketball.jpg'
+      },
+      {
+        id: 'football',
+        name: 'FOOTBALL',
+        imageUrl: '/assets/images/categories/football.jpg'
+      },
+      {
+        id: 'cortez',
+        name: 'CORTEZ',
+        imageUrl: '/assets/images/categories/cortez.jpg'
+      },
+      {
+        id: 'kids',
+        name: 'KIDS',
+        imageUrl: '/assets/images/categories/kids.jpg'
+      },
+      {
+        id: 'golf',
+        name: 'GOLF',
+        imageUrl: '/assets/images/categories/golf.jpg'
+      },
+      {
+        id: 'blazer',
+        name: 'BLAZER',
+        imageUrl: '/assets/images/categories/blazer.jpg'
+      },
+      {
+        id: 'skate',
+        name: 'SKATE',
+        imageUrl: '/assets/images/categories/skate.jpg'
+      }
+    ];
+  }
+
+  selectCategory(categoryId: string): void {
+    // TODO: Navigate to category page or filter products
+    console.log('Selected category:', categoryId);
+  }
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

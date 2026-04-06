@@ -1,7 +1,12 @@
+<<<<<<< HEAD
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { BannerService } from '../services/banner.service';
+=======
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
 
 /**
  * Featured Collections Component
@@ -17,6 +22,7 @@ import { BannerService } from '../services/banner.service';
   templateUrl: './featured-collections.component.html',
   styleUrl: './featured-collections.component.scss'
 })
+<<<<<<< HEAD
 export class FeaturedCollectionsComponent implements OnInit {
   private bannerService = inject(BannerService);
   private router = inject(Router);
@@ -76,3 +82,8 @@ export class FeaturedCollectionsComponent implements OnInit {
     });
   }
 }
+=======
+export class FeaturedCollectionsComponent {
+  // Component logic here
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284

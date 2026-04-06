@@ -64,6 +64,7 @@ export class BannerComponent implements OnInit {
   onAddToCart(): void {
     const currentProduct = this.product();
     if (currentProduct) {
+<<<<<<< HEAD
       this.cartService.addItem({
         id: `${currentProduct.id || Date.now()}_${this.selectedColor()}`,
         product: {
@@ -77,6 +78,14 @@ export class BannerComponent implements OnInit {
         quantity: 1,
         price: parseFloat(currentProduct.price.replace(/[^\d]/g, ''))
       });
+=======
+      this.cartService.addProductToCart(
+        currentProduct,
+        1,
+        this.selectedColor()
+      );
+      console.log('Product added to cart:', currentProduct.title);
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
       // TODO: Show notification or feedback to user
     }
   }
@@ -101,4 +110,8 @@ export class BannerComponent implements OnInit {
       behavior: 'smooth'
     });
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> dedb69f02061182b9ae37476fee45e26cf25e284
