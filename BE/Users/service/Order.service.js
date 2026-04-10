@@ -1,20 +1,32 @@
 const orderRepository = require('../repository/Order.repository');
 const voucherService = require('./voucher.service');
 const voucherRepository = require('../repository/voucher.repository');
+const orderEmailService = require('./orderEmail.service');
 const { sequelize } = require('../../config/database');
 
 class OrderService {
   async checkout(userId, orderData) {
     // orderData bao gồm: address_id, delivery_address, payment_method_id, voucher_code, note, delivery, items[], delivery_cost
     const { items, voucher_code, address_id, delivery_address, delivery_cost = 30000, ...orderInfo } = orderData;
+    // Basic validation: items must be a non-empty array
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new Error('Danh sách sản phẩm đặt hàng không được rỗng');
+    }
 
-    return await sequelize.transaction(async (t) => {
+    // Defensive logging for easier debugging
+    try {
+      console.log('[OrderService.checkout] userId=', userId, 'itemsCount=', (items || []).length);
+    } catch (e) {
+      // ignore
+    }
+
+    const createdOrder = await sequelize.transaction(async (t) => {
       const variantIds = (items || [])
         .map(item => Number(item.variant_id))
         .filter(variantId => Number.isFinite(variantId) && variantId > 0);
 
       if (variantIds.length === 0) {
-        throw new Error('Danh sách sản phẩm đặt hàng không hợp lệ');
+        throw new Error('Không tìm thấy variant_id hợp lệ trong danh sách sản phẩm');
       }
 
       const placeholders = variantIds.map(() => '?').join(', ');
@@ -29,6 +41,13 @@ class OrderService {
           transaction: t
         }
       );
+
+      // Ensure all requested variant ids exist
+      const foundIds = variantsInStock.map(v => Number(v.id));
+      const missing = variantIds.filter(id => !foundIds.includes(id));
+      if (missing.length > 0) {
+        throw new Error(`Một hoặc nhiều biến thể không tồn tại: ${missing.join(', ')}`);
+      }
 
       const stockByVariantId = variantsInStock.reduce((acc, variant) => {
         acc[Number(variant.id)] = Number(variant.quantity || 0);
@@ -74,8 +93,7 @@ class OrderService {
           voucher_code,
           subtotal
         );
-
-        console.log('[DEBUG Order] Voucher result:', voucherResult);
+console.log('[DEBUG Order] Voucher result:', voucherResult);
 
         if (!voucherResult.valid) {
           throw new Error(voucherResult.message);
@@ -140,6 +158,34 @@ class OrderService {
         total_price: parseFloat(total_price.toFixed(2))
       };
     });
+
+    // Send confirmation email for non-VNPay flows after order commit.
+    // VNPay orders are confirmed by payment callback and emailed there.
+    try {
+      const paymentMethod = String(orderData.payment_method || '').toLowerCase();
+      const isVnpay = paymentMethod.includes('vnpay');
+      const isMomo = paymentMethod.includes('momo');
+      const skipEmailFlag = Boolean(orderData.skipEmail);
+
+      // Do NOT send confirmation email immediately for third-party online payments
+      // (VNPay, MoMo), or when frontend explicitly asks to skip immediate email
+      // (via orderData.skipEmail). For those methods we'll send confirmation when
+      // the payment provider notifies our backend (in their return/notify handlers).
+if (!isVnpay && !isMomo && !skipEmailFlag) {
+        const emailResult = await orderEmailService.sendOrderConfirmationByOrderId(
+          createdOrder.id,
+          'Don hang cua ban da dat thanh cong'
+        );
+
+        if (!emailResult?.success) {
+          console.warn('Order confirmation email not sent:', emailResult?.reason || 'Unknown reason');
+        }
+      }
+    } catch (emailError) {
+      console.warn('Order confirmation email skipped:', emailError.message);
+    }
+
+    return createdOrder;
   }
 
   // Lấy chi tiết đơn hàng

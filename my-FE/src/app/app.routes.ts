@@ -11,8 +11,11 @@ import { OrdersComponent } from './pages/orders/orders.component';
 import { OrderDetailComponent } from './pages/order-detail/order-detail.component';
 import { CartComponent } from './pages/cart/cart.component';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
+import { CheckoutReturnComponent } from './pages/checkout-return/checkout-return.component';
 import { ProductsListComponent } from './pages/products-list/products-list.component';
 import { ProductDetailComponent } from './products-detail/product-detail.component';
+import { FavoritesComponent } from './pages/favorites/favorites.component';
+import { TtintucwsComponent } from './pages/ttintucws/ttintucws.component';
 import { adminRoutes } from './admin/admin.routes';
 
 
@@ -42,14 +45,18 @@ export const routes: Routes = [
           {  path: 'addresses',  component: AddressesComponent},
           {path: 'change-password',component: ChangePasswordComponent},
           { path: 'orders',component: OrdersComponent},
+          { path: 'favorites', component: FavoritesComponent, title: 'Yêu thích - GoodShoes' },
           { path: 'order-detail/:id', component: OrderDetailComponent },
           { path: 'cart', component: CartComponent },
           { path: 'checkout', component: CheckoutComponent },
+          { path: 'checkout-return', component: CheckoutReturnComponent },
           { 
             path: 'products', 
             component: ProductsListComponent,
             title: 'Sản Phẩm - GoodShoes'
           },
+          { path: 'ttintucws', component: TtintucwsComponent, title: 'Tin tức - GoodShoes' },
+          { path: 'ttintucws/:id', loadComponent: () => import('./pages/ttintucws-detail/ttintucws-detail.component').then(m => m.TtintucwsDetailComponent) },
           {
             path: 'products/:id',
             component: ProductDetailComponent,

@@ -11,4 +11,7 @@ router.get('/stats', dashboardController.getDashboardStats);
 // Lấy đơn hàng gần đây
 router.get('/recent-orders', dashboardController.getRecentOrders);
 
+// Doanh thu theo ngày/tháng/năm
+router.get('/revenue', dashboardController.getRevenueSeries);
+
 module.exports = router;

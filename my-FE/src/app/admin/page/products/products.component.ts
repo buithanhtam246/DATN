@@ -51,6 +51,7 @@ export class ProductsComponent implements OnInit {
   colors: any[] = [];
   sizes: any[] = [];
   modalSizes: any[] = [];  // Sizes riêng cho modal
+  // (debug removed)
   
   searchQuery: string = '';
   selectedCategoryFilter: string = '';
@@ -80,6 +81,14 @@ export class ProductsComponent implements OnInit {
 
   ngOnInit(): void { 
     this.loadData(); 
+  }
+
+  onTabChange(tab: string) {
+    // When moving to variants tab, ensure numeric fields are normalized
+    if (tab === 'variants' && Array.isArray(this.newProduct?.variants)) {
+      this.newProduct.variants.forEach((_, idx) => this.onVariantNumericBlur(idx));
+    }
+    this.activeTab = tab;
   }
 
   private getEmptyProduct(): Product {
@@ -154,12 +163,18 @@ export class ProductsComponent implements OnInit {
     if (id) {
       this.isLoadingSubCategories = true;
       
-      // Get parent category to find its gender/size guide
+      // Get parent category to determine gender (backend returns no 'gender' field)
       const parentCat = this.parentCategories.find(c => c.id === id);
-      const gender = parentCat?.gender;
-      
+      // Derive gender from parent category name (e.g., 'Nam' -> male, 'Nữ' -> female)
+      let gender: string | undefined = undefined;
+      if (parentCat && parentCat.name) {
+        const n = String(parentCat.name).toLowerCase();
+        if (n.includes('nam')) gender = 'male';
+        else if (n.includes('nữ') || n.includes('nu')) gender = 'female';
+      }
+
       console.log('Parent category:', parentCat);
-      console.log('Gender:', gender);
+      console.log('Derived gender:', gender);
       
       // Load sub categories
       this.productService.getSubCategories(id).subscribe({
@@ -170,24 +185,35 @@ export class ProductsComponent implements OnInit {
         error: () => this.isLoadingSubCategories = false
       });
       
-      // Load sizes theo category, không phải theo gender
-      this.productService.getSizesByCategory(id).subscribe({
-        next: (res: any) => {
-          console.log('Sizes loaded for category', id, ':', res);
-          if (Array.isArray(res)) {
-            this.modalSizes = res;
-          } else if (res && Array.isArray(res.data)) {
-            this.modalSizes = res.data;
-          } else {
-            this.modalSizes = [];
-          }
-          console.log('Final modalSizes:', this.modalSizes);
-        },
-        error: (err) => {
-          console.error('Error loading sizes:', err);
-          this.modalSizes = [];
+      // Determine sizes to show based on parent category gender
+      if (gender === 'male') {
+        // Male: sizes 38..48
+        const start = 38, end = 48;
+        const arr: any[] = [];
+        for (let v = start; v <= end; v++) {
+          arr.push({ id: v, size: v });
         }
-      });
+        this.modalSizes = arr;
+      } else if (gender === 'female') {
+        // Female: sizes 34..44
+        const start = 34, end = 44;
+        const arr: any[] = [];
+        for (let v = start; v <= end; v++) {
+          arr.push({ id: v, size: v });
+        }
+        this.modalSizes = arr;
+      } else {
+        // Fallback: use global sizes (dedupe by numeric value and sort ascending)
+        const allSizes = Array.isArray(this.sizes) ? this.sizes.slice() : [];
+        const mapped = allSizes.map((s: any) => ({ ...(s || {}), size: Number((s || {}).size) }));
+        const uniqueByValue: Map<number, any> = new Map();
+        mapped.forEach((s: any) => {
+          if (!Number.isFinite(s.size)) return;
+          if (!uniqueByValue.has(s.size)) uniqueByValue.set(s.size, s);
+        });
+        this.modalSizes = Array.from(uniqueByValue.values()).sort((a: any, b: any) => a.size - b.size);
+      }
+      console.log('Final modalSizes (by parent gender):', this.modalSizes);
     }
   }
 
@@ -252,11 +278,38 @@ export class ProductsComponent implements OnInit {
       }));
     }
     
-    const currentCat = this.allCategories.find(c => c.id === product.category_id);
-    if (currentCat && currentCat.parent_id) {
-      this.selectedParentCategory = currentCat.parent_id;
-      this.onParentCategoryChange(currentCat.parent_id);
-      this.newProduct.category_id = product.category_id;
+    // Ensure brand is set on the form
+    this.newProduct.brand_id = product.brand_id ?? null;
+
+    // Robustly determine and pre-select parent and sub category
+    const currentCat = this.allCategories.find((c: any) => c.id == product.category_id);
+    if (currentCat) {
+      // If this category has a parent, select the parent
+      if (currentCat.parent_id) {
+        const parentId = Number(currentCat.parent_id);
+        this.selectedParentCategory = parentId;
+        this.onParentCategoryChange(parentId);
+        this.newProduct.category_id = Number(product.category_id);
+      } else {
+        // Category has no parent (it is a parent). Select it as parent so subcategories load (if any)
+        const parentId = Number(currentCat.id);
+        this.selectedParentCategory = parentId;
+        this.onParentCategoryChange(parentId);
+        // Keep the category_id as-is (product may be assigned to a parent category)
+        this.newProduct.category_id = Number(product.category_id);
+      }
+    } else {
+      // Fallback: if category not found (possible type mismatch), try to coerce and search again
+      const prodCatId = Number(product.category_id);
+      if (Number.isFinite(prodCatId) && prodCatId > 0) {
+        const fallbackCat = this.allCategories.find((c: any) => Number(c.id) === prodCatId);
+        if (fallbackCat) {
+          const parentId = Number(fallbackCat.parent_id || fallbackCat.id);
+          this.selectedParentCategory = parentId;
+          this.onParentCategoryChange(parentId);
+          this.newProduct.category_id = prodCatId;
+        }
+      }
     }
 
     this.selectedFiles = [];
@@ -370,10 +423,11 @@ export class ProductsComponent implements OnInit {
   getAvailableSizesForVariant(variantIndex: number): any[] {
     const variant = this.newProduct?.variants?.[variantIndex];
     if (!variant) return [];
-    if (!Array.isArray(this.modalSizes) || this.modalSizes.length === 0) return [];
+    const modalList = this.getModalSizesForDisplay();
+    if (!Array.isArray(modalList) || modalList.length === 0) return [];
 
     const currentColorId = variant.color_id;
-    if (!currentColorId) return this.modalSizes;
+    if (!currentColorId) return modalList;
 
     const selectedByCurrentVariant = new Set(this.getVariantSelectedSizeIds(variantIndex));
     const usedBySameColorOtherVariants = new Set<number>();
@@ -387,10 +441,17 @@ export class ProductsComponent implements OnInit {
       });
     });
 
-    return this.modalSizes.filter((size: any) => {
+    const filtered = modalList.filter((size: any) => {
       const sizeId = Number(size.id);
       return !usedBySameColorOtherVariants.has(sizeId) || selectedByCurrentVariant.has(sizeId);
     });
+
+    if ((!filtered || filtered.length === 0) && modalList.length > 0) {
+      // Fallback: return full modalList to ensure admin can pick sizes
+      return modalList;
+    }
+
+    return filtered;
   }
 
   private pruneUnavailableSizes(variantIndex: number) {
@@ -414,6 +475,62 @@ export class ProductsComponent implements OnInit {
     variant.color_id = colorId ? Number(colorId) : null;
     this.pruneUnavailableSizes(variantIndex);
   }
+
+  // Normalize numeric fields (price, price_sale, quantity) for a variant
+  onVariantNumericBlur(variantIndex: number) {
+    const variant = this.newProduct?.variants?.[variantIndex];
+    if (!variant) return;
+
+    variant.price = this.coerceToInteger(variant.price);
+    variant.price_sale = this.coerceToInteger(variant.price_sale);
+    variant.quantity = this.coerceToInteger(variant.quantity);
+  }
+
+  private coerceToInteger(value: any): number {
+    if (typeof value === 'number' && Number.isFinite(value)) return Math.round(value);
+    if (value == null) return 0;
+    // Remove any non digit or minus sign characters (thousand separators, currency symbols, spaces)
+    const s = String(value);
+    const cleaned = s.replace(/[^0-9-]/g, '');
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? Math.round(n) : 0;
+  }
+
+  /**
+   * Return sizes to display in modal: prefer `modalSizes` (set by parent category),
+   * otherwise fall back to global `this.sizes` (deduped and sorted).
+   */
+  getModalSizesForDisplay(): any[] {
+    if (Array.isArray(this.modalSizes) && this.modalSizes.length > 0) return this.modalSizes;
+
+    const allSizes = Array.isArray(this.sizes) ? this.sizes.slice() : [];
+    const mapped = allSizes.map((s: any) => {
+      const raw = s || {};
+      const rawValue = raw.size ?? raw.name ?? raw.value ?? raw;
+      const numeric = Number(rawValue);
+      return {
+        ...raw,
+        id: raw.id ?? raw.size ?? rawValue,
+        // keep both numeric sort key and label for display
+        size: Number.isFinite(numeric) ? numeric : rawValue,
+        _sizeLabel: String(rawValue)
+      };
+    });
+    const uniqueByLabel: Map<string, any> = new Map();
+    mapped.forEach((s: any) => {
+      const label = String(s.size);
+      if (!uniqueByLabel.has(label)) uniqueByLabel.set(label, s);
+    });
+    return Array.from(uniqueByLabel.values()).sort((a: any, b: any) => {
+      const na = Number(a.size);
+      const nb = Number(b.size);
+      if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
+      return String(a._sizeLabel).localeCompare(String(b._sizeLabel));
+    });
+  }
+
+  // UI debug payload for template
+  // (debug helper removed)
 
   toggleSizeSelection(variantIndex: number, sizeId: number) {
     const variant = this.newProduct.variants[variantIndex];
@@ -532,10 +649,19 @@ export class ProductsComponent implements OnInit {
     const uniqueValues = Array.from(new Set(values.filter((value) => Number.isFinite(value) && value > 0)));
 
     if (uniqueValues.length === 0) return '-';
-    if (uniqueValues.length === 1) return uniqueValues[0].toLocaleString() + 'đ';
+    if (uniqueValues.length === 1) return uniqueValues[0].toLocaleString('vi-VN') + ' đ';
 
     const sortedValues = uniqueValues.sort((left, right) => left - right);
-    return `${sortedValues[0].toLocaleString()}đ - ${sortedValues[sortedValues.length - 1].toLocaleString()}đ`;
+    return `${sortedValues[0].toLocaleString('vi-VN')} đ - ${sortedValues[sortedValues.length - 1].toLocaleString('vi-VN')} đ`;
+  }
+
+  /**
+   * Format a number as Vietnamese Dong (VND) with thousands separators and trailing 'đ'
+   */
+  formatVnd(value: any): string {
+    const num = Number(value || 0);
+    if (!Number.isFinite(num) || num === 0) return '0 đ';
+    return num.toLocaleString('vi-VN') + ' đ';
   }
 
   getGroupOriginalPrices(group: any): number[] {
@@ -591,7 +717,15 @@ export class ProductsComponent implements OnInit {
     return Array.from(groupMap.values()).map((group) => ({
       ...group,
       sizes: group.sizes.sort((left: any, right: any) => Number(left) - Number(right))
-    }));
+    })).map((group) => {
+      // compute per-variant quantity if all variants in the group share the same stock value
+      const quantities = (group.variants || []).map((v: any) => Number(v.quantity || 0));
+      const allSame = quantities.length > 0 && quantities.every((q: number) => q === quantities[0]);
+      return {
+        ...group,
+        perQuantity: allSame ? quantities[0] : undefined
+      };
+    });
   }
 
   submitProduct() {
@@ -722,9 +856,22 @@ export class ProductsComponent implements OnInit {
 
   // Lấy tên kích cỡ từ size_id
   getSizeName(sizeId: number | null): string {
-    if (!sizeId) return '-';
-    const sizeData = this.sizes.find((s: any) => s.id === sizeId);
-    return sizeData?.size?.toString() || sizeData?.name || sizeId.toString();
+    if (sizeId == null) return '-';
+    // Normalize
+    const sidNum = Number(sizeId);
+    // Try to find by record id OR by size value (some variants store the numeric size as size_id)
+    const sizeData = this.sizes.find((s: any) => {
+      if (!s) return false;
+      // compare numeric ids when possible
+      const sId = s.id != null ? Number(s.id) : NaN;
+      const sSize = s.size != null ? Number(s.size) : NaN;
+      if (Number.isFinite(sId) && Number.isFinite(sidNum) && sId === sidNum) return true;
+      if (Number.isFinite(sSize) && Number.isFinite(sidNum) && sSize === sidNum) return true;
+      // fallback string compare for names/labels
+      if (String(s.id) === String(sizeId) || String(s.size) === String(sizeId) || String(s.name) === String(sizeId)) return true;
+      return false;
+    });
+    return sizeData ? (sizeData.size?.toString() || sizeData.name || String(sizeId)) : String(sizeId);
   }
 
   getVariantImage(variant: any, product: Product | null): string {
@@ -775,19 +922,33 @@ export class ProductsComponent implements OnInit {
   // Lấy các kích cỡ unique từ variants
   getUniqueSizes(product: Product): string[] {
     const sizeSet = new Set<string>();
-    
+
     if (product.variants && Array.isArray(product.variants)) {
       product.variants.forEach((v: any) => {
-        if (v.size_id) {
-          // Tìm size trong danh sách sizes
-          const sizeData = this.sizes.find((s: any) => s.id === v.size_id);
-          if (sizeData) {
-            sizeSet.add(sizeData.size?.toString() || sizeData.name || 'Unknown');
-          }
+        const raw = v.size_id ?? v.selected_sizes?.[0] ?? null;
+        if (raw == null) return;
+        const sidNum = Number(raw);
+
+        // Find matching size record by id or by numeric size value
+        const sizeData = this.sizes.find((s: any) => {
+          if (!s) return false;
+          const sId = s.id != null ? Number(s.id) : NaN;
+          const sSize = s.size != null ? Number(s.size) : NaN;
+          if (Number.isFinite(sId) && Number.isFinite(sidNum) && sId === sidNum) return true;
+          if (Number.isFinite(sSize) && Number.isFinite(sidNum) && sSize === sidNum) return true;
+          if (String(s.id) === String(raw) || String(s.size) === String(raw) || String(s.name) === String(raw)) return true;
+          return false;
+        });
+
+        if (sizeData) {
+          sizeSet.add(sizeData.size?.toString() || sizeData.name || String(raw));
+        } else {
+          // fallback: use raw value as label
+          sizeSet.add(String(raw));
         }
       });
     }
-    
+
     return Array.from(sizeSet);
   }
 

@@ -1,0 +1,35 @@
+<section class="favorites-page">
+  <div class="container">
+    <h1>Yêu Thích</h1>
+
+    <div *ngIf="favorites.length === 0" class="empty">
+      <p>Bạn chưa có sản phẩm yêu thích nào.</p>
+      <a href="/products" class="browse-btn">Xem sản phẩm</a>
+    </div>
+
+    <div *ngIf="favorites.length > 0" class="list">
+      <ul>
+        <li *ngFor="let item of favorites" class="fav-item" [class.removing]="isRemoving(item.id)">
+          <a [href]="'/products/' + item.id" class="fav-card">
+            <div class="img-wrap">
+              <img [src]="item.image || '/assets/images/placeholder.png'" alt="{{ item.name }}" />
+              <button type="button" class="fav-heart" aria-label="Remove from favorites" (click)="onHeartClick($event, item)">❤</button>
+
+              <div class="caption">
+                <div class="name">{{ item.name }}</div>
+                <div class="price">{{ item.price }}₫</div>
+              </div>
+            </div>
+
+            <div class="info">
+              <div class="meta">Men's Shoes</div>
+              <div class="actions">
+                <button type="button" class="add-btn">Add to Bag</button>
+              </div>
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>

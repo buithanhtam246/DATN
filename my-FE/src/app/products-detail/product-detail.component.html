@@ -157,11 +157,12 @@
         >
           Thêm vào Giỏ
         </button>
-        <button class="btn-wishlist">
-          Yêu thích
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <button class="btn-wishlist" (click)="onToggleFavorite()" [attr.aria-pressed]="isFavorited()">
+          <span class="wishlist-text">Yêu thích</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" [attr.fill]="isFavorited() ? 'currentColor' : 'none'" stroke="currentColor">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke-width="2"/>
           </svg>
+          <span class="fav-count">{{ favoriteCount() }}</span>
         </button>
       </div>
 
@@ -182,12 +183,7 @@
         </button>
         <div class="accordion-content" [class.open]="isDescriptionOpen()">
           <div class="content-inner">
-            <p>{{ product()?.description || 'Thoải mái, bền bỉ và vượt thời gian—nó đúng đầu bảng xếp hạng vì một lý do. Mẫu AF-1 này kết hợp chất liệu da cao cấp với các chi tiết kim loại nhỏ nhắn nên về ngoài thanh lịch, cổ điển.' }}</p>
-            <ul>
-              <li>Màu sắc hiển thị: Trắng/Vàng kim loại/Đen</li>
-              <li>Style: IB6543-101</li>
-              <li>Quốc gia/Khu vực xuất xứ: Trung Quốc, Việt Nam</li>
-            </ul>
+            <p>{{ product()?.description || 'Chưa có mô tả cho sản phẩm này.' }}</p>
           </div>
         </div>
       </div>
@@ -310,7 +306,7 @@
   <!-- Related Products Section -->
   <div *ngIf="relatedProducts().length > 0" class="related-products">
     <div class="section-header">
-      <h2>Có thể bạn sẽ thích</h2>
+      <h2>Các sản phẩm liên quan</h2>
       <div class="carousel-controls">
         <button class="carousel-btn prev">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">

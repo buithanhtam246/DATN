@@ -83,6 +83,30 @@ class AuthController {
     }
   }
 
+  async googleLogin(req, res) {
+    try {
+      const idToken = req.body?.id_token || req.body?.idToken;
+      if (!idToken) {
+        return res.status(400).json({
+          success: false,
+          message: 'Thiếu id_token'
+        });
+      }
+
+      const result = await authService.googleLogin(idToken);
+      return res.json({
+        success: true,
+        message: 'Đăng nhập Google thành công',
+        data: result
+      });
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message
+      });
+    }
+  }
+
   async forgotPassword(req, res) {
     try {
       console.log('forgotPassword called with', req.body);
@@ -105,8 +129,7 @@ class AuthController {
       return res.status(400).json({ success: false, message: err.message });
     }
   }
-
-  async resetPassword(req, res) {
+async resetPassword(req, res) {
     try {
       const { token, password, confirmPassword } = req.body;
       if (!token || !password || !confirmPassword) {
@@ -175,7 +198,7 @@ class AuthController {
         to,
         subject: 'Mail thử nghiệm từ hệ thống',
         text: 'Nếu bạn nhận được thư này, cấu hình SMTP đã hoạt động.',
-        html: '<p>Nếu bạn nhận được thư này, cấu hình SMTP đã hoạt động.</p>'
+html: '<p>Nếu bạn nhận được thư này, cấu hình SMTP đã hoạt động.</p>'
       });
       return res.json({ success: true, message: 'Mail đã gửi', info });
     } catch (err) {

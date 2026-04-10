@@ -1,5 +1,6 @@
 import { Component, ElementRef, HostListener, ViewChild, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { ProductService } from '../core/services';
 import { Product } from '../core/models';
 import { Router } from '@angular/router';
@@ -17,7 +18,7 @@ import { catchError } from 'rxjs/operators';
 @Component({
   selector: 'app-collection',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.scss'
 })
@@ -222,11 +223,27 @@ export class CollectionComponent implements OnInit {
     this.stopDragging();
   }
 
-  viewProductDetail(productId: string): void {
+  viewProductDetail(productId?: string): void {
     if (!productId) {
       return;
     }
+    // log for debugging to verify the click handler is called and the id value
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[Collection] viewProductDetail called with id=', productId);
+    } catch (e) {}
 
-    this.router.navigate(['/products', productId]);
+    // Primary navigation
+    this.router.navigate(['/products', productId]).catch(err => {
+      // eslint-disable-next-line no-console
+      console.error('[Collection] router.navigate failed:', err);
+      // Fallback: navigate by URL
+      try {
+        this.router.navigateByUrl(`/products/${productId}`);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('[Collection] navigateByUrl failed:', e);
+      }
+    });
   }
 }

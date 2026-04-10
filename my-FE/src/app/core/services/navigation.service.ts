@@ -41,7 +41,7 @@ export class NavigationService {
         const newMenu = [
           { label: 'Mới & Nổi bật', link: '/new' },
           { label: 'Sản phẩm', link: '/products' },
-          { label: 'Tin tức', link: '/news' }
+          { label: 'Tin tức', link: '/ttintucws' }
         ];
         
         this.menuItemsSignal.set(newMenu);

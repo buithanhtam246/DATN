@@ -1,4 +1,9 @@
- 
+const path = require('path');
+require('dotenv').config({
+  path: path.join(__dirname, '..', '..', '.env'),
+  override: true
+});
+
 const jwt = require('jsonwebtoken');
 
 module.exports = {

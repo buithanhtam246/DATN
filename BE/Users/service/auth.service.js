@@ -4,6 +4,7 @@ const jwtUtil = require('../utils/jwt.util');
 const emailUtil = require('../utils/email.util');
 const addressService = require('./address.service');
 const Cart = require('../model/Cart.model');
+const axios = require('axios');
 
 class AuthService {
   async register(data) {
@@ -255,6 +256,73 @@ class AuthService {
     // Mã hóa mật khẩu mới
     const hashed = await bcryptUtil.hash(newPassword);
     await userRepository.update(userId, { password: hashed });
+  }
+
+  /**
+   * Login or register a user using Google ID token.
+   * Verifies token via Google's tokeninfo endpoint and creates user if needed.
+   */
+  async googleLogin(idToken) {
+    try {
+      // Verify token with Google's tokeninfo endpoint
+      const verifyUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
+      const verifyRes = await axios.get(verifyUrl);
+      const payload = verifyRes.data;
+
+      // payload should include email and email_verified
+      if (!payload || !payload.email) {
+        throw new Error('Không thể xác thực token Google');
+      }
+
+      if (payload.email_verified !== 'true' && payload.email_verified !== true) {
+        // allow but warn — depending on policy you may require verification
+        console.warn('Google email not verified:', payload.email);
+      }
+
+      const email = payload.email;
+      const name = payload.name || payload.email.split('@')[0];
+
+      // Find existing user by email
+      let user = await userRepository.findByEmail(email);
+
+      if (!user) {
+        // create a new user record with no password
+        user = await userRepository.create({ name, email, password: null, role: 'user' });
+      }
+
+      // Check user status
+      if (user.status === 'blocked') {
+        throw new Error('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên');
+      }
+
+      // Create JWT token
+      const token = jwtUtil.generateToken({ id: user.id, email: user.email, role: user.role });
+
+      // Ensure user has a cart
+      let userCart = await Cart.findOne({ where: { user_id: user.id } });
+      if (!userCart) {
+        userCart = await Cart.create({ user_id: user.id, status: 1 });
+      }
+
+      const { password: _, ...userWithoutPassword } = user.toJSON();
+      const defaultAddr = await addressService.getDefault(user.id);
+
+      return {
+        token,
+        user: {
+          id: userWithoutPassword.id,
+          name: userWithoutPassword.name,
+          email: userWithoutPassword.email,
+          phone: userWithoutPassword.phone,
+          role: userWithoutPassword.role,
+          default_address: defaultAddr || null
+        },
+        cart_id: userCart.id
+      };
+    } catch (err) {
+      console.error('AuthService.googleLogin error:', err.message || err);
+      throw new Error(err.response?.data?.error || err.message || 'Google login thất bại');
+    }
   }
 }
 

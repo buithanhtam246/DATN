@@ -109,11 +109,14 @@ class OrderHistoryController {
       // Lấy chi tiết các sản phẩm trong đơn hàng
       const orderDetails = await sequelize.sequelize.query(
         `SELECT od.id, od.order_id, od.quantity, od.price, od.variant_id,
-                v.id as variant_id, v.product_id, v.color_id, v.size_id, v.image as variant_image,
-                p.name as product_name, p.image as product_image
+                v.id as variant_id, v.product_id, v.color_id, v.size_id, v.price as variant_price, v.price_sale as variant_price_sale, v.image as variant_image,
+                p.name as product_name, p.image as product_image,
+                c.name as color_name, s.size as size_name
          FROM order_details od
          LEFT JOIN variant v ON od.variant_id = v.id
          LEFT JOIN products p ON v.product_id = p.id
+         LEFT JOIN color c ON v.color_id = c.id
+         LEFT JOIN size s ON v.size_id = s.id
          WHERE od.order_id = ?`,
         {
           replacements: [orderId],

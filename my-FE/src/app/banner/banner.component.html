@@ -23,17 +23,6 @@
       </svg>
     </button>
 
-    <!-- Product Info Box - Using ProductCard Component -->
-    <div class="banner-product">
-      @if (product(); as currentProduct) {
-        <app-product-card
-          [product]="currentProduct"
-          [selectedColor]="selectedColor()"
-          (colorSelected)="onColorSelected($event)"
-          (addToCart)="onAddToCart()"
-          (addToWishlist)="onAddToWishlist()">
-        </app-product-card>
-      }
-    </div>
+    <!-- Product Info Box removed to avoid product showing over the banner -->
   </div>
 </section>

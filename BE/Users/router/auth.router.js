@@ -13,6 +13,9 @@ router.post('/register-admin', authMiddleware, adminMiddleware, validateRegister
 // Đăng nhập
 router.post('/login', validateLogin, authController.login);
 
+// Login / Register with Google (id_token)
+router.post('/google', authController.googleLogin);
+
 // Đăng nhập admin (endpoint riêng cho admin)
 router.post('/admin-login', validateLogin, authController.adminLogin);
 

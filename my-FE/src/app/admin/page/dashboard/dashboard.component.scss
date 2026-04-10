@@ -102,6 +102,7 @@
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    min-width: 0;
     
     .card-header {
       display: flex;
@@ -144,6 +145,15 @@
     }
     
     .chart-placeholder {
+      max-width: 100%;
+
+      .chart-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.25rem;
+        max-width: 100%;
+      }
+
       .chart-bars {
         display: flex;
         align-items: flex-end;
@@ -157,7 +167,7 @@
           background: linear-gradient(to top, #3498db, #5dade2);
           border-radius: 4px 4px 0 0;
           position: relative;
-          min-height: 20%;
+          min-height: 2px;
           transition: all 0.3s;
           
           &:hover {
@@ -191,6 +201,32 @@
         span {
           font-size: 0.75rem;
           color: #7f8c8d;
+        }
+      }
+
+      &.dense {
+        .chart-bars {
+          justify-content: flex-start;
+          width: max-content;
+          min-width: 100%;
+        }
+
+        .bar {
+          flex: 0 0 56px;
+        }
+
+        .chart-labels {
+          justify-content: flex-start;
+          width: max-content;
+          min-width: 100%;
+          gap: 0.5rem;
+        }
+
+        .chart-labels span {
+          flex: 0 0 56px;
+          text-align: center;
+          font-size: 0.7rem;
+          white-space: nowrap;
         }
       }
     }
@@ -259,6 +295,84 @@
           font-weight: 700;
           color: #27ae60;
         }
+      }
+    }
+
+    .pending-orders-list {
+      .pending-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: block;
+
+        .pending-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.6rem 0;
+          border-bottom: 1px solid #f1f3f5;
+
+          .pending-left {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+
+            .pending-label {
+              font-size: 0.75rem;
+              color: #9aa6b2;
+              font-weight: 600;
+              text-transform: none;
+              margin-bottom: 2px;
+            }
+
+            strong {
+              font-size: 0.95rem;
+              color: #2c3e50;
+              font-weight: 700;
+            }
+
+            .pending-row {
+              display: flex;
+              align-items: baseline;
+              gap: 0.75rem;
+            }
+
+            .pending-value {
+              font-size: 0.95rem;
+              color: #2c3e50;
+              font-weight: 700;
+            }
+
+            .pending-customer {
+              font-size: 0.85rem;
+              color: #7f8c8d;
+              margin-top: 0.1rem;
+            }
+          }
+
+          .pending-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 110px;
+            justify-content: flex-end;
+
+            .pending-total {
+              color: #1976d2;
+              font-weight: 600;
+            }
+          }
+        }
+
+        .pending-item:last-child {
+          border-bottom: none;
+        }
+      }
+
+      .empty-pending {
+        padding: 1rem 0;
+        color: #999;
+        text-align: center;
       }
     }
   }

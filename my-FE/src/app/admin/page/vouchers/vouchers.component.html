@@ -101,13 +101,14 @@
           <div class="form-row">
             <div class="form-group">
               <label>Ngày bắt đầu</label>
-              <input type="date" formControlName="start_date" required>
+              <input type="date" formControlName="start_date" [min]="todayIsoDate" required>
             </div>
             <div class="form-group">
               <label>Ngày hết hạn</label>
               <input 
                 type="date" 
                 formControlName="promotion_date" 
+                [min]="voucherForm.get('start_date')?.value || todayIsoDate"
                 [disabled]="!isStartDateSelected()"
                 required>
               <span *ngIf="!isStartDateSelected()" class="error-text">Phải chọn ngày bắt đầu trước</span>

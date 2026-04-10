@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
+import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ProductService } from '../core/services';
 
@@ -9,6 +9,9 @@ interface SpotlightProduct {
   id: number;
   name: string;
   imageUrl: string;
+  brandKey?: string;
+  categoryKey?: string;
+  createdAtMs?: number;
   raw: any;
 }
 
@@ -17,7 +20,7 @@ interface SpotlightProduct {
  * 
  * Responsibility: Display spotlight products
  * - Show products in spotlight grid layout
- * - Select products by ratio: 60% Bestseller, 20% New Arrival, 20% Strategic
+ * - Show newest products and diversify by brand/category
  */
 @Component({
   selector: 'app-spotlight',
@@ -33,139 +36,57 @@ export class SpotlightComponent implements OnInit {
   products: SpotlightProduct[] = [];
 
   private readonly totalItems = 16;
-  private readonly strategicBrands = new Set(['NIKE', 'ADIDAS', 'JORDAN']);
 
   ngOnInit(): void {
     this.loadSpotlightProducts();
   }
 
   private loadSpotlightProducts(): void {
-    forkJoin({
-      allProducts: this.productService.getProducts().pipe(catchError(() => of([]))),
-      topSelling: this.productService.getTopSellingProducts(50).pipe(catchError(() => of([])))
-    }).subscribe({
-      next: ({ allProducts, topSelling }) => {
-        const allRaw = this.extractArray(allProducts);
-        const topRaw = this.extractArray(topSelling);
+    this.productService
+      .getProducts()
+      .pipe(catchError(() => of([])))
+      .subscribe({
+        next: (allProducts) => {
+          const allRaw = this.extractArray(allProducts);
+          if (!allRaw.length) {
+            this.products = [];
+            return;
+          }
 
-        if (!allRaw.length) {
+          const normalizedAll = this.normalizeProducts(allRaw);
+          this.products = this.selectNewestDiversified(normalizedAll, this.totalItems);
+        },
+        error: () => {
           this.products = [];
-          return;
         }
-
-        const normalizedAll = this.normalizeProducts(allRaw);
-        const normalizedTop = this.normalizeProducts(topRaw.length ? topRaw : normalizedAll.map((item) => item.raw));
-
-        this.products = this.selectByMix(normalizedAll, normalizedTop, this.totalItems);
-      },
-      error: () => {
-        this.products = [];
-      }
-    });
+      });
   }
 
-  private selectByMix(allProducts: SpotlightProduct[], topSellingProducts: SpotlightProduct[], totalCount: number): SpotlightProduct[] {
-    const bestSellerCount = Math.max(1, Math.round(totalCount * 0.6));
-    const newArrivalCount = Math.max(1, Math.round(totalCount * 0.2));
-    const strategicCount = Math.max(1, totalCount - bestSellerCount - newArrivalCount);
+  private selectNewestDiversified(allProducts: SpotlightProduct[], totalCount: number): SpotlightProduct[] {
+    const sortedNewest = [...allProducts].sort((a, b) => {
+      const dateB = Number(b.createdAtMs || 0);
+      const dateA = Number(a.createdAtMs || 0);
+      if (dateB !== dateA) return dateB - dateA;
+      return Number(b.id) - Number(a.id);
+    });
 
     const selected = new Map<number, SpotlightProduct>();
 
-    const bestSellerCandidates = this.rankBestSellers(topSellingProducts);
-    this.pushUnique(selected, bestSellerCandidates, bestSellerCount);
+    // 1) Newest by brand
+    this.pushUniqueByKey(selected, sortedNewest, (p) => p.brandKey, totalCount);
 
-    const remainingAfterBest = allProducts.filter((item) => !selected.has(item.id));
-    const newArrivalCandidates = this.rankNewArrivals(remainingAfterBest);
-    this.pushUnique(selected, newArrivalCandidates, bestSellerCount + newArrivalCount);
-
-    const remainingAfterNew = allProducts.filter((item) => !selected.has(item.id));
-    const strategicCandidates = this.rankStrategic(remainingAfterNew);
-    this.pushUnique(selected, strategicCandidates, bestSellerCount + newArrivalCount + strategicCount);
-
+    // 2) Then newest by category
     if (selected.size < totalCount) {
-      const fallback = this.rankBestSellers(allProducts);
-      this.pushUnique(selected, fallback, totalCount);
+      const remaining = sortedNewest.filter((p) => !selected.has(p.id));
+      this.pushUniqueByKey(selected, remaining, (p) => p.categoryKey, totalCount);
+    }
+
+    // 3) Fill remaining purely by newest
+    if (selected.size < totalCount) {
+      this.pushUnique(selected, sortedNewest, totalCount);
     }
 
     return Array.from(selected.values()).slice(0, totalCount);
-  }
-
-  private rankBestSellers(products: SpotlightProduct[]): SpotlightProduct[] {
-    const aged = products.filter((item) => this.isWithinDayRange(this.getDateValue(item.raw), 14, 30));
-    const scoredAged = [...aged].sort((a, b) => this.getBestSellerScore(b.raw) - this.getBestSellerScore(a.raw));
-
-    if (scoredAged.length >= 6) {
-      return scoredAged;
-    }
-
-    const fallback = [...products]
-      .filter((item) => !aged.some((agedItem) => agedItem.id === item.id))
-      .sort((a, b) => this.getBestSellerScore(b.raw) - this.getBestSellerScore(a.raw));
-
-    return [...scoredAged, ...fallback];
-  }
-
-  private rankNewArrivals(products: SpotlightProduct[]): SpotlightProduct[] {
-    const recent = products.filter((item) => this.isWithinLastDays(this.getDateValue(item.raw), 14));
-    const source = recent.length > 0 ? recent : products;
-
-    return [...source].sort((a, b) => {
-      const dateB = this.getDateValue(b.raw)?.getTime() || 0;
-      const dateA = this.getDateValue(a.raw)?.getTime() || 0;
-      if (dateB !== dateA) {
-        return dateB - dateA;
-      }
-      return Number(b.id) - Number(a.id);
-    });
-  }
-
-  private rankStrategic(products: SpotlightProduct[]): SpotlightProduct[] {
-    return [...products].sort((a, b) => this.getStrategicScore(b.raw) - this.getStrategicScore(a.raw));
-  }
-
-  private getBestSellerScore(product: any): number {
-    const sold = Number(product?.sold || product?.sold_count || product?.total_sold || 0);
-    const views = Number(product?.views || product?.view_count || 0);
-    const cartAdds = Number(product?.add_to_cart || product?.cart_count || 0);
-    return sold * 10 + views * 0.1 + cartAdds * 0.5;
-  }
-
-  private getStrategicScore(product: any): number {
-    const stock = this.getStockQuantity(product);
-    const margin = this.getMarginRatio(product);
-    const brandName = (product?.brand_name || product?.brand || '').toString().toUpperCase();
-    const campaignBoost = this.strategicBrands.has(brandName) ? 1 : 0;
-    const isCampaign = Number(product?.is_campaign || product?.is_featured || 0) > 0 ? 1 : 0;
-
-    return margin * 55 + stock * 0.35 + campaignBoost * 18 + isCampaign * 27;
-  }
-
-  private getMarginRatio(product: any): number {
-    const basePrice = this.getNumberValue(product?.price || product?.base_price || product?.variants?.[0]?.price);
-    const salePrice = this.getNumberValue(product?.price_sale || product?.sale_price || product?.variants?.[0]?.price_sale);
-
-    if (basePrice <= 0) {
-      return 0;
-    }
-
-    if (salePrice > 0 && salePrice < basePrice) {
-      return (basePrice - salePrice) / basePrice;
-    }
-
-    return 0.18;
-  }
-
-  private getStockQuantity(product: any): number {
-    const directStock = this.getNumberValue(product?.stock || product?.inventory || product?.quantity);
-    if (directStock > 0) {
-      return directStock;
-    }
-
-    if (Array.isArray(product?.variants) && product.variants.length > 0) {
-      return product.variants.reduce((sum: number, variant: any) => sum + this.getNumberValue(variant?.quantity), 0);
-    }
-
-    return 0;
   }
 
   private getDateValue(product: any): Date | null {
@@ -176,26 +97,6 @@ export class SpotlightComponent implements OnInit {
 
     const parsedDate = new Date(rawDate);
     return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
-  }
-
-  private isWithinLastDays(date: Date | null, days: number): boolean {
-    if (!date) {
-      return false;
-    }
-
-    const now = Date.now();
-    const diffDays = (now - date.getTime()) / (1000 * 60 * 60 * 24);
-    return diffDays >= 0 && diffDays <= days;
-  }
-
-  private isWithinDayRange(date: Date | null, minDays: number, maxDays: number): boolean {
-    if (!date) {
-      return false;
-    }
-
-    const now = Date.now();
-    const diffDays = (now - date.getTime()) / (1000 * 60 * 60 * 24);
-    return diffDays >= minDays && diffDays <= maxDays;
   }
 
   private getNumberValue(value: any): number {
@@ -214,20 +115,58 @@ export class SpotlightComponent implements OnInit {
     }
   }
 
+  private pushUniqueByKey(
+    target: Map<number, SpotlightProduct>,
+    source: SpotlightProduct[],
+    getKey: (item: SpotlightProduct) => string | undefined,
+    limit: number
+  ): void {
+    const seen = new Set<string>();
+    for (const item of source) {
+      if (target.size >= limit) return;
+      const key = getKey(item);
+      if (!key) continue;
+      if (seen.has(key)) continue;
+      if (target.has(item.id)) continue;
+      seen.add(key);
+      target.set(item.id, item);
+    }
+  }
+
   private normalizeProducts(source: any[]): SpotlightProduct[] {
     const mapped = source.map((product: any) => {
       const productId = Number(product?.id || 0);
       const productName = (product?.name || product?.title || '').toString().trim();
+      const date = this.getDateValue(product);
 
       return {
         id: productId,
         name: productName,
         imageUrl: this.buildImageUrl(product),
+        brandKey: this.getBrandKey(product),
+        categoryKey: this.getCategoryKey(product),
+        createdAtMs: date?.getTime() || 0,
         raw: product
       } as SpotlightProduct;
     });
 
     return mapped.filter((item) => item.id > 0 && item.name.length > 0 && item.imageUrl.length > 0);
+  }
+
+  private getBrandKey(product: any): string | undefined {
+    const name = (product?.brand_name || product?.brandName || product?.brand || '').toString().trim();
+    if (name) return name.toUpperCase();
+    const id = product?.brand_id ?? product?.brandId ?? product?.brandID;
+    if (id !== undefined && id !== null && String(id).trim() !== '') return `ID:${String(id)}`;
+    return undefined;
+  }
+
+  private getCategoryKey(product: any): string | undefined {
+    const name = (product?.category_name || product?.categoryName || product?.category || '').toString().trim();
+    if (name) return name.toUpperCase();
+    const id = product?.category_id ?? product?.categoryId ?? product?.categoryID;
+    if (id !== undefined && id !== null && String(id).trim() !== '') return `ID:${String(id)}`;
+    return undefined;
   }
 
   private buildImageUrl(product: any): string {

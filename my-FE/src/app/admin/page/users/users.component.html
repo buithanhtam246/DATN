@@ -60,16 +60,18 @@
                 </span>
               </td>
               <td>
-                <div class="action-buttons">
-                  <button class="view-btn" title="Xem chi tiết" (click)="viewUserDetail(user)">👁️ Xem</button>
-                  <button 
-                    class="lock-btn" 
-                    [ngClass]="user.status === 'active' ? 'lock' : 'unlock'"
-                    (click)="toggleUserStatus(user)"
-                    [title]="user.status === 'active' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'">
-                    {{ user.status === 'active' ? '🔒 Khóa' : '🔓 Mở khóa' }}
-                  </button>
-                </div>
+                @if (user.role !== 'admin') {
+                  <div class="action-buttons">
+                    <button class="view-btn" title="Xem chi tiết" (click)="viewUserDetail(user)">👁️ Xem</button>
+                    <button 
+                      class="lock-btn" 
+                      [ngClass]="user.status === 'active' ? 'lock' : 'unlock'"
+                      (click)="toggleUserStatus(user)"
+                      [title]="user.status === 'active' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'">
+                      {{ user.status === 'active' ? '🔒 Khóa' : '🔓 Mở khóa' }}
+                    </button>
+                  </div>
+                }
               </td>
             </tr>
           } @empty {

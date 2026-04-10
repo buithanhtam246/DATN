@@ -36,7 +36,7 @@ export class ProductsSectionComponent implements OnInit {
   }
 
   private loadProducts(): void {
-    // Load top-selling products for homepage
+    // Load top-selling products for homepage (limit 8)
     this.productService.getTopSellingProducts(8).subscribe({
       next: (response: any) => {
         const productList = response?.data || [];

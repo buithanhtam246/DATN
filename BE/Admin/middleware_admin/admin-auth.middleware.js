@@ -36,7 +36,10 @@ const adminAuthMiddleware = (req, res, next) => {
     console.error('Admin auth middleware error:', err.message);
     return res.status(401).json({
       success: false,
-      message: 'Token không hợp lệ hoặc đã hết hạn'
+      message:
+        err && err.message === 'invalid signature'
+          ? 'Token không hợp lệ (chữ ký sai). Vui lòng đăng nhập lại.'
+          : 'Token không hợp lệ hoặc đã hết hạn'
     });
   }
 };

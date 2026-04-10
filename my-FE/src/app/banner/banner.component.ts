@@ -21,7 +21,7 @@ import { ProductCardComponent } from '../shared/product-card/product-card.compon
 @Component({
   selector: 'app-banner',
   standalone: true,
-  imports: [CommonModule, ProductCardComponent],
+  
   templateUrl: './banner.component.html',
   styleUrl: './banner.component.scss'
 })

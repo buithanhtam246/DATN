@@ -1,61 +1,9 @@
 <section class="collection">
   <div class="collection-container">
-    <!-- Left Content -->
-    <div class="collection-left">
-      <div class="collection-header">
-        <div class="badges">
-          <span class="badge">NEW COLLECTION</span>
-        </div>
-        
-        <h2 class="collection-title">
-          KHÁM PHÁ SẢN PHẨM MỚI<br>
-          <em>COLLECTION</em>
-        </h2>
-        
-        <p class="collection-description">
-          Với những thiết kế giày đẹp mới nhất và thời thượng nhất, bộ sưu tập của chúng tôi là cách hoàn hảo để bạn luôn dẫn đầu xu hướng thời trang và thể hiện phong cách độc đáo của riêng mình.
-        </p>
-        
-        <div class="collection-images">
-          <img src="/assets/images/collection1.png" alt="Collection preview 1" class="preview-img">
-          <img src="/assets/images/collection2.png" alt="Collection preview 2" class="preview-img">
-        </div>
-        
-        <button class="more-collection-btn">
-          MORE 
-          <span class="arrow">↗</span>
-          COLLECTION
-        </button>
-
-        <div class="slider-navigation">
-          <button class="nav-btn nav-prev" (click)="previousSlide()" aria-label="Previous">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M15 18l-6-6 6-6"/>
-            </svg>
-          </button>
-
-          <button class="nav-btn nav-next" (click)="nextSlide()" aria-label="Next">
-            <span>NEXT</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </button>
-        </div>
-
-        <div class="dots-indicator">
-          @for (item of getSlideIndexes(); track item) {
-            <button
-              class="dot"
-              [class.active]="currentSlide() === item"
-              (click)="goToSlide(item)"
-              [attr.aria-label]="'Go to slide ' + (item + 1)">
-            </button>
-          }
-        </div>
-      </div>
+    <div class="collection-top">
+      <span class="top-label">SẢN PHẨM MỚI</span>
     </div>
-    
-    <!-- Right Product Grid -->
+    <!-- Right Product Grid (full width after promo removed) -->
     <div class="collection-right">
       <div
         #productTrack
@@ -66,25 +14,19 @@
         (pointerleave)="stopDragging()">
         @for (product of products(); track product.id) {
           <div class="product-item">
-            <div class="product-header">
-              <span class="product-brand">{{ product.brand }}</span>
-              <span class="product-price">{{ product.price }}</span>
+            <a [routerLink]="['/products', product.id]" class="product-image" (click)="viewProductDetail(product.id); $event.stopPropagation()">
+              <img [src]="product.imageUrl" [alt]="product.title" loading="lazy" />
+            </a>
+            <div class="product-info">
+              <a [routerLink]="['/products', product.id]" class="product-name-link">
+                <h3 class="product-name">{{ product.title }}</h3>
+              </a>
+              <p class="product-brand-category">{{ product.brand }} / {{ product.category || '' }}</p>
+              <div class="product-actions">
+                <div class="product-price">{{ product.price }}</div>
+                <a [routerLink]="['/products', product.id]" class="details-btn" (click)="viewProductDetail(product.id); $event.stopPropagation()">Chi tiết</a>
+              </div>
             </div>
-            
-            <h3 class="product-name" (click)="viewProductDetail(product.id || '')">{{ product.title }}</h3>
-            
-            <div class="product-image-container" (click)="viewProductDetail(product.id || '')">
-              <img [src]="product.imageUrl" [alt]="product.title" class="product-image" loading="lazy">
-            </div>
-
-            <div class="product-sizes">
-              <span class="size-label">Size:</span>
-              @for (size of product.sizes; track size) {
-                <button class="size-btn">{{ size }}</button>
-              }
-            </div>
-            
-            <button class="add-to-cart-btn" (click)="viewProductDetail(product.id || '')">Xem chi tiết</button>
           </div>
         }
       </div>

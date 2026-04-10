@@ -4,7 +4,8 @@
 .brands {
   width: 100%;
   background-color: #000000;
-  padding: $spacing-xxl 0;
+  /* reduced vertical padding to make the black band shorter */
+  padding: $spacing-lg 0;
   overflow: hidden;
 }
 
@@ -14,7 +15,7 @@
   padding: 0 $spacing-xl;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: $spacing-xxl;
+  gap: $spacing-xl;
   
   @include tablet {
     grid-template-columns: 1fr;
@@ -22,12 +23,13 @@
   }
 }
 
-.brand-item {
+  .brand-item {
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  padding: $spacing-xl;
+  /* reduced padding so each brand block is less tall */
+  padding: $spacing-lg;
   transition: $transition-normal;
   position: relative;
   
@@ -43,8 +45,9 @@
     }
   }
   
-  .brand-name {
-    font-size: 3.5rem;
+    .brand-name {
+    /* slightly smaller headline to reduce overall band height */
+    font-size: 2.5rem;
     font-weight: $font-weight-bold;
     color: #ffffff;
     margin: 0;
@@ -58,15 +61,15 @@
     transition: $transition-normal;
     
     @include desktop {
-      font-size: 3rem;
+      font-size: 2.25rem;
     }
     
     @include tablet {
-      font-size: 2.5rem;
+      font-size: 2rem;
     }
     
     @include mobile {
-      font-size: 2rem;
+      font-size: 1.6rem;
     }
   }
 }

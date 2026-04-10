@@ -3,43 +3,82 @@ const CartItem = require('../model/CartItem.model');
 const sequelize = require('../../config/database');
 
 class CartController {
+  constructor() {
+    this.getCart = this.getCart.bind(this);
+    this.createCart = this.createCart.bind(this);
+    this.addToCart = this.addToCart.bind(this);
+    this.updateCartItem = this.updateCartItem.bind(this);
+    this.removeFromCart = this.removeFromCart.bind(this);
+    this.clearCart = this.clearCart.bind(this);
+    this.getCartTotal = this.getCartTotal.bind(this);
+    this.restoreInventory = this.restoreInventory.bind(this);
+  }
+
+  async _getOrCreateUserCart(userId) {
+    let cart = await Cart.findOne({
+      where: { user_id: userId },
+      order: [['id', 'DESC']]
+    });
+
+    if (!cart) {
+      cart = await Cart.create({
+        user_id: userId,
+        status: 1
+      });
+    }
+
+    return cart;
+  }
+
+  async _resolveCartContext(req) {
+    const userId = req.user?.id ? Number(req.user.id) : null;
+
+    if (userId) {
+      const cart = await this._getOrCreateUserCart(userId);
+      return { mode: 'user', userId, cart };
+    }
+
+    const cartId = req.query.cart_id || req.body.cart_id;
+    if (!cartId) {
+      return { mode: 'guest', error: { status: 400, message: 'cart_id is required' } };
+    }
+
+    const cart = await Cart.findByPk(cartId);
+    if (!cart) {
+      return { mode: 'guest', error: { status: 404, message: 'Cart not found' } };
+    }
+
+    // Không cho guest truy cập cart của user đã đăng nhập
+    if (cart.user_id) {
+      return { mode: 'guest', error: { status: 403, message: 'Cart belongs to a user. Please login.' } };
+    }
+
+    return { mode: 'guest', userId: null, cart };
+  }
+
   // Lấy giỏ hàng (không cần đăng nhập)
   async getCart(req, res) {
     try {
-      const cartId = req.query.cart_id || req.body.cart_id;
-
-      if (!cartId) {
-        return res.status(400).json({
-          success: false,
-          message: 'cart_id is required'
-        });
+      const ctx = await this._resolveCartContext(req);
+      if (ctx.error) {
+        return res.status(ctx.error.status).json({ success: false, message: ctx.error.message });
       }
 
-      const cart = await Cart.findByPk(cartId, {
-        include: [
-          {
-            model: CartItem,
-            as: 'items'
-          }
-        ]
-      });
-
-      if (!cart) {
-        return res.status(404).json({
-          success: false,
-          message: 'Cart not found'
-        });
-      }
+      const cartId = ctx.cart.id;
 
       // Lấy thông tin chi tiết sản phẩm từ database
       const cartItems = await sequelize.sequelize.query(
         `SELECT ci.id, ci.cart_id, ci.variant_id, ci.quantity,
-                v.id as variant_id, v.product_id, p.name as product_name,
-                COALESCE(p.image, v.image) as image,
-                v.price as original_price
+                v.id as variant_id, v.product_id, v.color_id, v.size_id,
+                p.name as product_name, p.image as product_image,
+                COALESCE(v.image, p.image) as image,
+                c.name as color, s.size,
+                v.price as original_price, v.price_sale as priceSale
          FROM cart_item ci
          LEFT JOIN variant v ON ci.variant_id = v.id
          LEFT JOIN products p ON v.product_id = p.id
+         LEFT JOIN color c ON v.color_id = c.id
+         LEFT JOIN size s ON v.size_id = s.id
          WHERE ci.cart_id = ?`,
         {
           replacements: [cartId],
@@ -67,10 +106,23 @@ class CartController {
   // Tạo giỏ hàng mới (không cần đăng nhập)
   async createCart(req, res) {
     try {
-      const { user_id } = req.body;
+      // Nếu đã đăng nhập: chỉ tạo/lấy cart theo token
+      if (req.user?.id) {
+        const cart = await this._getOrCreateUserCart(Number(req.user.id));
+        return res.status(200).json({
+          success: true,
+          message: 'Cart ready',
+          data: {
+            cart_id: cart.id,
+            user_id: cart.user_id,
+            status: cart.status
+          }
+        });
+      }
 
+      // Guest: chỉ cho tạo cart guest (user_id = null). Không cho set user_id từ client.
       const cart = await Cart.create({
-        user_id: user_id || null, // user_id optional
+        user_id: null,
         status: 1
       });
 
@@ -97,10 +149,10 @@ class CartController {
     try {
       const { cart_id, variant_id, quantity } = req.body;
 
-      if (!cart_id || !variant_id || !quantity) {
+      if (!variant_id || !quantity) {
         return res.status(400).json({
           success: false,
-          message: 'Missing required fields: cart_id, variant_id, quantity'
+          message: 'Missing required fields: variant_id, quantity'
         });
       }
 
@@ -111,12 +163,18 @@ class CartController {
         });
       }
 
-      // Kiểm tra cart có tồn tại
-      const cart = await Cart.findByPk(cart_id);
-      if (!cart) {
-        return res.status(404).json({
+      const ctx = await this._resolveCartContext(req);
+      if (ctx.error) {
+        return res.status(ctx.error.status).json({ success: false, message: ctx.error.message });
+      }
+
+      // Nếu user đã login thì bỏ qua cart_id client gửi lên
+      const effectiveCartId = ctx.cart.id;
+
+      if (!effectiveCartId) {
+        return res.status(400).json({
           success: false,
-          message: 'Cart not found'
+          message: 'cart_id is required'
         });
       }
 
@@ -147,7 +205,7 @@ class CartController {
       // Kiểm tra sản phẩm đã có trong giỏ chưa
       const existingItem = await CartItem.findOne({
         where: {
-          cart_id: cart_id,
+          cart_id: effectiveCartId,
           variant_id: variant_id
         }
       });
@@ -160,7 +218,7 @@ class CartController {
       } else {
         // Nếu chưa có thì tạo mới
         cartItem = await CartItem.create({
-          cart_id: cart_id,
+          cart_id: effectiveCartId,
           variant_id: variant_id,
           quantity: quantity
         });
@@ -169,12 +227,16 @@ class CartController {
       // Fetch detailed info for the single item (including product/variant details)
       const [detailed] = await sequelize.sequelize.query(
         `SELECT ci.id, ci.cart_id, ci.variant_id, ci.quantity,
-                v.id as variant_id, v.product_id, p.name as product_name,
-                COALESCE(p.image, v.image) as image,
-                v.price as original_price
+                v.id as variant_id, v.product_id, v.color_id, v.size_id,
+                p.name as product_name, p.image as product_image,
+                COALESCE(v.image, p.image) as image,
+                c.name as color, s.size,
+                v.price as original_price, v.price_sale as priceSale
          FROM cart_item ci
          LEFT JOIN variant v ON ci.variant_id = v.id
          LEFT JOIN products p ON v.product_id = p.id
+         LEFT JOIN color c ON v.color_id = c.id
+         LEFT JOIN size s ON v.size_id = s.id
          WHERE ci.id = ?`,
         {
           replacements: [cartItem.id],
@@ -221,12 +283,33 @@ class CartController {
         });
       }
 
-      const cartItem = await CartItem.findByPk(itemId);
+      const cartItem = await CartItem.findByPk(itemId, {
+        include: [{ model: Cart, as: 'cart' }]
+      });
       if (!cartItem) {
         return res.status(404).json({
           success: false,
           message: 'Cart item not found'
         });
+      }
+
+      // Scope theo user nếu đã đăng nhập
+      const userId = req.user?.id ? Number(req.user.id) : null;
+      if (userId) {
+        if (!cartItem.cart || Number(cartItem.cart.user_id) !== userId) {
+          return res.status(403).json({
+            success: false,
+            message: 'You do not have permission to update this cart item'
+          });
+        }
+      } else {
+        // Guest chỉ được sửa item thuộc cart guest
+        if (cartItem.cart?.user_id) {
+          return res.status(403).json({
+            success: false,
+            message: 'Cart item belongs to a user. Please login.'
+          });
+        }
       }
 
       cartItem.quantity = quantity;
@@ -254,12 +337,31 @@ class CartController {
     try {
       const { itemId } = req.params;
 
-      const cartItem = await CartItem.findByPk(itemId);
+      const cartItem = await CartItem.findByPk(itemId, {
+        include: [{ model: Cart, as: 'cart' }]
+      });
       if (!cartItem) {
         return res.status(404).json({
           success: false,
           message: 'Cart item not found'
         });
+      }
+
+      const userId = req.user?.id ? Number(req.user.id) : null;
+      if (userId) {
+        if (!cartItem.cart || Number(cartItem.cart.user_id) !== userId) {
+          return res.status(403).json({
+            success: false,
+            message: 'You do not have permission to remove this cart item'
+          });
+        }
+      } else {
+        if (cartItem.cart?.user_id) {
+          return res.status(403).json({
+            success: false,
+            message: 'Cart item belongs to a user. Please login.'
+          });
+        }
       }
 
       // Xóa sản phẩm khỏi giỏ
@@ -282,25 +384,22 @@ class CartController {
   async clearCart(req, res) {
     try {
       const { cart_id } = req.body;
+      const ctx = await this._resolveCartContext(req);
+      if (ctx.error) {
+        return res.status(ctx.error.status).json({ success: false, message: ctx.error.message });
+      }
 
-      if (!cart_id) {
+      const effectiveCartId = ctx.cart.id;
+      if (!effectiveCartId) {
         return res.status(400).json({
           success: false,
           message: 'cart_id is required'
         });
       }
 
-      const cart = await Cart.findByPk(cart_id);
-      if (!cart) {
-        return res.status(404).json({
-          success: false,
-          message: 'Cart not found'
-        });
-      }
-
       // Xóa tất cả items trong giỏ
       await CartItem.destroy({
-        where: { cart_id: cart_id }
+        where: { cart_id: effectiveCartId }
       });
 
       return res.status(200).json({
@@ -320,8 +419,13 @@ class CartController {
   async getCartTotal(req, res) {
     try {
       const { cart_id } = req.query;
+      const ctx = await this._resolveCartContext(req);
+      if (ctx.error) {
+        return res.status(ctx.error.status).json({ success: false, message: ctx.error.message });
+      }
 
-      if (!cart_id) {
+      const effectiveCartId = ctx.cart.id;
+      if (!effectiveCartId) {
         return res.status(400).json({
           success: false,
           message: 'cart_id is required'
@@ -329,13 +433,13 @@ class CartController {
       }
 
       const total = await sequelize.sequelize.query(
-        `SELECT SUM(ci.quantity * p.price) as total_price
+        `SELECT SUM(ci.quantity * COALESCE(v.price_sale, v.price)) as total_price
          FROM cart_item ci
-         LEFT JOIN variants v ON ci.variant_id = v.id
+         LEFT JOIN variant v ON ci.variant_id = v.id
          LEFT JOIN products p ON v.product_id = p.id
          WHERE ci.cart_id = ?`,
         {
-          replacements: [cart_id],
+          replacements: [effectiveCartId],
           type: sequelize.sequelize.QueryTypes.SELECT
         }
       );
@@ -343,7 +447,7 @@ class CartController {
       return res.status(200).json({
         success: true,
         data: {
-          cart_id: cart_id,
+          cart_id: effectiveCartId,
           total_price: total[0]?.total_price || 0
         }
       });

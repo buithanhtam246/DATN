@@ -2,7 +2,7 @@
 import { Component, OnInit, computed, inject, signal, viewChild, ElementRef, ChangeDetectionStrategy, ChangeDetectorRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ProductService, CartService } from '../core/services';
+import { ProductService, CartService, FavoritesService } from '../core/services';
 import { CartService as CartApiService } from '../services/cart.service';
 import { ApiService } from '../services/api.service';
 import { Product } from '../core/models';
@@ -76,7 +76,9 @@ export class ProductDetailComponent implements OnInit {
     private cartService = inject(CartService);
     private cartApiService = inject(CartApiService);
     private apiService = inject(ApiService);
+    private favoritesService = inject(FavoritesService);
     private cdr = inject(ChangeDetectorRef);
+    public favoriteCount = signal<number>(0);
     
     productTitleRef = viewChild<ElementRef>('productTitleRef');
 
@@ -87,6 +89,7 @@ export class ProductDetailComponent implements OnInit {
     public quantity = signal<number>(1);
     public currentImageIndex = signal<number>(0);
     public isLoading = signal<boolean>(true);
+    public isFavorited = signal<boolean>(false);
     public relatedProducts = signal<ProductWithVariants[]>([]);
     public isDescriptionOpen = signal<boolean>(false);
     public isDeliveryOpen = signal<boolean>(false);
@@ -119,6 +122,15 @@ export class ProductDetailComponent implements OnInit {
             console.log('📸 Effect triggered - setting displayedImage to:', newImage);
             this.displayedImage.set(newImage);
             this.cdr.markForCheck();
+        });
+
+        // Subscribe to counts updates to keep count reactive while on page
+        this.favoritesService.counts$.subscribe(() => {
+            const p = this.product();
+            if (p && p.id) {
+                this.favoriteCount.set(this.favoritesService.getCount(p.id));
+                this.cdr.markForCheck();
+            }
         });
     }
 
@@ -526,6 +538,7 @@ export class ProductDetailComponent implements OnInit {
                     const productData: ProductWithVariants = {
                         ...p,
                         title: p.title || p.name,  // Map name → title nếu title không có
+                        description: (p.description ?? p.describ ?? p.describtion ?? p.descrip ?? '') || undefined,
                         imageUrl: this.resolveProductImageUrl(p.image),
                         images: imagesArray.length > 0 ? imagesArray : [this.resolveProductImageUrl(p.image)].filter((img: string) => !!img),
                         imagesByColor,
@@ -590,6 +603,16 @@ export class ProductDetailComponent implements OnInit {
                     console.log('📏 Display Sizes:', this.displaySizes());
                     this.currentImageIndex.set(0);
                     this.quantity.set(1);
+
+                                        // Set favorite state and count for this product
+                                        try {
+                                            const pid = productData.id as number | string;
+                                            this.isFavorited.set(this.favoritesService.isFavorite(pid));
+                                            this.favoriteCount.set(this.favoritesService.getCount(pid));
+                                        } catch (e) {
+                                            this.isFavorited.set(false);
+                                            this.favoriteCount.set(0);
+                                        }
 
                     // Auto select first color
                     if (productData.variants && productData.variants.length > 0) {
@@ -934,19 +957,7 @@ export class ProductDetailComponent implements OnInit {
         }
 
         // Gọi API backend để thêm vào giỏ và giảm tồn kho
-        const cartId = this.cartApiService.getCartId();
-        
-        if (!cartId) {
-            alert('Không tìm thấy giỏ hàng. Vui lòng đăng nhập hoặc tạo giỏ hàng mới!');
-            return;
-        }
-
         const addToCartRequest = this.cartApiService.addToCart(selectedVariant.id, requestedQuantity);
-        
-        if (!addToCartRequest) {
-            alert('Không thể thêm vào giỏ hàng!');
-            return;
-        }
 
         addToCartRequest.subscribe({
             next: (response: any) => {
@@ -985,17 +996,21 @@ export class ProductDetailComponent implements OnInit {
                         quantity: requestedQuantity
                     };
                     
-                    // Lưu vào localStorage
-                    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                    // Lưu vào localStorage theo user hiện tại
+                    const cart = this.cartApiService.getCartFromStorage();
                     const existingIndex = cart.findIndex((item: any) => item.id === cartItem.id);
                     
                     if (existingIndex > -1) {
-                        cart[existingIndex].quantity += cartItem.quantity;
+                        // Replace quantity with the user's requested quantity instead of incrementing.
+                        // This avoids surprising increases when backend/cart already had a different quantity.
+                        cart[existingIndex].quantity = cartItem.quantity;
                     } else {
                         cart.push(cartItem);
                     }
                     
-                    localStorage.setItem('cart', JSON.stringify(cart));
+                    this.cartApiService.setCartToStorage(cart);
+                    // Refresh server-backed cart view (will fetch real quantities from backend)
+                    try { this.cartApiService.getCart(); } catch (e) { /* ignore */ }
                     
                     alert('Đã thêm sản phẩm vào giỏ hàng!');
                     this.quantity.set(1); // Reset quantity
@@ -1014,6 +1029,33 @@ export class ProductDetailComponent implements OnInit {
                 alert('Lỗi: ' + (error.error?.message || 'Không thể thêm vào giỏ hàng'));
             }
         });
+    }
+
+    onToggleFavorite(): void {
+        const p = this.product();
+        if (!p) return;
+
+        const favItem = {
+            id: (p.id ?? '') as number | string,
+            name: p.title || 'Sản phẩm',
+            image: p.imageUrl || (Array.isArray(p.images) && p.images[0]) || '',
+            price: this.currentVariantPrice().salePrice ?? this.currentVariantPrice().price ?? 0
+        };
+
+        try {
+            const result = this.favoritesService.toggle(favItem);
+            this.isFavorited.set(!!result);
+            // Optional: simple alert to user
+            if (result) {
+                // added
+                // Using window.alert for now; the project has a NotificationService that can be used later
+                // window.alert('Đã thêm vào yêu thích');
+            } else {
+                // window.alert('Đã bỏ yêu thích');
+            }
+        } catch (e) {
+            console.error('Error toggling favorite', e);
+        }
     }
 
     // Utilities

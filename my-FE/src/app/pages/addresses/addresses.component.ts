@@ -17,6 +17,7 @@ import { AddressLocationService } from '../../services/address-location.service'
 })
 export class AddressesComponent implements OnInit {
   addresses: any[] = [];
+  user: any = null;
   isLoading = false;
   showForm = false;
   isEditing = false;
@@ -51,6 +52,14 @@ export class AddressesComponent implements OnInit {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;
+    }
+
+    // Initialize current user from localStorage (if present)
+    try {
+      const stored = localStorage.getItem('user');
+      this.user = stored ? JSON.parse(stored) : null;
+    } catch (e) {
+      this.user = null;
     }
 
     // Load provinces

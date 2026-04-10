@@ -87,14 +87,18 @@ export class UsersComponent implements OnInit {
       const matchesSearch = user.name.toLowerCase().includes(query) ||
                             user.email.toLowerCase().includes(query) ||
                             user.phone.includes(query);
-      // Mặc định chỉ show 'user', không show 'admin'
-      const matchesRole = role === 'all' ? user.role === 'user' : user.role === role;
+      // Show tất cả role khi chọn 'all'
+      const matchesRole = role === 'all' || user.role === role;
       const matchesStatus = status === 'all' || user.status === status;
       return matchesSearch && matchesRole && matchesStatus;
     });
   });
 
   toggleUserStatus(user: User) {
+    if (user.role === 'admin') {
+      return;
+    }
+
     const shouldLock = user.status === 'active';
     const action$ = shouldLock
       ? this.apiService.lockUser(user.id)

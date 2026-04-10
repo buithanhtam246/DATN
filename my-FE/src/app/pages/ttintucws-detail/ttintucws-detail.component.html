@@ -1,0 +1,33 @@
+<section class="hero">
+  <div class="hero-inner container">
+    <h1 class="hero-title">{{ article?.title }}</h1>
+    <div class="hero-submeta" *ngIf="article">
+      <span>{{ (article.published_at || article.publishedAt || article.created_at || article.createdAt) | date:'dd/MM/yyyy' }}</span>
+      &nbsp;•&nbsp;
+      <a (click)="backToList()" style="color:inherit; text-decoration:underline; cursor:pointer">Quay lại</a>
+    </div>
+  </div>
+</section>
+
+<main class="detail-content article-detail container">
+  <div *ngIf="isLoading">Đang tải...</div>
+
+  <div class="detail-grid" *ngIf="!isLoading && article">
+    <div>
+      <div class="detail-image">
+        <img [src]="article.imageUrl || '/assets/images/news/default.jpg'" [alt]="article.title" />
+      </div>
+
+      <div class="detail-article-body">
+        <div [innerHTML]="sanitizedContent"></div>
+      </div>
+    </div>
+
+    <aside class="detail-sidebar">
+      <div class="what-to-know">
+        <h3>Điều cần biết</h3>
+        <div class="what-content" [innerHTML]="article.content || article.summary"></div>
+      </div>
+    </aside>
+  </div>
+</main>

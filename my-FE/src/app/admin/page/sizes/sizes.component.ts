@@ -65,7 +65,9 @@ export class SizesComponent implements OnInit {
   loadSizes(): void {
     this.productService.getSizes().subscribe({
       next: (data: any) => {
-        this.sizes = data;
+        // Ensure sizes are numeric and sorted ascending
+        this.sizes = (data || []).map((s: any) => ({ ...s, size: Number(s.size) }))
+          .sort((a: any, b: any) => a.size - b.size);
         this.applyFilters();
         this.cdr.detectChanges(); // Ép cập nhật số liệu thống kê (21, 13, 8...)
       },
@@ -82,19 +84,13 @@ export class SizesComponent implements OnInit {
 
   applyFilters(): void {
     let filtered = [...this.sizes];
-    
-    // Lọc theo danh mục cha
-    if (this.activeFilterCategory !== null) {
-      const category = this.filterCategories.find(c => c.id === this.activeFilterCategory);
-      if (category) {
-        filtered = filtered.filter(s => s.category_id === this.activeFilterCategory);
-      }
-    }
-    
+
+    // No longer filter sizes by parent category — show global sizes
     if (this.searchText && this.searchText.toString().trim()) {
       filtered = filtered.filter(s => s.size.toString().includes(this.searchText.trim()));
     }
-    this.filteredSizes = filtered;
+    // Always sort filtered sizes from small to large
+    this.filteredSizes = filtered.sort((a, b) => a.size - b.size);
     this.cdr.detectChanges();
   }
 
@@ -111,12 +107,15 @@ export class SizesComponent implements OnInit {
   openAddSizeModal(): void {
     this.showModal = true;
     this.editingSize = null;
-    this.selectedCategoryForAdd = false; 
-    this.selectedCategoryId = null;
+    this.selectedCategoryForAdd = true;
+    // Auto-select first parent category for convenience (do not rely on activeFilterCategory)
+    this.selectedCategoryId = this.parentCategories[0]?.id ?? null;
     this.newSize = { size: undefined, gender: undefined };
     // Ensure categories are loaded when modal opens
     if (this.parentCategories.length === 0) {
       this.loadCategories();
+    } else if (!this.selectedCategoryId) {
+      // leave as-is if cannot determine yet
     }
     this.cdr.detectChanges();
   }
@@ -143,7 +142,10 @@ export class SizesComponent implements OnInit {
   }
 
   submitSize(): void {
-    if (!this.selectedCategoryId) return;
+    if (!this.selectedCategoryId) {
+      alert('❌ Chưa có danh mục cha để thêm kích thước');
+      return;
+    }
     
     // Para edição
     if (this.editingSize) {
@@ -401,14 +403,11 @@ export class SizesComponent implements OnInit {
   }
 
   getExistingSizes(): Size[] {
-    // Lấy size hiện có theo danh mục cha được chọn
-    if (!this.selectedCategoryId) return [];
-    
-    const selectedCategory = this.parentCategories.find(c => c.id === this.selectedCategoryId);
-    if (!selectedCategory) return [];
-    
-    // Lọc size theo category_id (không phải gender)
-    return this.sizes.filter(s => s.category_id === this.selectedCategoryId).sort((a, b) => a.size - b.size);
+    // Trả về danh sách tất cả sizes hiện có (global), không phân theo danh mục
+    if (!this.sizes || this.sizes.length === 0) return [];
+    // Normalize and dedupe by numeric size value (in case of duplicates across categories)
+    const unique = Array.from(new Map(this.sizes.map(s => [s.size, s])).values());
+    return unique.sort((a, b) => a.size - b.size);
   }
 
   loadCategories(): void {
@@ -422,6 +421,12 @@ export class SizesComponent implements OnInit {
           this.parentCategories = res.data.filter((c: Category) => c.isParent || !c.parent_id);
           this.filterCategories = res.data.filter((c: Category) => c.isParent || !c.parent_id);
           console.log('Filtered parent categories:', this.parentCategories);
+
+          // If the modal is open for adding a size and no category yet selected,
+          // auto-pick the first parent category for convenience (do not rely on active filter).
+          if (this.showModal && !this.editingSize && !this.selectedCategoryId) {
+            this.selectedCategoryId = this.parentCategories[0]?.id ?? null;
+          }
           this.cdr.detectChanges();
         }
       },

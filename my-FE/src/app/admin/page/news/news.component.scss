@@ -1,0 +1,280 @@
+@use '../../styles/admin-variables' as *;
+
+.news-container {
+  padding: $spacing-xl;
+  min-height: 100vh;
+  background: $light-bg;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-xl;
+
+  .title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: $font-weight-bold;
+    color: $dark;
+  }
+
+  .btn-add {
+    border: none;
+    background: $primary-gradient;
+    color: $white;
+    padding: 10px 14px;
+    border-radius: $border-radius-md;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: $transition-smooth;
+
+    &:hover {
+      background: $primary-dark;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.error-message {
+  background: $danger-light;
+  border: 1px solid color-mix(in srgb, $danger-color 30%, transparent);
+  color: $danger-color;
+  padding: $spacing-lg;
+  border-radius: $border-radius-md;
+  margin-bottom: $spacing-lg;
+}
+
+.table-container {
+  background: $white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-md;
+  overflow: hidden;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background: $lighter;
+
+      th {
+        text-align: left;
+        padding: $spacing-lg;
+        font-weight: $font-weight-semibold;
+        color: $dark;
+        border-bottom: 1px solid $border-color;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid $border-color;
+
+        &:hover {
+          background: $primary-light;
+        }
+      }
+
+      td {
+        padding: $spacing-lg;
+        vertical-align: top;
+        color: $dark;
+      }
+    }
+  }
+}
+
+.col-id { width: 90px; }
+.col-status { width: 140px; }
+.col-date { width: 140px; }
+.col-actions { width: 240px; }
+
+.title-cell {
+  .main {
+    font-weight: $font-weight-semibold;
+  }
+
+  .sub {
+    margin-top: 6px;
+    color: $muted;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: $font-weight-semibold;
+
+  &.active {
+    background: $success-light;
+    color: $success-color;
+  }
+
+  &.inactive {
+    background: $danger-light;
+    color: $danger-color;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-toggle,
+.btn-edit,
+.btn-delete {
+  border: 1px solid $border-color;
+  background: $white;
+  padding: 8px 10px;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  transition: $transition-fast;
+  font-weight: $font-weight-medium;
+
+  &:hover {
+    background: $lighter;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.btn-toggle.active {
+  border-color: color-mix(in srgb, $success-color 30%, $border-color);
+}
+
+.btn-delete {
+  border-color: color-mix(in srgb, $danger-color 30%, $border-color);
+}
+
+.loading-state,
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+
+  .spinner {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .message {
+    color: $muted;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  /* place near top so tall modals can scroll on small screens */
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 720px;
+  max-width: 100%;
+  background: $white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-lg;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* make modal scrollable when content is tall */
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.modal-header {
+  padding: $spacing-lg;
+  font-weight: $font-weight-bold;
+  border-bottom: 1px solid $border-color;
+  /* keep header visible while scrolling modal body */
+  position: sticky;
+  top: 0;
+  background: $white;
+  z-index: 5;
+}
+
+.form-group {
+  padding: $spacing-lg;
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: $font-weight-semibold;
+    color: $dark;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-md;
+    padding: 10px 12px;
+    font-family: $font-family-base;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    /* make content textarea comfortably tall inside modal */
+    min-height: 180px;
+  }
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: $spacing-lg;
+  border-top: 1px solid $border-color;
+  /* keep footer visible at bottom of modal */
+  position: sticky;
+  bottom: 0;
+  background: $white;
+  z-index: 5;
+}
+
+.btn-cancel {
+  border: 1px solid $border-color;
+  background: $white;
+  padding: 10px 14px;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+}
+
+.btn-save {
+  border: none;
+  background: $primary-gradient;
+  color: $white;
+  padding: 10px 14px;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}

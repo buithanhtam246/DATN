@@ -31,6 +31,11 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/auth/login`, data);
   }
 
+  // Login with Google ID token. Backend should verify token and return auth token + user.
+  googleLogin(idToken: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/google`, { idToken });
+  }
+
   // ============ ADMIN AUTH ENDPOINTS ============
   adminLogin(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/admin/login`, data);
@@ -46,11 +51,11 @@ export class ApiService {
 
   // ============ CART ENDPOINTS ============
   createCart(userId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cart/create`, { user_id: userId });
+    return this.http.post(`${this.apiUrl}/cart/create`, { user_id: userId }, { headers: this.getAuthHeaders() });
   }
 
   getCart(cartId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/cart?cart_id=${cartId}`);
+    return this.http.get(`${this.apiUrl}/cart?cart_id=${cartId}`, { headers: this.getAuthHeaders() });
   }
 
   addToCart(cartId: number, variantId: number, quantity: number): Observable<any> {
@@ -58,23 +63,23 @@ export class ApiService {
       cart_id: cartId,
       variant_id: variantId,
       quantity: quantity
-    });
+    }, { headers: this.getAuthHeaders() });
   }
 
   updateCartItem(itemId: number, quantity: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/cart/update/${itemId}`, { quantity });
+    return this.http.put(`${this.apiUrl}/cart/update/${itemId}`, { quantity }, { headers: this.getAuthHeaders() });
   }
 
   removeFromCart(itemId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/cart/remove/${itemId}`);
+    return this.http.delete(`${this.apiUrl}/cart/remove/${itemId}`, { headers: this.getAuthHeaders() });
   }
 
   clearCart(cartId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/cart/clear`, { body: { cart_id: cartId } });
+    return this.http.delete(`${this.apiUrl}/cart/clear`, { body: { cart_id: cartId }, headers: this.getAuthHeaders() });
   }
 
   getCartTotal(cartId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/cart/total?cart_id=${cartId}`);
+    return this.http.get(`${this.apiUrl}/cart/total?cart_id=${cartId}`, { headers: this.getAuthHeaders() });
   }
 
   // ============ ORDER ENDPOINTS ============
@@ -94,7 +99,7 @@ export class ApiService {
             { headers: this.getAuthHeaders() }
           );
         }
-  // ============ ORDER HISTORY ENDPOINTS ============
+// ============ ORDER HISTORY ENDPOINTS ============
   getOrderHistory(): Observable<any> {
     return this.http.get(
       `${this.apiUrl}/orders/history`,
@@ -206,14 +211,26 @@ export class ApiService {
       `${this.apiUrl}/vouchers/detail/${code}`
     );
   }
-
-  // ============ PRODUCT ENDPOINTS ============
+// ============ PRODUCT ENDPOINTS ============
   getProducts(): Observable<any> {
     return this.http.get(`${this.apiUrl}/products`);
   }
 
   getProductById(productId: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/products/${productId}`);
+  }
+
+  // ============ FAVORITE ENDPOINTS ============
+  getFavorites(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/favorites`, { headers: this.getAuthHeaders() });
+  }
+
+  addFavorite(productId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/favorites/create`, { product_id: productId }, { headers: this.getAuthHeaders() });
+  }
+
+  removeFavorite(productId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/favorites/${productId}`, { headers: this.getAuthHeaders() });
   }
 
   getVariantsInventory(variantIds: number[]): Observable<any> {

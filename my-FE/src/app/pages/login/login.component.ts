@@ -1,5 +1,5 @@
 import { RouterModule } from '@angular/router';
-import { Component, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import { Component, ChangeDetectorRef, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { environment } from '../../../environments/environment';
 
 
 @Component({
@@ -17,6 +18,8 @@ import { NotificationService } from '../../core/services/notification.service';
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
+
+  private gsiLoaded = false;
 
   email = '';
   password = '';
@@ -43,6 +46,91 @@ export class LoginComponent {
         this.router.navigate(['/']);
       }
     }
+  }
+
+  ngOnInit(): void {
+    this.loadGoogleScript();
+  }
+
+  private loadGoogleScript(): void {
+    if (this.gsiLoaded) return;
+    this.gsiLoaded = true;
+    const src = 'https://accounts.google.com/gsi/client';
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      // initialized later on button click
+    };
+    document.head.appendChild(script);
+  }
+
+  onGoogleSignInClick(): void {
+    // ensure google script loaded
+    const googleObj = (window as any).google;
+    if (!googleObj || !environment.googleClientId) {
+      this.notificationService.showError('Google Sign-In chưa được cấu hình. Vui lòng thêm googleClientId vào environment.');
+      return;
+    }
+
+    // Initialize GSI with callback
+    try {
+      googleObj.accounts.id.initialize({
+        client_id: environment.googleClientId,
+        callback: (response: any) => this.handleGoogleCredential(response)
+      });
+
+      // Prompt the One Tap / popup chooser
+      googleObj.accounts.id.prompt();
+    } catch (e) {
+      console.error('Google Sign-In init error', e);
+      this.notificationService.showError('Lỗi Google Sign-In. Kiểm tra console.');
+    }
+  }
+
+  private handleGoogleCredential(response: any): void {
+    const credential = response?.credential;
+    if (!credential) {
+      this.notificationService.showError('Không nhận được credential từ Google');
+      return;
+    }
+
+    this.isLoading = true;
+    this.authService.loginWithGoogle(credential).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data && res.data.token) {
+          const token = res.data.token;
+          const userData = res.data.user;
+          localStorage.setItem('authToken', token);
+          localStorage.setItem('userId', userData.id);
+          localStorage.setItem('user', JSON.stringify(userData));
+          localStorage.setItem('userRole', userData.role || 'user');
+          if (res.data.cart_id) {
+            this.cartService.setCartIdForCurrentUser(Number(res.data.cart_id));
+          }
+          this.cartService.refreshForCurrentUser();
+          this.notificationService.showSuccess('Đăng nhập bằng Google thành công');
+          // Route user based on role
+          const role = userData.role || 'user';
+          setTimeout(() => {
+            if (role === 'admin') {
+              this.router.navigate(['/admin/dashboard']);
+            } else {
+              this.router.navigate(['/']);
+            }
+          }, 800);
+        } else {
+          this.notificationService.showError(res.message || 'Đăng nhập Google thất bại');
+        }
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Google login error', err);
+        this.notificationService.showError(err?.error?.message || 'Đăng nhập Google thất bại');
+        this.isLoading = false;
+      }
+    });
   }
 
   get isFormValid(): boolean {
@@ -93,28 +181,22 @@ export class LoginComponent {
           
           // Lưu cart_id nếu có
           if (response.data.cart_id) {
-            localStorage.setItem('cartId', response.data.cart_id);
-            this.cartService.setCartId(response.data.cart_id);
+            this.cartService.setCartIdForCurrentUser(Number(response.data.cart_id));
           }
+
+          this.cartService.refreshForCurrentUser();
 
           this.notificationService.showSuccess("Đăng nhập thành công");
           this.isLoading = false;
-          
-          // Redirect logic:
-          // - Nếu user có role='admin', hãy báo và redirect đến /admin/login
-          // - Nếu user là 'user' bình thường, redirect đến home '/'
+
+          // Redirect based on role: admin -> admin dashboard, otherwise -> home
           setTimeout(() => {
             if (userData.role === 'admin') {
-              // Admin không được phép login từ /login
-              // Phải sử dụng /admin/login endpoint riêng biệt
-              this.notificationService.showError("Tài khoản admin phải sử dụng trang /admin/login để đăng nhập!");
-              localStorage.clear(); // Xóa token vì không hợp lệ
-              this.router.navigate(['/admin/login']);
+              this.router.navigate(['/admin/dashboard']);
             } else {
-              // User bình thường
               this.router.navigate(['/']);
             }
-          }, 1500);
+          }, 800);
         } else {
           this.formError = response.message || 'Đăng nhập thất bại';
           this.notificationService.showError(this.formError);

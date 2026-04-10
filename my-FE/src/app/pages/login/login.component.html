@@ -11,10 +11,7 @@
 <h2>Welcome Back</h2>
 <p>Vui lòng đăng nhập để tiếp tục sử dụng.</p>
 
-<!-- Admin login notice -->
-<div class="admin-notice">
-  <strong>⚠️ Quản trị viên:</strong> Vui lòng sử dụng <a routerLink="/admin/login" class="admin-link">trang đăng nhập riêng</a> để đăng nhập.
-</div>
+<!-- removed admin-only gate: admin can log in here as well -->
 
 <div class="error-message" *ngIf="formError">{{ formError }}</div>
 
@@ -62,7 +59,7 @@ required>
 
 <div class="divider">or</div>
 
-<button class="btn-google" type="button" [disabled]="isLoading">
+<button class="btn-google" type="button" (click)="onGoogleSignInClick()" [disabled]="isLoading">
 Đăng nhập với Google
 <img src="assets/images/google.jpg" class="google-icon">
 </button>

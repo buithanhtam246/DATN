@@ -1,0 +1,66 @@
+<div class="ttintuc-page">
+  <section class="hero">
+    <div class="hero-inner container">
+      <h1 class="hero-title" *ngIf="!selectedArticle">NIKE, INC.<br/>NEWSROOM</h1>
+      <h1 class="hero-title" *ngIf="selectedArticle">{{ selectedArticle.title }}</h1>
+
+      <div class="hero-controls">
+        <div class="filter-pill">
+          <div class="tabs">
+            <button class="tab active">All</button>
+            <button class="tab">Press releases</button>
+            <button class="tab">Collections</button>
+          </div>
+          <div class="search">
+            <input type="text" placeholder="Search" aria-label="Search news" />
+            <button aria-label="Search">🔍</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="tt-content container">
+    <div *ngIf="isLoading" class="loading">Đang tải...</div>
+      <ng-container *ngIf="!isLoading">
+        <!-- LIST VIEW -->
+        <div class="grid" *ngIf="!selectedArticle">
+          <article class="card" *ngFor="let a of articles">
+            <div class="card-image">
+              <img [src]="a.imageUrl || '/assets/images/news/default.jpg'" [alt]="a.title" />
+            </div>
+            <div class="card-body">
+              <p class="card-date">{{ (a.published_at || a.publishedAt || a.created_at || a.createdAt) | date:'dd/MM/yyyy' }}</p>
+              <h2 class="card-title">{{ a.title }}</h2>
+              <p class="card-excerpt">{{ a.summary }}</p>
+              <a class="card-link" [routerLink]="['/ttintucws', (a.slug || a.id)]">Đọc thêm</a>
+            </div>
+          </article>
+        </div>
+
+        <!-- DETAIL VIEW -->
+        <!-- When an article is selected we show its title in the main hero; render body below -->
+        <main *ngIf="selectedArticle" class="detail-content article-detail">
+          <div class="detail-grid">
+            <div>
+              <div class="detail-image">
+                <img [src]="selectedArticle.imageUrl || '/assets/images/news/default.jpg'" [alt]="selectedArticle.title" />
+              </div>
+
+              <div class="detail-article-body">
+                <p class="detail-callout">The next era of skate shoes has arrived.</p>
+                <div [innerHTML]="selectedArticle.content || selectedArticle.summary"></div>
+              </div>
+            </div>
+
+            <aside class="detail-sidebar">
+              <div class="what-to-know">
+                <h3>What to know</h3>
+                <div class="what-content" *ngIf="selectedArticle" [innerHTML]="selectedArticle.content || selectedArticle.summary"></div>
+              </div>
+            </aside>
+          </div>
+        </main>
+      </ng-container>
+  </main>
+</div>

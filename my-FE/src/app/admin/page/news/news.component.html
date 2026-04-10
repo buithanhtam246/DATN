@@ -1,0 +1,119 @@
+<div class="news-container">
+  <div class="page-header">
+    <h1 class="title">📰 Quản lý Tin Tức</h1>
+    <button class="btn-add" (click)="openAddModal()">➕ Thêm tin tức</button>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+  <div class="table-container">
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner">⏳</div>
+      <div class="message">Đang tải dữ liệu...</div>
+    </div>
+
+    <table *ngIf="!isLoading && listNews.length > 0">
+      <thead>
+        <tr>
+          <th class="col-id">ID</th>
+          <th class="col-image">Ảnh</th>
+          <th class="col-title">Tiêu đề</th>
+          <th class="col-status">Trạng thái</th>
+          <th class="col-date">Ngày tạo</th>
+          <th class="col-actions">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of listNews">
+          <td class="col-id">#{{ item.id }}</td>
+          <td class="col-image">
+            <img *ngIf="getListImage(item)" [src]="getListImage(item)" alt="thumb" style="width:96px;height:72px;object-fit:cover;border-radius:6px;border:1px solid #eee;" />
+          </td>
+          <td class="col-title">
+            <div class="title-cell">
+              <div class="main">{{ item.title }}</div>
+              <div class="sub" *ngIf="item.content">{{ (item.content || '').slice(0, 80) }}{{ (item.content || '').length > 80 ? '…' : '' }}</div>
+            </div>
+          </td>
+          <td class="col-status">
+            <span class="status-badge" [ngClass]="item.status === 1 ? 'active' : 'inactive'">
+              {{ item.status === 1 ? '✅ Hiển thị' : '❌ Ẩn' }}
+            </span>
+          </td>
+          <td class="col-date">{{ formatDate(item.createdAt || item.created_at || item.publishedAt || item.published_at) }}</td>
+          <td class="col-actions">
+            <div class="action-buttons">
+              <button class="btn-toggle" [class.active]="item.status === 1" (click)="toggleVisibility(item)" [disabled]="isSubmitting">
+                {{ item.status === 1 ? '👁️ Ẩn' : '👁️ Hiện' }}
+              </button>
+              <button class="btn-edit" (click)="editItem(item)">✏️ Sửa</button>
+              <button class="btn-delete" (click)="deleteItem(item.id)">🗑️ Xóa</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!isLoading && listNews.length === 0" class="empty-state">
+      <div class="spinner">📭</div>
+      <div class="message">Chưa có tin tức nào</div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">{{ editingNews ? '✏️ Chỉnh sửa' : '➕ Thêm mới' }}</div>
+
+    <div class="form-group">
+      <label>Tiêu đề</label>
+      <input type="text" [(ngModel)]="form.title" placeholder="Nhập tiêu đề tin tức...">
+    </div>
+
+    <div class="form-group">
+      <label>Ảnh (URL)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" [(ngModel)]="form.image_url" placeholder="https://..." style="flex:1">
+        <button type="button" class="btn-select" (click)="fileInput.click(); $event.stopPropagation()">Chọn tệp</button>
+      </div>
+      <input #fileInput type="file" accept="image/*" style="display:none" (click)="$event.stopPropagation()" (change)="onFileSelected($event)">
+      <div *ngIf="uploadingImage" class="muted">Đang upload...</div>
+      <div class="image-preview" *ngIf="getImagePreviewSrc()" style="margin-top:8px;">
+        <img [src]="getImagePreviewSrc()" alt="Preview" style="max-width:220px;max-height:160px;border-radius:6px;border:1px solid #e6e6e6;object-fit:cover;"/>
+      </div>
+    </div>
+
+    <!-- Nội dung chính -->
+    <div class="form-group">
+      <label>Nội dung</label>
+      <textarea rows="6" [(ngModel)]="form.content" placeholder="Nhập nội dung..."></textarea>
+    </div>
+
+    <!-- Trạng thái -->
+    <div class="form-group">
+      <label>Trạng thái</label>
+      <select [(ngModel)]="form.status">
+        <option [ngValue]="0">❌ Ẩn</option>
+        <option [ngValue]="1">✅ Hiển thị</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>
+        <input type="checkbox" [(ngModel)]="form.is_featured"> Nổi bật
+      </label>
+    </div>
+
+    <div class="form-group">
+      <label>Ngày xuất bản</label>
+      <input type="datetime-local" [(ngModel)]="form.published_at" [attr.min]="minPublishDatetime">
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeModal()">Hủy</button>
+      <button class="btn-save" (click)="save()" [disabled]="!form.title || isSubmitting">
+        {{ isSubmitting ? '⏳ Đang xử lý...' : (editingNews ? '💾 Cập nhật' : '➕ Thêm mới') }}
+      </button>
+    </div>
+  </div>
+</div>

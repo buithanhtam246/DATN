@@ -79,6 +79,11 @@ export const adminRoutes: Routes = [
         title: 'Quản lý voucher - Admin'
       },
       {
+        path: 'news',
+        loadComponent: () => import('./page/news/news.component').then(m => m.NewsComponent),
+        title: 'Quản lý tin tức - Admin'
+      },
+      {
         path: 'colors',
         loadComponent: () => import('./page/colors/colors.component').then(m => m.ColorsComponent),
         title: 'Quản lý màu sắc - Admin'

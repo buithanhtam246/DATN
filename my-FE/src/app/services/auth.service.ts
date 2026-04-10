@@ -11,6 +11,11 @@ export class AuthService {
     private router: Router
   ) {}
 
+  // Login using Google ID token (credential). Backend should verify and return auth token + user.
+  loginWithGoogle(idToken: string) {
+    return this.apiService.googleLogin(idToken);
+  }
+
   register(fullname: string, email: string, password: string, confirmPassword: string) {
     return this.apiService.register({ fullname, email, password, confirmPassword });
   }

@@ -199,9 +199,13 @@ export class OrdersComponent implements OnInit {
   }
 
   viewOrderDetail(order: Order) {
+    // Debug: log when button clicked to ensure handler fires
+    console.log('viewOrderDetail called for order id=', order?.id);
+
     // Gọi API Admin để lấy chi tiết đầy đủ của đơn hàng
     this.apiService.getAdminOrderDetail(order.id).subscribe({
       next: (response: any) => {
+        console.log('getAdminOrderDetail response for', order.id, response);
         if (response.success && response.data) {
           const detailedOrder = response.data;
           this.selectedOrder.set({
@@ -221,6 +225,9 @@ export class OrdersComponent implements OnInit {
           });
           this.showDetailModal.set(true);
           this.newOrderStatus.set(detailedOrder.status || order.status);
+          console.log('showDetailModal set ->', this.showDetailModal());
+        } else {
+          console.warn('getAdminOrderDetail returned no data for', order.id);
         }
       },
       error: (err) => {
@@ -229,6 +236,7 @@ export class OrdersComponent implements OnInit {
         this.selectedOrder.set(order);
         this.showDetailModal.set(true);
         this.newOrderStatus.set(order.status);
+        console.log('showDetailModal set in error path ->', this.showDetailModal());
       }
     });
   }

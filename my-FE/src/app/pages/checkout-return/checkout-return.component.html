@@ -1,0 +1,25 @@
+<section class="vnpay-return-page" aria-live="polite">
+  <div class="result-card" [class.success]="isSuccess" [class.failed]="!isSuccess">
+    <div class="badge">{{ provider }}</div>
+
+    <h1>{{ title }}</h1>
+    <p>{{ message }}</p>
+
+    <div class="meta" *ngIf="orderRef || amount">
+      <div *ngIf="orderRef">
+        <span>Mã giao dịch:</span>
+        <strong>{{ orderRef }}</strong>
+      </div>
+      <div *ngIf="amount">
+        <span>Số tiền:</span>
+        <strong>{{ amount | number:'1.0-0' }} đ</strong>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-primary" (click)="goToOrders()" *ngIf="isSuccess">Xem đơn hàng</button>
+      <a class="btn btn-primary" routerLink="/checkout" *ngIf="!isSuccess">Thử lại</a>
+      <a class="btn btn-ghost" routerLink="/">Về trang chủ</a>
+    </div>
+  </div>
+</section>

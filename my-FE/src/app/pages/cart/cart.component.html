@@ -30,11 +30,13 @@
           <div class="item-checkbox">
             <input type="checkbox" 
               [checked]="item.selected || false"
-              (change)="toggleSelectItem(i)">
+              (change)="toggleSelectItem(i)"
+              [disabled]="isOutOfStock(item)">
           </div>
 
           <div class="item-image">
-            <img [src]="item.image || '/assets/placeholder.png'" [alt]="item.name" />
+            <img [src]="item.image || '/assets/placeholder.png'" [alt]="item.name" [class.dimmed]="isOutOfStock(item)" />
+            <div *ngIf="isOutOfStock(item)" class="sold-badge">Hết hàng</div>
           </div>
 
           <div class="item-details">
@@ -53,9 +55,9 @@
             </div>
 
             <div class="item-quantity">
-              <button class="qty-btn" (click)="decreaseQty(i)">−</button>
+              <button class="qty-btn" (click)="decreaseQty(i)" [disabled]="isOutOfStock(item)">−</button>
               <input type="number" [value]="item.quantity" readonly />
-              <button class="qty-btn" (click)="increaseQty(i)">+</button>
+              <button class="qty-btn" (click)="increaseQty(i)" [disabled]="isOutOfStock(item)">+</button>
             </div>
           </div>
 

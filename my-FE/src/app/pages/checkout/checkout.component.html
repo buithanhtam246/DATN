@@ -77,8 +77,8 @@
             
             <div class="form-group">
               <label>Số Điện Thoại *</label>
-              <input 
-                type="text" 
+              <input
+type="text" 
                 placeholder="Nhập số điện thoại (10 số)" 
                 [(ngModel)]="newAddressPhone"
                 (change)="validateNewAddressPhone()"
@@ -152,12 +152,12 @@
             </button>
             <button type="button" class="btn-save" (click)="addNewAddress()" [disabled]="isAddingAddress || !isNewAddressPhoneValid">
               <span *ngIf="isAddingAddress">Đang thêm...</span>
-              <span *ngIf="!isAddingAddress">Lưu Địa Chỉ</span>
+<span *ngIf="!isAddingAddress">Lưu Địa Chỉ</span>
             </button>
           </div>
         </div>
 
-        <!-- Form nhập địa chỉ đơn giản (nếu không có địa chỉ đã lưu) -->
+        <!-- Form nhập địa chỉ theo cấp (nếu không có địa chỉ đã lưu) -->
         <div class="manual-address-form" *ngIf="addresses.length === 0 && !showAddNewAddress">
           <div class="form-group">
             <label>Tên Người Nhận *</label>
@@ -181,15 +181,57 @@
               required>
           </div>
 
-          <div class="form-group">
-            <label>Địa Chỉ Chi Tiết *</label>
-            <input 
-              type="text" 
-              placeholder="Số nhà, tên đường, tỉnh/thành phố, quận/huyện, phường/xã" 
-              [(ngModel)]="manualAddressText"
-              (change)="updateManualAddress()"
-              class="form-control"
-              required>
+          <div class="form-group-inline">
+            <div class="form-group">
+              <label>Tỉnh/Thành Phố *</label>
+              <select 
+                [(ngModel)]="manualAddressProvince"
+                (change)="onManualProvinceChange(manualAddressProvince)"
+                class="form-control"
+                required>
+                <option value="">Chọn tỉnh/thành phố</option>
+                <option *ngFor="let prov of provinces" [value]="prov">{{prov}}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Quận/Huyện *</label>
+              <select 
+                [(ngModel)]="manualAddressDistrict"
+                (change)="onManualDistrictChange(manualAddressDistrict)"
+                class="form-control"
+                [disabled]="!manualAddressProvince"
+                required>
+                <option value="">Chọn quận/huyện</option>
+                <option *ngFor="let dist of manualDistricts" [value]="dist">{{dist}}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-inline">
+            <div class="form-group">
+              <label>Phường/Xã *</label>
+              <select 
+                [(ngModel)]="manualAddressWard"
+                (change)="onManualWardChange(manualAddressWard)"
+                class="form-control"
+                [disabled]="!manualAddressDistrict"
+                required>
+                <option value="">Chọn phường/xã</option>
+                <option *ngFor="let ward of manualWards" [value]="ward">{{ward}}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Địa Chỉ Chi Tiết *</label>
+              <input 
+                type="text" 
+                placeholder="Số nhà, tên đường" 
+                [(ngModel)]="manualAddressText"
+                (change)="updateManualAddress()"
+                class="form-control"
+                required>
+            </div>
           </div>
         </div>
         
@@ -207,21 +249,60 @@
       <!-- Voucher Section -->
       <div class="voucher-section">
         <h4 class="section-title">Mã Voucher</h4>
-        <div class="voucher-input-group" *ngIf="!appliedVoucher">
+        <div class="voucher-input-group">
           <input 
             type="text" 
             placeholder="Nhập mã voucher"
             [(ngModel)]="voucherCode"
             class="form-control voucher-input"
-            [disabled]="isApplyingVoucher">
+            [disabled]="isApplyingVoucher || !!appliedVoucher">
           <button 
             type="button" 
             class="btn-apply-voucher"
             (click)="applyVoucher()"
-            [disabled]="isApplyingVoucher || !voucherCode.trim()">
+            [disabled]="isApplyingVoucher || !!appliedVoucher || !voucherCode.trim()">
             <span *ngIf="isApplyingVoucher">Đang kiểm tra...</span>
-            <span *ngIf="!isApplyingVoucher">Áp dụng</span>
+            <span *ngIf="!isApplyingVoucher && !appliedVoucher">Áp dụng</span>
+            <span *ngIf="!isApplyingVoucher && appliedVoucher">Đã áp dụng</span>
           </button>
+          <button type="button" class="btn-show-vouchers" (click)="toggleVouchersModal(true)">
+            Voucher khả dụng
+          </button>
+        </div>
+
+        <div class="voucher-list" *ngIf="availableVouchers.length > 0">
+          <div
+            *ngFor="let voucher of availableVouchers"
+            class="voucher-card"
+            [class.applicable]="isVoucherApplicable(voucher)"
+            [class.unavailable]="!isVoucherApplicable(voucher)"
+            [class.active]="appliedVoucher?.code === voucher.code">
+            <div class="voucher-card-top">
+<div class="voucher-main-info">
+                <span class="voucher-code-badge">{{ voucher.code }}</span>
+                <span class="voucher-title">{{ voucher.name }}</span>
+              </div>
+
+              <button
+                type="button"
+                class="btn-use-voucher"
+                (click)="selectVoucher(voucher)"
+                [disabled]="!isVoucherApplicable(voucher) || appliedVoucher?.code === voucher.code || isApplyingVoucher">
+                {{ appliedVoucher?.code === voucher.code ? 'Đang áp dụng' : 'Dùng ngay' }}
+              </button>
+            </div>
+
+            <div class="voucher-card-meta">
+              <span *ngIf="voucher.discountType === 'percentage'">Giảm {{ voucher.discountValue }}%</span>
+              <span *ngIf="voucher.discountType === 'fixed'">Giảm {{ voucher.discountValue | number:'1.0-0' }}đ</span>
+              <span *ngIf="voucher.maxDiscount">Tối đa {{ voucher.maxDiscount | number:'1.0-0' }}đ</span>
+              <span>Đơn tối thiểu {{ voucher.minimumOrder | number:'1.0-0' }}đ</span>
+            </div>
+
+            <p class="voucher-unavailable-note" *ngIf="!isVoucherApplicable(voucher)">
+              {{ getVoucherUnavailableReason(voucher) }}
+            </p>
+          </div>
         </div>
 
         <!-- Hiển thị voucher đã áp dụng -->
@@ -257,15 +338,31 @@
 
       <div class="shipping-methods">
         <h4 class="section-title">Phương thức thanh toán</h4>
-        <select 
-          [(ngModel)]="selectedShippingMethod"
-          class="form-control"
-          required>
-          <option value="">Chọn phương thức</option>
-          @for (method of paymentMethods; track method.id) {
-            <option [value]="method.name">{{ method.name }}</option>
-          }
-        </select>
+
+        <div class="payment-methods">
+          <label *ngFor="let method of paymentMethods" class="payment-option" [class.selected]="selectedShippingMethod === method.name">
+            <input type="radio" name="paymentMethod" [value]="method.name" [(ngModel)]="selectedShippingMethod" />
+            <div class="option-content">
+              <div class="option-left">
+                <div class="method-logo" *ngIf="method.logo">
+<img [src]="method.logo" [alt]="method.name" />
+                </div>
+                <div class="method-info">
+                  <div class="method-name">{{ method.name }}</div>
+                  <div class="method-desc" *ngIf="method.description">{{ method.description }}</div>
+                </div>
+              </div>
+              <div class="option-right">
+                <div class="select-indicator" aria-hidden="true"></div>
+              </div>
+            </div>
+          </label>
+
+          <!-- Fallback when no payment methods loaded -->
+          <div class="no-methods" *ngIf="paymentMethods.length === 0">
+            <small>Chưa có phương thức thanh toán. Vui lòng thử lại sau.</small>
+          </div>
+        </div>
       </div>
 
       <div class="button-group">
@@ -316,12 +413,14 @@
           <span class="total-amount">{{ total | number:'1.0-0' }}đ</span>
         </div>
 
+        <!-- Reset button removed: cart will be cleared automatically after successful checkout -->
+
         <!-- Cart Items Preview -->
         <div class="cart-items-preview">
           <div *ngFor="let item of cart" class="preview-item">
-            <img [src]="item.image" [alt]="item.name" class="item-image">
+<img [src]="item.image || '/assets/placeholder.png'" [alt]="item.name || item.title || 'Sản phẩm'" class="item-image">
             <div class="item-info">
-              <h4>{{ item.name }}</h4>
+              <h4>{{ item.name || item.title || 'Sản phẩm' }}</h4>
               <p class="item-variant">
                 <span *ngIf="item.color">{{ item.color }}</span>
                 <span *ngIf="item.size"> / Size {{ item.size }}</span>
@@ -331,6 +430,44 @@
               </p>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Vouchers modal -->
+<div *ngIf="showVouchersModal" class="voucher-modal modal-overlay" (click)="toggleVouchersModal(false)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Voucher khả dụng</h3>
+      <button class="close-btn" type="button" (click)="toggleVouchersModal(false)">✕</button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="isLoadingVouchers" class="text-center p-4">Đang tải voucher...</div>
+      <div *ngIf="!isLoadingVouchers && availableVouchers.length === 0" class="p-4">Không có voucher khả dụng.</div>
+
+      <div class="voucher-list modal-list" *ngIf="availableVouchers.length > 0">
+        <div *ngFor="let voucher of availableVouchers" class="voucher-card modal-card"
+             [class.applicable]="isVoucherApplicable(voucher)"
+             [class.unavailable]="!isVoucherApplicable(voucher)">
+          <div class="voucher-main">
+            <div>
+              <strong>{{voucher.code}}</strong>
+              <div class="voucher-name">{{voucher.name}}</div>
+            </div>
+            <div>
+              <button type="button" class="btn-use-voucher" (click)="selectVoucher(voucher)" [disabled]="!isVoucherApplicable(voucher)">
+                Chọn
+              </button>
+            </div>
+          </div>
+          <div class="voucher-meta">
+            <span *ngIf="voucher.discountType === 'percentage'">Giảm {{ voucher.discountValue }}%</span>
+            <span *ngIf="voucher.discountType === 'fixed'">Giảm {{ voucher.discountValue | number:'1.0-0' }}đ</span>
+            <span>Đơn tối thiểu {{ voucher.minimumOrder | number:'1.0-0' }}đ</span>
+          </div>
+          <div *ngIf="!isVoucherApplicable(voucher)" class="voucher-note">{{ getVoucherUnavailableReason(voucher) }}</div>
         </div>
       </div>
     </div>

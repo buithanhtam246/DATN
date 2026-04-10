@@ -157,4 +157,16 @@ export class ProductService {
   getRecentOrders(limit: number = 10): Observable<any> {
     return this.http.get(`${this.baseUrl}/dashboard/recent-orders?limit=${limit}`);
   }
+
+  // Doanh thu theo ngày/tháng/năm
+  getRevenueSeries(params: { groupBy: 'day' | 'month' | 'year'; year?: number; month?: number; startYear?: number; endYear?: number }): Observable<any> {
+    const qs = new URLSearchParams();
+    qs.set('groupBy', params.groupBy);
+    if (params.year) qs.set('year', String(params.year));
+    if (params.month) qs.set('month', String(params.month));
+    if (params.startYear) qs.set('startYear', String(params.startYear));
+    if (params.endYear) qs.set('endYear', String(params.endYear));
+    const query = qs.toString();
+    return this.http.get(`${this.baseUrl}/dashboard/revenue?${query}`);
+  }
 }

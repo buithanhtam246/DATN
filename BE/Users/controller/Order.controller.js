@@ -61,6 +61,14 @@ class OrderController {
 
   async create(req, res) {
     try {
+      // Debug logs: capture requester and payload to help identify server-side errors
+      try {
+        console.log('[Order.create] incoming user id:', req.user?.id);
+        console.log('[Order.create] incoming body:', JSON.stringify(req.body));
+      } catch (e) {
+        console.warn('[Order.create] failed to stringify request body for logging');
+      }
+
       const userId = req.user.id; // Lấy từ token đăng nhập
       const order = await orderService.checkout(userId, req.body);
       
@@ -70,10 +78,17 @@ class OrderController {
         data: order
       });
     } catch (err) {
-      res.status(500).json({
-        success: false,
-        message: err.message
-      });
+      console.error('[Order.create] error:', err);
+      // Heuristic: return 400 for validation-like errors (client input)
+      const msg = err && err.message ? String(err.message) : '';
+      const clientErrorKeywords = ['Không', 'không', 'khong', 'Không tìm', 'không tồn', 'không hợp lệ', 'Không tìm thấy', 'Không tìm thấy variant', 'một hoặc nhiều'];
+      const isClientError = clientErrorKeywords.some(k => msg.includes(k));
+
+      if (isClientError) {
+        return res.status(400).json({ success: false, message: msg });
+      }
+
+      res.status(500).json({ success: false, message: err.message });
     }
   }
 

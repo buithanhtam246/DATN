@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const cartController = require('../controller/cart.controller');
+const { optionalAuthMiddleware } = require('../middleware/auth.middleware');
+
+// Nếu có token thì gắn req.user để cart tách theo user
+router.use(optionalAuthMiddleware);
 
 // Tất cả route không cần authentication
 // Tạo giỏ hàng mới

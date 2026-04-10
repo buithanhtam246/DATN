@@ -72,14 +72,14 @@
                 <div class="product-info">
                   <span class="product-name">{{item.product_name}}</span>
                   <div class="product-variant-info">
-                    <span *ngIf="item.color_id" class="product-color">Color ID: {{item.color_id}}</span>
-                    <span *ngIf="item.size_id" class="product-size">Size: {{item.size_id}}</span>
+                    <span *ngIf="item.color_name" class="product-color">Màu: {{item.color_name}}</span>
+                    <span *ngIf="item.size_name" class="product-size">Size: {{item.size_name}}</span>
                   </div>
                 </div>
               </div>
               <span class="col-quantity">x{{item.quantity}}</span>
-              <span class="col-price">{{item.price | currency:'VND':'symbol':'1.0-0'}}</span>
-              <span class="col-total">{{(item.price * item.quantity) | currency:'VND':'symbol':'1.0-0'}}</span>
+              <span class="col-price">{{getItemPrice(item) | currency:'VND':'symbol':'1.0-0'}}</span>
+              <span class="col-total">{{(getItemPrice(item) * (item.quantity || 0)) | currency:'VND':'symbol':'1.0-0'}}</span>
             </div>
           </div>
         </div>

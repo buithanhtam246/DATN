@@ -15,8 +15,15 @@ export class VouchersComponent implements OnInit {
   searchQuery = signal('');
   showModal = signal(false);
   voucherForm: FormGroup;
+  readonly todayIsoDate: string;
 
   constructor(private voucherService: VoucherService, private fb: FormBuilder) {
+    const now = new Date();
+    const yyyy = String(now.getFullYear());
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    this.todayIsoDate = `${yyyy}-${mm}-${dd}`;
+
     this.voucherForm = this.fb.group({
       code_voucher: ['', [Validators.required]],
       name_voucher: ['', [Validators.required]],
@@ -28,6 +35,9 @@ export class VouchersComponent implements OnInit {
       start_date: ['', [Validators.required]],
       promotion_date: ['', [Validators.required]]
     }, { validators: this.endDateAfterStartDate.bind(this) });
+
+    // Disable end date until start date is selected
+    this.voucherForm.get('promotion_date')?.disable({ emitEvent: false });
   }
 
   // Validator: ngày kết thúc phải sau ngày bắt đầu
@@ -70,6 +80,28 @@ export class VouchersComponent implements OnInit {
 
   ngOnInit() {
     this.loadVouchers();
+
+    this.voucherForm.get('start_date')?.valueChanges.subscribe((startDate) => {
+      const endCtrl = this.voucherForm.get('promotion_date');
+      if (!endCtrl) return;
+
+      if (!startDate) {
+        endCtrl.reset(null, { emitEvent: false });
+        endCtrl.disable({ emitEvent: false });
+        return;
+      }
+
+      endCtrl.enable({ emitEvent: false });
+
+      const endDate = endCtrl.value;
+      if (endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (end <= start) {
+          endCtrl.reset(null, { emitEvent: false });
+        }
+      }
+    });
   }
 
   loadVouchers() {

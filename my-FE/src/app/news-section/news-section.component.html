@@ -5,17 +5,15 @@
   </div>
 
   <div class="news-grid">
-    @for (article of articles; track article.id) {
-      <div class="news-card">
-        <div class="news-image">
-          <img [src]="article.imageUrl" [alt]="article.title" />
-        </div>
-        <div class="news-content">
-          <p class="news-date">{{ article.date }}</p>
-          <h3 class="news-title">{{ article.title }}</h3>
-          <button class="read-more-btn">Đọc thêm</button>
-        </div>
+    <div *ngFor="let article of articles; trackBy: trackById" class="news-card">
+      <div class="news-image">
+        <img [src]="article.imageUrl" [alt]="article.title" />
       </div>
-    }
+      <div class="news-content">
+        <p class="news-date">{{ article.date }}</p>
+        <h3 class="news-title">{{ article.title }}</h3>
+        <a class="read-more-btn" [routerLink]="['/ttintucws', (article.slug || article.id)]">Đọc thêm</a>
+      </div>
+    </div>
   </div>
 </section>

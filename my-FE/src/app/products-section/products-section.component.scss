@@ -10,9 +10,9 @@
 .section-header {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 $spacing-xl;
+  padding: 0 $spacing-xxl; /* more left/right space to match mock */
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start; /* align title to the left */
   align-items: center;
   margin-bottom: $spacing-xl;
 
@@ -22,14 +22,24 @@
 }
 
 .section-title {
-  font-size: $font-size-xxl;
-  font-weight: $font-weight-bold;
+  font-size: 3.5rem; /* slightly larger for strong presence */
+  font-weight: 900;
   color: $color-text;
-  margin: 0;
+  margin: 0 0 0 $spacing-sm; /* small left offset from container */
   letter-spacing: 2px;
+  text-transform: uppercase;
+  line-height: 1.02;
+
+  @include desktop {
+    font-size: 3.75rem; /* ~60px on desktop */
+  }
+
+  @include tablet {
+    font-size: 2.6rem;
+  }
 
   @include mobile {
-    font-size: $font-size-xl;
+    font-size: 1.8rem;
   }
 }
 

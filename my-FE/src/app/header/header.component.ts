@@ -52,7 +52,8 @@ export class HeaderComponent {
    * Handle favorites action
    */
   onFavorites(): void {
-    // TODO: Implement favorites functionality
+    const token = localStorage.getItem('authToken');
+    this.router.navigate([token ? '/favorites' : '/login']);
   }
 
   /**

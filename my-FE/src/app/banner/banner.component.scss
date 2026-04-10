@@ -8,6 +8,9 @@
   overflow: hidden;
   margin: 0;
   padding: 0;
+  /* Make banner fit the viewport but slightly reduced so header/footer remain visible */
+  height: 90vh;
+  min-height: 420px;
 }
 
 .banner-container {
@@ -15,17 +18,41 @@
   max-width: 100%;
   position: relative;
   @include flex-center;
+  height: 100%;
   padding: 0;
   margin: 0;
 }
 
 /* Banner Full Image */
 .banner-full-image {
-  width: 100%;
-  height: auto;
+  /* Scale the image to the banner height while preserving the whole image */
+  height: 100%;
+  width: auto;
   max-width: 100%;
   object-fit: contain;
   display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@include tablet {
+  .banner {
+    /* allow slightly smaller hero on tablets */
+    height: 75vh;
+    min-height: 380px;
+  }
+}
+
+@include mobile {
+  .banner {
+    /* on small screens show a bit less height so header/footer remain visible */
+    height: 65vh;
+    min-height: 320px;
+  }
+  .explore-more-btn {
+    top: 12%;
+    right: $spacing-sm;
+  }
 }
 
 /* Explore More Button - Top Right */
@@ -137,27 +164,4 @@
   }
 }
 
-/* Right Product Info Container */
-.banner-product {
-  position: absolute;
-  bottom: $spacing-xxl;
-  right: $spacing-xxl;
-  z-index: $z-index-dropdown;
-
-  @include desktop {
-    bottom: $spacing-xl;
-    right: $spacing-xl;
-  }
-
-  @include tablet {
-    bottom: $spacing-lg;
-    right: $spacing-lg;
-    left: $spacing-lg;
-  }
-
-  @include mobile {
-    bottom: $spacing-md;
-    right: $spacing-md;
-    left: $spacing-md;
-  }
-}
+/* `.banner-product` removed because product card was taken out from template */

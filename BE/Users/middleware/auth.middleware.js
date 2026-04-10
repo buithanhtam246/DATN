@@ -33,7 +33,10 @@ const authMiddleware = (req, res, next) => {
     console.log('Token verification failed:', err.message);
     return res.status(401).json({ 
       success: false,
-      message: 'Token hết hạn hoặc không hợp lệ' 
+      message:
+        err && err.message === 'invalid signature'
+          ? 'Token không hợp lệ (chữ ký sai). Vui lòng đăng nhập lại.'
+          : 'Token hết hạn hoặc không hợp lệ'
     });
   }
 };
@@ -48,7 +51,27 @@ const adminMiddleware = (req, res, next) => {
   next();
 };
 
+// Optional auth: nếu có token thì decode và gắn vào req.user,
+// nếu không có token thì vẫn cho đi tiếp (phục vụ guest).
+const optionalAuthMiddleware = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return next();
+
+    const token = authHeader.split(' ')[1];
+    if (!token) return next();
+
+    const decoded = jwtUtil.verifyToken(token);
+    req.user = decoded;
+    return next();
+  } catch (err) {
+    // Token sai/hết hạn: coi như guest (không chặn request)
+    return next();
+  }
+};
+
 module.exports = {
   authMiddleware,
-  adminMiddleware
+  adminMiddleware,
+  optionalAuthMiddleware
 };

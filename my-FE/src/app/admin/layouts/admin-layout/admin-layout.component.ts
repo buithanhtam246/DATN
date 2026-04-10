@@ -34,7 +34,8 @@ export class AdminLayoutComponent {
     { label: 'Màu sắc', route: '/admin/colors', icon: 'fa-solid fa-palette' },
     { label: 'Kích thước', route: '/admin/sizes', icon: 'fa-solid fa-ruler' },
     { label: 'Đánh giá', route: '/admin/reviews', icon: 'fa-solid fa-star' },
-    { label: 'Voucher', route: '/admin/vouchers', icon: 'fa-solid fa-ticket' }
+    { label: 'Voucher', route: '/admin/vouchers', icon: 'fa-solid fa-ticket' },
+    { label: 'Tin tức', route: '/admin/news', icon: 'fa-solid fa-newspaper' }
   ];
 
   toggleSidebar() {
